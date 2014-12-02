@@ -14,6 +14,7 @@ C  06/11/2002 GH  Modified for Y2K
 C  08/12/2003 CHP Added I/O error checking
 C  03/24/2004 CHP Export PSENP 
 !  11/26/2007 CHP THRESH, SDPRO, SDLIP moved from eco to cul file
+C  12/01/2014 Added vernalization code (vrnsens,vrnreq)
 C-----------------------------------------------------------------------
 C  Called by: PHENOL
 C  Calls    : ERROR, FIND, IGNORE
@@ -23,7 +24,8 @@ C=======================================================================
      &    ATEMP, CLDVAR, CLDVRR, CSDVAR, CSDVRR, CROP,    !Output
      &    CTMP, DLTYP, EVMODC, NPRIOR, NSENP, OPTBI,      !Output
      &    PHTHRS, PLME, PSENP, SDAGE, SDEPTH, SLOBI,      !Output
-     &    THVAR, TRIFOL, TSELC, TB, TO1, TO2, TM, WSENP)  !Output
+     &    THVAR, TRIFOL, TSELC, TB, TO1, TO2, TM, WSENP,  !Output
+     &     vrnsens,vrnreq)                                !Output
 
 !-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
@@ -60,6 +62,7 @@ C=======================================================================
       REAL TB(5), TO1(5), TO2(5), TM(5)
       REAL WSENP(20), NSENP(20)
       REAL PHTHRS(20), PSENP(20)
+      real vrnsens,vrnreq
 
 !-----------------------------------------------------------------------
 !     Define constructed variable types based on definitions in
@@ -127,8 +130,9 @@ C=======================================================================
         CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
         IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO,LNUM)
         READ(LUNIO,165,IOSTAT=ERR) ECONO, CSDVAR, PPSEN, PH2T5, 
-     &              PHTHRS(6), PHTHRS(8), PHTHRS(10), PHTHRS(13)
-  165   FORMAT(24X,A6,7F6.0)
+     &              PHTHRS(6), PHTHRS(8), PHTHRS(10), PHTHRS(13),
+     &       vrnsens,vrnreq
+  165   FORMAT(24X,A6,7F6.0,66X,2f6.0)
         LNUM = LNUM + 1
         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
       ENDIF
@@ -178,6 +182,14 @@ C=======================================================================
         READ(CHAR,250,IOSTAT=ERR) TB(3), TO1(3), TO2(3), TM(3)
         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
   
+        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+        READ(CHAR,250,IOSTAT=ERR) TB(4), TO1(4), TO2(4), TM(4)
+        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+  
+        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+        READ(CHAR,250,IOSTAT=ERR) TB(5), TO1(5), TO2(5), TM(5)
+        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+
         DO I = 1,NPHS
           CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
           READ(CHAR,270,IOSTAT=ERR) J, NPRIOR(J), DLTYP(J), CTMP(J),

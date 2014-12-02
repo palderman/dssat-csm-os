@@ -10,6 +10,7 @@ C  07/09/1997 CHP modified for CROPGRO restructuring
 C             Added DYNAMIC variable for model control
 !  07/13/2006 CHP Added P model
 !  06/11/2007 CHP PStres2 affects growth
+!  12/01/2014 PDA added vernalization
 !  06/15/2022 CHP Added CropStatus
 C-----------------------------------------------------------------------
 !     Called from:    Main program
@@ -71,6 +72,8 @@ C=======================================================================
 
       REAL  CURV  !Function subroutine
 
+      real vrnsens,vrnreq,vrnfac,cumvrn,devrn
+
 !     P Module
       REAL PStres2
       REAL SeedFrac, VegFrac
@@ -109,7 +112,8 @@ C=======================================================================
      &    ATEMP, CLDVAR, CLDVRR, CSDVAR, CSDVRR, CROP,    !Output
      &    CTMP, DLTYP, EVMODC, NPRIOR, NSENP, OPTBI,      !Output
      &    PHTHRS, PLME, PSENP, SDAGE, SDEPTH, SLOBI,      !Output
-     &    THVAR, TRIFOL, TSELC, TB, TO1, TO2, TM, WSENP)  !Output
+     &    THVAR, TRIFOL, TSELC, TB, TO1, TO2, TM, WSENP,  !Output
+     &    vrnsens,vrnreq)
 
 C-----------------------------------------------------------------------
 C     Set minimum days for phenological events under optimum conditions
@@ -142,6 +146,9 @@ C       Number of days from flowering to harvest maturity
       TDUMX2 = 0.0
       TNTFAC = 0.0
       TNTFC2 = 0.0
+      vrnfac = 1
+      cumvrn = 0
+      
       DO J = 1, 20
         FNSTR(J) = 1.
         FPSTR(J) = 1.
@@ -238,6 +245,10 @@ C-----------------------------------------------------------------------
           FT(J) = FT(J) + FTHR/REAL(TS)
         ENDDO
 C 24 changed to TS by Bruce Kimball on 3Jul17
+        
+        if(j>1.and.j<6.and.cumvrn<vrnreq)then
+           ft(j) = ft(j)*(1-vrnsens)*cumvrn/vrnreq
+        end if
 
         IF (DAS .LT. NR1) THEN
           FUDAY(J) = CURV(DLTYP(J),1.0,CSDVAR,CLDVAR,THVAR,DAYL)
@@ -249,6 +260,19 @@ C 24 changed to TS by Bruce Kimball on 3Jul17
         FNSTR(J) = 1. + (1. - NSTRES) * NSENP(J)
         FPSTR(J) = 1. + (1. - PStres2) * PSENP(J)
       ENDDO
+C---------------------------------------------
+C     Compute (de-)vernalization daily accumulation
+C---------------------------------------------
+      vrnfac = 0
+      devrn = 0
+      do i = 1,24
+         vrnfac = vrnfac +
+     &        curv('LIN',TB(4),TO1(4),TO2(4),TM(4),TGRO(I))/24
+         devrn = devrn - 
+     &        curv('LIN',TB(5),TO1(5),TO2(5),TM(5),TGRO(I))/24
+      end do
+
+
 C-----------------------------------------------------------------------
 C     Transplants
 C-----------------------------------------------------------------------
@@ -305,6 +329,8 @@ C**********************************************************************
 C     Daily Integration 
 C**********************************************************************
       ELSE IF (DYNAMIC .EQ. INTEGR) THEN
+         
+         if(cumvrn < vrnreq) cumvrn = cumvrn + vrnfac - devrn
 
 C----------------------------------------------------------------------
 C     Check to see if stages occur today, if so set them in RSTAGES
