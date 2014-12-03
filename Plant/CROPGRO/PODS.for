@@ -763,7 +763,8 @@ C-GH          IF (SHELN(NPP) .GE. 0.001 .AND. GRRAT1 .GE. 0.001) THEN
 !    SO WE CAN PREVENT FUNNY LATE BUMPS (WMS-88, 84RF) OCCURRING AFTER
 !    FULL LOAD IS APPARENTLY SET, BUT DROUGHT IS RELEASED.
 !-----------------------------------------------------------------------
-          IF (TRIGGR .EQ. 0 .AND. CUMSIG .LT. 0.98) THEN
+          IF ((TRIGGR .EQ. 0 .AND. CUMSIG .LT. 0.98).or.
+     &        (lngpeg<1e-5.and.das.ge.ndset)) THEN
             TRIGGR = 1
           ENDIF
 

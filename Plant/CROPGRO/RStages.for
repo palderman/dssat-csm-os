@@ -507,6 +507,24 @@ C-------------------------------------------------------------------------------
           REM(14) = (PHZACC(13) - PHTHRS(13))/(PROG(13) + 0.00001)
         ENDIF
       ENDIF
+      IF ((DAS .GE. NVALPH(NPRIOR(14))) .AND. (NDLEAF .GE. NVALP0)) THEN
+        PROG(14) = FT(14) * FUDAY(14)*MIN(FSW(14),FNSTR(14),FPSTR(14))
+     &      * REM(NPRIOR(14))
+        PHZACC(14) = PHZACC(14) + PROG(14)
+!        IF(PHZACC(14) .GE. PHTHRS(14)) THEN
+        IF(PHZACC(14) - PHTHRS(14) > -1.E-6) THEN
+C-------------------------------------------------------------------------------
+C       Stage NDLEAF, end of leaf growth, occurs on day DAS
+C-------------------------------------------------------------------------------
+          ndset = DAS
+          STGDOY(14) = YRDOY
+          NVALPH(15) = ndset
+C-------------------------------------------------------------------------------
+C       Account for the part of today that contributes to the next phase(s)
+C-------------------------------------------------------------------------------
+          REM(15) = (PHZACC(14) - PHTHRS(14))/(PROG(14) + 0.00001)
+        ENDIF
+      ENDIF
 
 !      !Daily printout
 !      !Note: just print PHTEM will get rid of debug vs. release problems

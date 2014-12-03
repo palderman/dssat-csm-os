@@ -39,7 +39,7 @@ C=======================================================================
       SAVE
 !----------------------------------------------------------------------------
       INTEGER NPHS
-      PARAMETER (NPHS = 13)
+      PARAMETER (NPHS = 14)
 
       CHARACTER*1 ISIMI, ISWWAT, PLME
       CHARACTER*2 CROP

@@ -647,7 +647,7 @@ C-----------------------------------------------------------------------
             WRITE (LUNIO,1500,IOSTAT=ERRNUM) VARNO,VRNAME,ECONO,CSDVAR,
      &           PPSEN,PH2T5,PHTHRS(6),PHTHRS(8),PHTHRS(10),PHTHRS(13),
      &           LFMAX,SLAVAR,SIZELF,XFRUIT,WTPSD,SFDUR,SDPDVR,PODUR,
-     &           THRESH, SDPRO, SDLIP, vrnsens, vrnreq
+     &           THRESH, SDPRO, SDLIP, vrnsens, vrnreq,phthrs(14)
 
 !       Ceres wheat, barley
 !       CropSim - wheat, barley, cassava
@@ -818,7 +818,7 @@ C-----------------------------------------------------------------------
 
  1400 FORMAT (A6,1X,A16,1X,A6,1X,F6.0,4(F6.1))
  1500 FORMAT (A6,1X,A16,1X,A6,F6.2,F6.3,5F6.2,F6.3,2F6.1,F6.2,
-     &        F6.3,3F6.2,F6.1,2F6.3,f6.2,f6.0)
+     &        F6.3,3F6.2,F6.1,2F6.3,f6.2,f6.0,f6.1)
  1550 FORMAT (A6,1X,A16,1X,A6,A)
 
  1600 FORMAT (A6,1X,A16,1X,A6,2(F6.1),F6.2,2(F6.1),F6.2,F6.0,

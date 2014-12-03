@@ -53,7 +53,7 @@ C=======================================================================
 
       PARAMETER (BLANK = ' ')
       PARAMETER (ERRKEY = 'IPPHEN')
-      PARAMETER (NPHS = 13)
+      PARAMETER (NPHS = 14)
 
       REAL ATEMP, CLDVAR, CLDVRR, CSDVAR, CSDVRR, EVMODC
       REAL OPTBI
@@ -131,8 +131,8 @@ C=======================================================================
         IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO,LNUM)
         READ(LUNIO,165,IOSTAT=ERR) ECONO, CSDVAR, PPSEN, PH2T5, 
      &              PHTHRS(6), PHTHRS(8), PHTHRS(10), PHTHRS(13),
-     &       vrnsens,vrnreq
-  165   FORMAT(24X,A6,7F6.0,66X,2f6.0)
+     &       vrnsens,vrnreq,phthrs(14)
+  165   FORMAT(24X,A6,7F6.0,66X,3f6.0)
         LNUM = LNUM + 1
         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
       ENDIF
