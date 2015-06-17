@@ -247,7 +247,7 @@ C-----------------------------------------------------------------------
 C 24 changed to TS by Bruce Kimball on 3Jul17
         
         if(j>1.and.j<6.and.cumvrn<vrnreq)then
-           ft(j) = ft(j)*(1-vrnsens)*cumvrn/vrnreq
+           ft(j) = ft(j)*(1-vrnsens)+ft(j)*vrnsens*cumvrn/vrnreq
         end if
 
         IF (DAS .LT. NR1) THEN
