@@ -41,6 +41,7 @@ C=====================================================================
 C-----------------------------------------------------------------------
       USE ModuleDefs
       USE FloodModule
+      use dssat_mpi
       IMPLICIT NONE
       SAVE
 
@@ -189,6 +190,9 @@ C-----------------------------------------------------------------------
      &    FERTDATA, HARVRES, IIRRI, IRRAMT, MDATE, NAP, OMADATA, 
      &    SOILPROP, TILLNO, TILLVALS, TOTIR, YRPLT)
 
+      if(mpi_child%use_mpi)then
+         call seasonal_registry%set_target('cum_irr',TOTIR)
+      end if
 C***********************************************************************
 C***********************************************************************
 C     Rate Calculations 

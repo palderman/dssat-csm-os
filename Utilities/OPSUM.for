@@ -29,6 +29,7 @@ C                   HIAM, EPCM, ESCM
 C=======================================================================
 
       MODULE SumModule
+      use csm_io
       USE ModuleDefs
 !     This module defines variables which are printed to SUMMARY.OUT file.
 
@@ -95,6 +96,7 @@ C-----------------------------------------------------------------------
 !     VSH
       USE CsvOutput
       USE Linklist
+      use dssat_mpi
       IMPLICIT NONE
       SAVE
 
@@ -179,8 +181,8 @@ C-----------------------------------------------------------------------
 
 !     Transfer values from constructed data types into local variables.
       DYNAMIC = CONTROL % DYNAMIC
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
+!      FILEIO  = CONTROL % FILEIO
+!      LUNIO   = CONTROL % LUNIO
       RUN     = CONTROL % RUN
       RNMODE  = CONTROL % RNMODE
       REPNO   = CONTROL % REPNO
@@ -208,64 +210,78 @@ C-----------------------------------------------------------------------
 !      date_time(7)  The seconds of the minute (range 0 to 59) - local time  
 !      date_time(8)  The milliseconds of the second (range 0 to 999) - local time  
       
-      OPEN (UNIT=LUNIO, FILE = FILEIO, STATUS = 'OLD', 
-     &  IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-      LNUM = 0
+!      OPEN (UNIT=LUNIO, FILE = FILEIO, STATUS = 'OLD', 
+!     &  IOSTAT=ERRNUM)
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!      LNUM = 0
 C-----------------------------------------------------------------------
 C      Find and Read Experimental Details Section
 C-----------------------------------------------------------------------
-      SECTION = '*EXP.D'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(3X,A8,1X,A2,1X,A60)',IOSTAT=ERRNUM) EXPER,CG,ENAME
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      SECTION = '*EXP.D'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ(LUNIO,'(3X,A8,1X,A2,1X,A60)',IOSTAT=ERRNUM) EXPER,CG,ENAME
+!        LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
 C-----------------------------------------------------------------------
 C       Find and Read TREATMENTS Section
 C-----------------------------------------------------------------------
-      SECTION = '*TREAT'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ (LUNIO,'(I3,I2,2(1X,I1),1X,A25)',IOSTAT=ERRNUM) 
-     &      TRTNUM, ROTNO, ROTOPT, CRPNO, TITLET
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      SECTION = '*TREAT'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ (LUNIO,'(I3,I2,2(1X,I1),1X,A25)',IOSTAT=ERRNUM) 
+!     &      TRTNUM, ROTNO, ROTOPT, CRPNO, TITLET
+!        LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
 
 C-----------------------------------------------------------------------
 C       Find and read Cultivar Section
 C-----------------------------------------------------------------------
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(3X,A2)',IOSTAT=ERRNUM) CROP
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      SECTION = '*CULTI'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ(LUNIO,'(3X,A2)',IOSTAT=ERRNUM) CROP
+!        LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
 
 C-----------------------------------------------------------------------
 C    Find and read Field Section
 C-----------------------------------------------------------------------
-      SECTION = '*FIELD'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(3X,A8,1X,A8,49X,A10)',IOSTAT=ERRNUM) 
-     &        FLDNAM, WSTATION, SLNO
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      SECTION = '*FIELD'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ(LUNIO,'(3X,A8,1X,A8,49X,A10)',IOSTAT=ERRNUM) 
+!     &        FLDNAM, WSTATION, SLNO
+!        LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
 
-      CLOSE (LUNIO)
+!      CLOSE (LUNIO)
+      if(csminp%find('*EXP.DETAILS')>0)then
+         call csminp%get('*EXP.DETAILS','EXPER',EXPER)
+         call csminp%get('*EXP.DETAILS','CG',CG)
+         call csminp%get('*EXP.DETAILS','ENAME',ENAME)
+         call csminp%get('*TREATMENTS','TRTNO',TRTNUM)
+         call csminp%get('*TREATMENTS','ROTNO',ROTNO)
+         call csminp%get('*TREATMENTS','ROTOPT',ROTOPT)
+         call csminp%get('*TREATMENTS','CRPNO',CRPNO)
+         call csminp%get('*TREATMENTS','TITLET',TITLET)
+         call csminp%get('*CULTIVAR','CROP',CROP)
+         call csminp%get('*FIELDS','FLDNAM',FLDNAM)
+         call csminp%get('*FIELDS','FILEW',WSTATION)
+         call csminp%get('*FIELDS','SLNO',SLNO)
+      end if
 
 C     Get unit number for SUMMARY.OUT file
       CALL GETLUN('OUTS', NOUTDS)
@@ -705,6 +721,7 @@ C     Console output for multi-season runs:
 C     Was OPBAT subroutine
 C-------------------------------------------------------------------
 !      IF (INDEX('NQSABCGF',RNMODE) .GT. 0 .OR. NYRS .GT. 1) THEN
+      if(.not.mpi_child%use_mpi)then
       IF ((INDEX('NQSABCGF',RNMODE) .GT. 0 .OR. NYRS .GT. 1) .AND.
      &    (IDETL .NE. "0")) THEN
           NLINES = RUN - 1
@@ -771,7 +788,7 @@ C-------------------------------------------------------------------
      &      ONAM, NINT(OCAM/1000.)
         NLINES=NLINES+1
       ENDIF
-
+      end if
 C-------------------------------------------------------------------
 !     Write Evaluate.OUT file
 !     IF((INDEX('0',IDETL) < 1 .AND. INDEX('IAEBCGDT',RNMODE) > 0) .AND.
@@ -1038,8 +1055,7 @@ C=======================================================================
         CASE ('YPNUM');SUMDAT % YPNUM  = VALUE(I)
 
         CASE ('NDCH'); SUMDAT % NDCH   = NINT(VALUE(I))
-        CASE ('TMINA')
-                       SUMDAT % TMINA  = VALUE(I)
+        CASE ('TMINA');SUMDAT % TMINA  = VALUE(I)
         CASE ('TMAXA');SUMDAT % TMAXA  = VALUE(I)
         CASE ('SRADA');SUMDAT % SRADA  = VALUE(I)
         CASE ('DAYLA');SUMDAT % DAYLA  = VALUE(I)

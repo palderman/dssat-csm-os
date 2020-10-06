@@ -77,14 +77,18 @@ C=======================================================================
       USE ModuleDefs 
       USE ModuleData
       USE HeaderMod
+      use dssat_netcdf
+      use dssat_mpi
+      use dssat_cmd_arg
+      use csm_io
 
       IMPLICIT NONE
 C-----------------------------------------------------------------------
-      CHARACTER*1   ANS,RNMODE,BLANK,UPCASE
+      CHARACTER*1   ANS,RNMODE,BLANK,UPCASE,IOX
       CHARACTER*6   ERRKEY,FINDCH,TRNARG
       CHARACTER*8   FNAME,DUMMY,MODELARG
       CHARACTER*12  FILEX   !,DSCSM,INPUT
-      CHARACTER*30  FILEB,FILEIO,FILEIOH
+      CHARACTER*69  FILEB,FILEIO,FILEIOH
       CHARACTER*78  MSG(10)
       CHARACTER*80  PATHEX
       CHARACTER*102 DSSATP
@@ -102,6 +106,8 @@ C-----------------------------------------------------------------------
 
       LOGICAL       FEXIST, DONE
 
+      integer pid
+
       PARAMETER (ERRKEY = 'CSM   ')      
       PARAMETER (BLANK  = ' ')
 
@@ -116,14 +122,38 @@ C     The variable "ISWITCH" is of type "SwitchType".
 
 !C-----------------------------------------------------------------------
 
+      if(cmd_arg_present('--MPI'))then
+         call mpi_child%connect()
+         if(cmd_arg_present('--gdb'))then
+            pid = getpid()      ! This is a gfortran extension
+            print *, 'DSSAT PID=',pid,' is ready for gdb attach.'
+            done = .FALSE.
+            do while(.not.done)
+               call sleep(2)
+            end do
+         end if
+      end if
+
       DONE = .FALSE.
       YRDOY_END = 9999999
+
+!     OPSYS defined in ModuleDefs.
+!      CALL SETOP()
 
 !     Pick up model version for setting the name of some files
       WRITE(ModelVerTxt,'(I2.2,I1)') Version%Major, Version%Minor
 
-      !Delete existing output files
-      CALL OPCLEAR
+      if(mpi_child%use_mpi)then
+         RNMODE = mpi_child%rnmode
+         RUN   = 0
+         REPNO = 1
+         CONTROL % REPNO = REPNO
+         call seasonal_registry%csv_to_registry(mpi_child%varlist)
+      else ! mpi_child%use_mpi
+!     Delete existing output files
+      if(.not.mpi_child%use_mpi)then
+         CALL OPCLEAR
+      end if
 
       CALL GETLUN('FILEIO', LUNIO)
       FILEIO = 'DSSAT47.INP'
@@ -132,6 +162,7 @@ C-----------------------------------------------------------------------
 C    Get argument from runtime module to determine path of the EXE files
 C-----------------------------------------------------------------------
       CALL GETARG(0,PATHX)   !,IPX
+      call path_adj(pathx) ! function to expand relative path
       CALL GETARG(1,DUMMY)   !,IP
       IF ((DUMMY(1:1) .NE. BLANK) .AND. (DUMMY(2:2) .EQ. BLANK))
      &    THEN
@@ -166,6 +197,23 @@ C      Q - Sequence analysis. Use Batch file to define experiment
 C      S - Spatial.  Use Batch file to define experiment
 C      T - Gencalc. Use Batch file to define experiments and treatment
 C-----------------------------------------------------------------------
+      call nc_batch%set_file_from_cmd_arg('--nc_batch')
+      if(nc_batch%yes)then
+         call nc_batch%open()
+         RNMODE='B'
+      else
+         call nc_batch%set_file_from_cmd_arg('--nc_seq')
+         if(nc_batch%yes)then
+            call nc_batch%open()
+            RNMODE='Q'
+         else
+            call nc_batch%set_file_from_cmd_arg('--nc_seas')
+            if(nc_batch%yes)then
+               call nc_batch%open()
+               RNMODE = 'N'
+            end if
+         end if
+      end if
 
       RNMODE = UPCASE(RNMODE)
       ROTNUM = 0
@@ -174,7 +222,7 @@ C-----------------------------------------------------------------------
 
 !     Read experiment file from command line -- run all treatments
       CASE('A')   !run All treatments
-        CALL GETARG(NARG+1,FILEX)   !,IP   !Experiment file
+        CALL GETARG(NARG+1,FILEX)   !,IP   !Experiment filex
         CALL GETARG(NARG+2,FILECTL) !,IP   !Simulation control file name
 
 !     Read experiment file and treatment number from command line
@@ -227,12 +275,17 @@ C-----------------------------------------------------------------------
 C    Open BATCH file
 C-----------------------------------------------------------------------
         IF (INDEX('NQSFBET',RNMODE) .GT. 0) THEN
-           CALL GETLUN('BATCH ', LUNBIO)
-           FINDCH='$BATCH'
-           OPEN (LUNBIO, FILE = FILEB,STATUS = 'UNKNOWN',IOSTAT=ERRNUM)
-           IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,28,FILEB,LINBIO)
-           CALL FIND (LUNBIO,FINDCH,LINBIO,IFIND)
-           IF (IFIND .EQ. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
+           if(nc_batch%yes)then
+              call nc_batch%read_batch()
+           else
+              CALL GETLUN('BATCH ', LUNBIO)
+              FINDCH='$BATCH'
+              OPEN (LUNBIO, FILE = FILEB,STATUS = 'UNKNOWN',
+     &              IOSTAT=ERRNUM)
+              IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,28,FILEB,LINBIO)
+              CALL FIND (LUNBIO,FINDCH,LINBIO,IFIND)
+              IF (IFIND .EQ. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
+           end if
         ENDIF
       ENDIF 
 
@@ -242,6 +295,8 @@ C-----------------------------------------------------------------------
       RUN   = 0
       REPNO = 1
       CONTROL % REPNO = REPNO
+
+      end if ! mpi_child%use_mpi
 
 C*********************************************************************** 
 C*********************************************************************** 
@@ -254,35 +309,117 @@ C***********************************************************************
       CONTROL % YRDOY = 0
       CALL PUT(CONTROL)
 
+      if(mpi_child%use_mpi)then
+
+         if(mpi_child%curr_trt_index == size(mpi_child%trtno))then
+            DONE = .TRUE.
+            GO TO 2000
+         end if
+
+         mpi_child%curr_trt_index = mpi_child%curr_trt_index + 1
+
+         FILEIO  = 'DSSAT47.INP'
+         FILEX   = ' '
+         RNMODE  = mpi_child%rnmode
+         ROTNUM = 1
+         TRTREP = 1
+         TRTNUM = mpi_child%trtno(mpi_child%curr_trt_index)
+
+      else ! mpi_child%use_mpi
+
       IF ((INDEX('NSFBT',RNMODE) .GT. 0) .OR. (INDEX('E',RNMODE) .GT.
      &     0 .AND. RUN .EQ. 1)) THEN
-        CALL IGNORE (LUNBIO,LINBIO,ISECT,CHARTEST)
-        IF (ISECT .EQ. 1) THEN
-
-          END_POS = LEN(TRIM(CHARTEST(1:92)))+1
-          FILEX = CHARTEST((END_POS-12):(END_POS-1))
-          PATHEX = CHARTEST(1:END_POS-13)
-          READ(CHARTEST(93:113),110,IOSTAT=ERRNUM) TRTNUM,TRTREP,ROTNUM
- 110      FORMAT(3(1X,I6))
-          IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
-        ELSE
-          DONE = .TRUE.
-          GO TO 2000
-        ENDIF
+         if(nc_batch%yes)then
+            if(nc_batch%current_run==size(nc_batch%FILEX))then
+               DONE = .TRUE.
+               GO TO 2000
+            end if
+            nc_batch%current_run = nc_batch%current_run + 1
+            END_POS = LEN(TRIM(nc_batch%FILEX(nc_batch%current_run)))+1
+            do i=END_POS,1,-1
+               if(nc_batch%filex(nc_batch%current_run)(i:i)==slash.or.
+     &              i == 1)then
+                  if(i==1)then
+                     FILEX = nc_batch%FILEX(
+     &                    nc_batch%current_run)(i:(END_POS-1))
+                  else
+                     FILEX = nc_batch%FILEX(
+     &                    nc_batch%current_run)(i+1:(END_POS-1))
+                  end if
+                    exit
+                end if
+            end do
+            if(END_POS > 1)then
+               PATHEX = nc_batch%FILEX(
+     &          nc_batch%current_run)(1:END_POS-13)
+            else
+               PATHEX = ' '
+            end if
+            TRTNUM = nc_batch%TRTNO(nc_batch%current_run)
+            TRTREP = nc_batch%RP(nc_batch%current_run)
+            ROTNUM = nc_batch%SQ(nc_batch%current_run)
+         else
+            CALL IGNORE (LUNBIO,LINBIO,ISECT,CHARTEST)
+            IF (ISECT .EQ. 1) THEN
+               END_POS = LEN(TRIM(CHARTEST(1:92)))+1
+               FILEX = CHARTEST((END_POS-12):(END_POS-1))
+               PATHEX = CHARTEST(1:END_POS-13)
+               READ(CHARTEST(93:113),110,IOSTAT=ERRNUM)
+     &              TRTNUM,TRTREP,ROTNUM
+ 110           FORMAT(3(1X,I6))
+               IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
+            ELSE
+               DONE = .TRUE.
+               GO TO 2000
+            ENDIF
+         end if
       ENDIF
       IF (INDEX('Q',RNMODE) .GT. 0) THEN
-        CALL IGNORE (LUNBIO,LINBIO,ISECT,CHARTEST)
-        IF (ISECT .EQ. 0 .OR. RUN .EQ. 1) THEN
-          REWIND(LUNBIO)
-          CALL FIND (LUNBIO,FINDCH,LINBIO,IFIND)
-          CALL IGNORE (LUNBIO,LINBIO,ISECT,CHARTEST)
-        ENDIF
-        END_POS = INDEX(CHARTEST,BLANK)
-        FILEX = CHARTEST((END_POS-12):(END_POS-1))
-        PATHEX = CHARTEST(1:END_POS-13)
-        READ (CHARTEST(93:113),110,IOSTAT=ERRNUM) TRTNUM,TRTREP,ROTNUM
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
+         if(nc_batch%yes)then
+            if(nc_batch%current_run==size(nc_batch%FILEX))then
+               DONE = .TRUE.
+               GO TO 2000
+            end if
+            nc_batch%current_run = nc_batch%current_run + 1
+            do i=END_POS,1,-1
+               if(nc_batch%filex(nc_batch%current_run)(i:i)==slash.or.
+     &              i == 1)then
+                  if(i==1)then
+                     FILEX = nc_batch%FILEX(
+     &                    nc_batch%current_run)(i:(END_POS-1))
+                  else
+                     FILEX = nc_batch%FILEX(
+     &                    nc_batch%current_run)(i+1:(END_POS-1))
+                  end if
+                    exit
+                end if
+            end do
+            if(END_POS > 1)then
+               PATHEX = nc_batch%FILEX(
+     &          nc_batch%current_run)(1:END_POS-13)
+            else
+               PATHEX = ' '
+            end if
+            TRTNUM = nc_batch%TRTNO(nc_batch%current_run)
+            TRTREP = nc_batch%RP(nc_batch%current_run)
+            ROTNUM = nc_batch%SQ(nc_batch%current_run)
+         else
+            CALL IGNORE (LUNBIO,LINBIO,ISECT,CHARTEST)
+            IF (ISECT .EQ. 0 .OR. RUN .EQ. 1) THEN
+               REWIND(LUNBIO)
+               CALL FIND (LUNBIO,FINDCH,LINBIO,IFIND)
+               CALL IGNORE (LUNBIO,LINBIO,ISECT,CHARTEST)
+            ENDIF
+            END_POS = INDEX(CHARTEST,BLANK)
+            FILEX = CHARTEST((END_POS-12):(END_POS-1))
+            PATHEX = CHARTEST(1:END_POS-13)
+            READ (CHARTEST(93:113),110,IOSTAT=ERRNUM)
+     &           TRTNUM,TRTREP,ROTNUM
+            IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
+        end if
       ENDIF
+
+      end if ! mpi_child%use_mpi
 
       CONTROL % FILEIO  = FILEIO
       CONTROL % FILEX   = FILEX
@@ -290,6 +427,7 @@ C***********************************************************************
       CONTROL % ROTNUM  = ROTNUM
       CONTROL % TRTNUM  = TRTNUM
       CONTROL % ERRCODE = 0
+
       CALL PUT(CONTROL)
 
 C-KRT**************************************************************
@@ -304,40 +442,34 @@ C-----------------------------------------------------------------------
       IF (RNMODE .NE. 'D') THEN
         CALL INPUT_SUB(
      &    FILECTL, FILEIO, FILEX, MODELARG, PATHEX,       !Input
-     &    RNMODE, ROTNUM, RUN, TRTNUM,                    !Input
+     &    RNMODE, ROTNUM, RUN, TRTNUM, TRTALL,            !Input
      &    ISWITCH, CONTROL)                               !Output
       ELSE
         FILEX = '            '    !Debug mode - no FILEX
         CALL PATHD  (DSSATP,PATHX,LEN_TRIM(PATHX))
         CONTROL % DSSATP = DSSATP
       ENDIF
-C-----------------------------------------------------------------------
-C    Check to see if the temporary file exists
-C-----------------------------------------------------------------------
-      INQUIRE (FILE = FILEIO,EXIST = FEXIST)
-      IF (.NOT. FEXIST) THEN
-        CALL ERROR(ERRKEY,2,FILEIO,LUNIO)
-      ENDIF
-
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,0)
-      READ (LUNIO,300,IOSTAT=ERRNUM) EXPNO,TRTNUM,TRTALL
- 300  FORMAT(36X,3(1X,I5))
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,1)
-      READ (LUNIO,'(//,15X,A12)',IOSTAT=ERRNUM) FILEX
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,1)
+      call csminp%get('*EXP.DETAILS','EXPN',EXPNO)
+      call csminp%get('*EXP.DETAILS','TRTN',TRTNUM)
+      call csminp%get('*EXP.DETAILS','TRTALL',TRTALL)
+!      call csminp%get('*FILES','FILEX',FILEX)
       IF (RUN .EQ. 1) THEN
-        READ(LUNIO,'(8(/),15X,A8)',IOSTAT=ERRNUM) FNAME    
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,13)
-        READ(LUNIO,400,IOSTAT=ERRNUM) NYRS, NREPS, YRSIM
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,15)
- 400    FORMAT(/,15X,I5,1X,I5,7X,I7)
+         call csminp%get('*SIMULATION CONTROL','IOX',IOX)
+         if(nc_batch%yes)
+     &        call csminp%get('*CULTIVARS','CROP',nc_batch%crop)
+         if(iox/='Y')then
+            FNAME = 'OVERVIEW'
+         else
+            FNAME = filex(1:8)
+         end if
+         call csminp%get('*SIMULATION CONTROL','NYRS',NYRS)
+         call csminp%get('*SIMULATION CONTROL','NREPS',NREPS)
+         call csminp%get('*SIMULATION CONTROL','YRSIM',YRSIM)
       ELSE IF (RNMODE .NE. 'Q') THEN
-        READ(LUNIO,500,IOSTAT=ERRNUM) NYRS, NREPS, YRSIM
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,15)
- 500    FORMAT(10(/),15X,I5,1X,I5,7X,I7)
+         call csminp%get('*SIMULATION CONTROL','NYRS',NYRS)
+         call csminp%get('*SIMULATION CONTROL','NREPS',NREPS)
+         call csminp%get('*SIMULATION CONTROL','YRSIM',YRSIM)
       ENDIF
-      CLOSE(LUNIO)
 
       IF (NYRS > 1) THEN
         YRSIM_SAVE = YRSIM
@@ -358,7 +490,7 @@ C-----------------------------------------------------------------------
 
       MULTI  = 0
       YRDIF  = 0
-      
+
       IF (INDEX('FQ',RNMODE).GT. 0 .AND. RUN .GT. 1) THEN
          YRSIM = INCYD(YRDOY,1)
          CALL YR_DOY(YRSIM_SAVE, YR0, ISIM0)
@@ -500,6 +632,9 @@ C***********************************************************************
       CALL LAND(CONTROL, ISWITCH, 
      &          YRPLT, MDATE, YREND)
 
+      if(mpi_child%use_mpi)then
+         call seasonal_registry%store()
+      end if
 C-----------------------------------------------------------------------
       ENDDO SEAS_LOOP  
 C-----------------------------------------------------------------------
@@ -513,7 +648,6 @@ C-----------------------------------------------------------------------
       I = INDEX('A', RNMODE)
       IF (INDEX('A',RNMODE) .GT. 0 .AND. TRTNUM .GE. TRTALL) THEN
          DONE = .TRUE.
-      
 C-----------------------------------------------------------------------
 C
 C-----------------------------------------------------------------------
@@ -528,6 +662,20 @@ C-----------------------------------------------------------------------
         ELSE
           RUN = 0
         ENDIF
+      else if(INDEX('Q',RNMODE) .gt. 0) then
+         if(mpi_child%use_mpi)then
+            if(control%crop == 'FA')then
+               control%crop = mpi_child%crop
+            else
+               control%crop = 'FA'
+            end if
+         else if(nc_batch%yes)then
+            if(control%crop == 'FA')then
+               control%crop = nc_batch%crop
+            else
+               control%crop = 'FA'
+            end if
+         end if
       ELSE IF (INDEX('IE',RNMODE) .GT. 0) THEN
         WRITE(*,1700)
  1700   FORMAT(/,1X,'Do you want to run more simulations ? ',
@@ -551,6 +699,13 @@ C-----------------------------------------------------------------------
       CALL OPNAMES(FNAME)
 
       CALL RUNLIST(CONTROL)
+
+      if(mpi_child%use_mpi)then
+         call mpi_child%send_registry(seasonal_registry)
+         call mpi_child%close()
+      else
+         if(nc_batch%yes) call nc_batch%free()
+      end if
 
       END PROGRAM CSM 
 

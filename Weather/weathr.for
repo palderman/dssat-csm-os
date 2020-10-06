@@ -132,7 +132,7 @@ C=======================================================================
         YYDDD = YRSIM
         CALL YR_DOY(YYDDD, YEAR, DOY)
 !-----------------------------------------------------------------------
-        IF (MEWTH .EQ. 'M' .OR. MEWTH .EQ. 'G') THEN
+        IF (MEWTH .EQ. 'M' .OR. MEWTH .EQ. 'G' .or. mewth .eq. 'N') THEN
           CALL IPWTH(CONTROL,
      &      CCO2, DCO2, FILEW, FILEWW, MEWTH, PAR, PATHWT,!Output
      &      RAIN, REFHT, RHUM, RSEED1, SRAD,              !Output
@@ -261,7 +261,7 @@ C     Compute daily normal temperature.
       CALL YR_DOY(YYDDD, YEAR, DOY)
 !-----------------------------------------------------------------------
 C     Read new weather record.
-      IF (MEWTH .EQ. 'M' .OR. MEWTH .EQ. 'G') THEN
+      IF (MEWTH .EQ. 'M' .OR. MEWTH .EQ. 'G' .or. mewth .eq. 'N') THEN
         CALL IPWTH(CONTROL,
      &    CCO2, DCO2, FILEW, FILEWW, MEWTH, PAR, PATHWT,  !Output
      &    RAIN, REFHT, RHUM, RSEED1, SRAD,                !Output
@@ -356,7 +356,7 @@ C-----------------------------------------------------------------------
 !***********************************************************************
       ELSEIF (DYNAMIC .EQ. SEASEND) THEN
 !-----------------------------------------------------------------------
-      IF (MEWTH .EQ. 'M' .OR. MEWTH .EQ. 'G') THEN
+      IF (MEWTH .EQ. 'M' .OR. MEWTH .EQ. 'G' .or. mewth .eq. 'N') THEN
         CALL IPWTH(CONTROL,
      &    CCO2, DCO2, FILEW, FILEWW, MEWTH, PAR, PATHWT,  !Output
      &    RAIN, REFHT, RHUM, RSEED1, SRAD,                !Output

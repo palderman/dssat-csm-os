@@ -41,11 +41,11 @@ C
 C  HDLAY  :
 C=======================================================================
       SUBROUTINE IPVAR (FILEG,NSENS,RNMODE,VARNO,VARTY,VRNAME,
-     &                  PATHGE,ECONO, MODEL, ATLINE, CROP)
+     &                  PATHGE,ECONO, MODEL, ATLINE,CROP)
+
+      use csm_io
 
       IMPLICIT NONE
-
-      INCLUDE 'COMGEN.blk'
 
       CHARACTER*1   LINE(80),RNMODE,BLANK,ANS
       CHARACTER*2   CROP
@@ -61,6 +61,50 @@ C=======================================================================
       INTEGER       I,NSENS,NLVAR,LUNVAR,LINVAR,ISECT,NLOOP
       INTEGER       ERRNUM,PATHL
       REAL          FLAG,VAR
+      REAL P1,P1V,P1D,P2,P2O,P2R,P3,P4,P5,G1,G2,G3,G4,G5,G0
+      REAL PHINT,PD,TC,AX,LX,PANTH
+      INTEGER LFN
+      REAL PPS1, B01ND, B12ND, B23ND, B34ND, B45ND, B56ND
+      REAL SRNWT, SRFR, HMPC, LA1S, LAXS
+      REAL LAXND, LAXN2, LAFS, LAFND, SLASS, LLIFA, LPEFR
+      REAL STFR
+      REAL VREQ, VBASE, VEFF, PPS2
+      REAL P6, P7, P8
+      REAL GNOWT, GWTS, SHWTS, LAFV, LAFR
+      REAL PHTMAX,empty,PLF1,PLF2,Gamma,StkB,StkM
+      REAL LIsun,LIshd,TB(3),TO1(3),TO2(3),TM(3)
+      REAL LI1,TELOM, LSFAC
+      REAL Ph1P,Ph1R,Ph2,Ph3,Ph4,StkHrNO,RTNFAC,MinGr
+      REAL RES30C,RLF30C,R30C2
+      REAL StkH2OFac,SuH2OFac
+      REAL MaxPARCE, APFMX, STKPFMAX, SUCA, TBFT, Tthalfo, TBase
+      REAL MXLFAREA, MXLFARNO, PSWITCH, TTPLNTEM
+      REAL TTRATNEM, CHUPIBASE, TT_POPGROWTH, MAX_POP, POPTT16
+      REAL TAR0, TDELAY, LER0, SER0, LG_AMBASE, AQP_UP5 
+      REAL CSDVAR,PHTHRS(20),SDPDVR,SLAVAR,LFMAX,XFRUIT,WTPSD
+      REAL SFDUR,PODUR,PPSEN,PH2T5,SIZELF
+      REAL PI1,PI2
+      REAL PCINT,PCGRD
+      REAL DTPI,SIZLF !SC
+      REAL PBASE, PSAT !Sorghum
+      REAL THRESH, SDPRO, SDLIP
+      CHARACTER*360 PLAINTXT
+      REAL          PHYL1,PHYL2,FRSUG,DRCER
+
+!     For CSYCA-cassava
+      REAL          LNSLP, NODWT, NODLT
+      REAL          BR1FX, BR2FX, BR3FX, BR4FX
+
+!CHP 2019-04-25 Rice changes
+      REAL          THOT, TCLDP, TCLDF
+
+! 	  For APSIM-wheat (WHAPS)
+      REAL  VSEN,GRNO,MXFIL
+      REAL  STMMX,SLAP1,SLAP2,TC1P1,TC1P2,DTNP1,PLGP1,PLGP2
+      REAL  P2AF,P3AF,P4AF,P5AF,P6AF
+      REAL  ADLAI,ADTIL,ADPHO,STEMN,MXNUP,MXNCR,WFNU
+      REAL  PNUPR,EXNO3,MNNO3,EXNH4,MNNH4,INGWT,INGNC,FREAR
+      REAL  MNNCR,GPPSS,GPPES,MXGWT,MNRTN,NOMOB,RTDP1,RTDP2
 
       PARAMETER (LUNVAR = 19)
       PARAMETER (ERRKEY = 'IPVAR ')
@@ -162,8 +206,18 @@ C
         READ (C360,'(6X,A6,1X,A16,7X,A)',IOSTAT=ERRNUM) VARTY,
      &         VRNAME, PLAINTXT
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO   ','VRNAME  ','PLAINTXT'/),
+     &     real_name=(/'PHTHRS(8)'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVARS','PHTHRS(8)',0.)
+
 !     CROPGRO crops **
-      CASE ('CRGRO','PRFRM')
+      CASE ('CRGRO','PRFRM')  
         READ (C360, 800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,CSDVAR,
      &       PPSEN,PH2T5,PHTHRS(6),PHTHRS(8),PHTHRS(10),PHTHRS(13),
      &       LFMAX,SLAVAR,SIZELF,XFRUIT,WTPSD,SFDUR,SDPDVR,PODUR,
@@ -180,6 +234,38 @@ C
 !        IF (SDPRO  .LE. 0) CALL ERROR (ERRKEY,51,FILEG,LINVAR)
 !        IF (SDLIP  .LE. 0) CALL ERROR (ERRKEY,52,FILEG,LINVAR)
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'CSDVAR    ','PPSEN     ','PH2T5     ',
+     &                 'PHTHRS(6) ','PHTHRS(8) ','PHTHRS(10)',
+     &                 'PHTHRS(13)','LFMAX     ','SLAVAR    ',
+     &                 'SIZELF    ','XFRUIT    ','WTPSD     ',
+     &                 'SFDUR     ','SDPDVR    ','PODUR     ',
+     &                 'THRESH    ','SDPRO     ','SDLIP     '/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','CSDVAR',CSDVAR)
+        call csminp%put('*CULTIVARS','PPSEN',PPSEN)
+        call csminp%put('*CULTIVARS','PH2T5',PH2T5)
+        call csminp%put('*CULTIVARS','PHTHRS(6)',PHTHRS(6))
+        call csminp%put('*CULTIVARS','PHTHRS(8)',PHTHRS(8))
+        call csminp%put('*CULTIVARS','PHTHRS(10)',PHTHRS(10))
+        call csminp%put('*CULTIVARS','PHTHRS(13)',PHTHRS(13))
+        call csminp%put('*CULTIVARS','LFMAX',LFMAX)
+        call csminp%put('*CULTIVARS','SLAVAR',SLAVAR)
+        call csminp%put('*CULTIVARS','SIZELF',SIZELF)
+        call csminp%put('*CULTIVARS','XFRUIT',XFRUIT)
+        call csminp%put('*CULTIVARS','WTPSD',WTPSD)
+        call csminp%put('*CULTIVARS','SFDUR',SFDUR)
+        call csminp%put('*CULTIVARS','SDPDVR',SDPDVR)
+        call csminp%put('*CULTIVARS','PODUR',PODUR)
+        call csminp%put('*CULTIVARS','THRESH',THRESH)
+        call csminp%put('*CULTIVARS','SDPRO',SDPRO)
+        call csminp%put('*CULTIVARS','SDLIP',SDLIP)
+
 C-GH Remove cassava
 !     CropSim: wheat, barley
       CASE ('CSCRP')
@@ -188,6 +274,41 @@ C-GH Remove cassava
      &      PPS1, PPS2, PHINT, LA1S, LAFV, LAFR, SHWTS, GNOWT, GWTS,
      &      PLAINTXT                
      
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
+     &     real_name=(/'P1       ','P2       ','P3       ','P4       ',
+     &                 'P5       ','P6       ','P7       ','P8       ',
+     &                 'VREQ     ','VBASE    ','VEFF     ','PPS1     ',
+     &                 'PPS2     ','PHINT    ','LA1S     ','LAFV     ',
+     &                 'LAFR     ','SHWTS    ','GNOWT    ','GWTS     ',
+     &                 'PHTHRS(8)'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P2',P2)
+        call csminp%put('*CULTIVARS','P3',P3)
+        call csminp%put('*CULTIVARS','P4',P4)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','P6',P6)
+        call csminp%put('*CULTIVARS','P7',P7)
+        call csminp%put('*CULTIVARS','P8',P8)
+        call csminp%put('*CULTIVARS','VREQ',VREQ)
+        call csminp%put('*CULTIVARS','VBASE',VBASE)
+        call csminp%put('*CULTIVARS','VEFF',VEFF)
+        call csminp%put('*CULTIVARS','PPS1',PPS1)
+        call csminp%put('*CULTIVARS','PPS2',PPS2)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','LA1S',LA1S)
+        call csminp%put('*CULTIVARS','LAFV',LAFV)
+        call csminp%put('*CULTIVARS','LAFR',LAFR)
+        call csminp%put('*CULTIVARS','SHWTS',SHWTS)
+        call csminp%put('*CULTIVARS','GNOWT',GNOWT)
+        call csminp%put('*CULTIVARS','GWTS',GWTS)
+        call csminp%put('*CULTIVARS','PHTHRS(8)',0.)
 !WHEAT & BARLEY
 !@VAR#  VAR-NAME........  EXP#   ECO#  VREQ  PPS1    P8 G#WTS  GWTS SHWTS PHINT    P1    P2    P3    P4    P5    P6    P7  LA1S  LAFV  LAFR VBASE  VEFF  PPS2
 !DFAULT DEFAULTS             . DFAULT     0     0   500    25    40   2.5    80   380    70   200   200    60    25   150   3.0   0.1   0.5     0     0     0
@@ -206,6 +327,43 @@ C-GH &      SNFX, SRNWT, SRFR, HMPC, PHINT, LA1S, LAXS, LAXND, LAXN2,
      &      SRNWT, SRFR, HMPC, PHINT, LA1S, LAXS, LAXND, LAXN2,
      &      LAFS, LAFND, SLASS, LLIFA, LPEFR, STFR, PLAINTXT
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
+     &     real_name=(/'PPS1     ','B01ND    ','B12ND    ','B23ND    ',
+     &                 'B34ND    ','B45ND    ','B56ND    ','SRNWT    ',
+     &                 'SRFR     ','HMPC     ','PHINT    ','LA1S     ',
+     &                 'LAXS     ','LAXND    ','LAXN2    ','LAFS     ',
+     &                 'LAFND    ','SLASS    ','LLIFA    ','LPEFR    ',
+     &                 'STFR     ','PHTHRS(8)'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVARS','PPS1',PPS1)
+        call csminp%put('*CULTIVARS','B01ND',B01ND)
+        call csminp%put('*CULTIVARS','B12ND',B12ND)
+        call csminp%put('*CULTIVARS','B23ND',B23ND)
+        call csminp%put('*CULTIVARS','B34ND',B34ND)
+        call csminp%put('*CULTIVARS','B45ND',B45ND)
+        call csminp%put('*CULTIVARS','B56ND',B56ND)
+        call csminp%put('*CULTIVARS','SRNWT',SRNWT)
+        call csminp%put('*CULTIVARS','SRFR',SRFR)
+        call csminp%put('*CULTIVARS','HMPC',HMPC)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','LA1S',LA1S)
+        call csminp%put('*CULTIVARS','LAXS',LAXS)
+        call csminp%put('*CULTIVARS','LAXND',LAXND)
+        call csminp%put('*CULTIVARS','LAXN2',LAXN2)
+        call csminp%put('*CULTIVARS','LAFS',LAFS)
+        call csminp%put('*CULTIVARS','LAFND',LAFND)
+        call csminp%put('*CULTIVARS','SLASS',SLASS)
+        call csminp%put('*CULTIVARS','LLIFA',LLIFA)
+        call csminp%put('*CULTIVARS','LPEFR',LPEFR)
+        call csminp%put('*CULTIVARS','STFR',STFR)
+        call csminp%put('*CULTIVARS','PHTHRS(8)',0.)
+
 C-LPM  Add CIAT cassava model
 !     CASSAVA: cassava **
       CASE ('CSYCA')
@@ -218,8 +376,28 @@ C-LPM  Add CIAT cassava model
 !       READ (C360, 800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
 !     &            P1V,P1D,P5,G1,G2,G3,PHINT, PLAINTXT
 !       READ (C360,820,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO, PLAINTXT
-        READ (C360, 830,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
+       READ (C360, 830,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
      &            P1V,P1D,P5,G1,G2,G3,PHINT, PLAINTXT
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
+     &     real_name=(/'P1V      ','P1D      ','P5       ','G1       ',
+     &                 'G2       ','G3       ','PHINT    ',
+     &                 'PHTHRS(8)'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVARS','P1V',P1V)
+        call csminp%put('*CULTIVARS','P1D',P1D)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','G1',G1)
+        call csminp%put('*CULTIVARS','G2',G2)
+        call csminp%put('*CULTIVARS','G3',G3)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','PHTHRS(8)',0.)
 
 !     APSIM-NWheat wheat  **
 !     Tef model based on APSIM-NWheat created by KEP **
@@ -236,6 +414,24 @@ C-LPM  Add CIAT cassava model
       CASE ('MZCER','SWCER')
         READ (C360,'(A6,1X,A16,7X,A6,6F6.0)',IOSTAT=ERRNUM)
      &            VARTY,VRNAME,ECONO,P1,P2,P5,G2,G3,PHINT
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
+     &       real_name=(/'P1       ','P2       ','P5       ',
+     &       'G2       ','G3       ','PHINT    ','PHTHRS(8)'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P2',P2)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','G2',G2)
+        call csminp%put('*CULTIVARS','G3',G3)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','PHTHRS(8)',0.)
+
 
 !WDB 7/2016 Added cultivar coefficients for sugar beet model
       CASE ('BSCER')       
@@ -256,6 +452,27 @@ C ** Use default values if inputs not available
 	    LX = 1.1138 * AX                      !From regression, JIL 
 	  ENDIF
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
+     &     real_name=(/'P1       ','P2       ','P5       ','G2       ',
+     &                 'G3       ','PHINT    ','AX       ','LX       ',
+     &                 'LFN      ','PHTHRS(8)'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P2',P2)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','G2',G2)
+        call csminp%put('*CULTIVARS','G3',G3)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','AX',AX)
+        call csminp%put('*CULTIVARS','LX',LX)
+        call csminp%put('*CULTIVARS','LFN',LFN)
+
 !     Ceres Sorghum **
       CASE ('SGCER')
         READ (C360, 800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
@@ -270,6 +487,32 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
         IF (PBASE < 1.E-2) PBASE = -99.
         IF (PSAT  < 1.E-2) PSAT  = -99.
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'P1       ','P2       ','P2O      ','P2R      ',
+     &                 'PANTH    ','P3       ','P4       ','P5       ',
+     &                 'PHINT    ','G1       ','G2       ','PBASE    ',
+     &                 'PSAT     ','PHTHRS(8)'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P2',P2)
+        call csminp%put('*CULTIVARS','P2O',P2O)
+        call csminp%put('*CULTIVARS','P2R',P2R)
+        call csminp%put('*CULTIVARS','PANTH',PANTH)
+        call csminp%put('*CULTIVARS','P3',P3)
+        call csminp%put('*CULTIVARS','P4',P4)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','G1',G1)
+        call csminp%put('*CULTIVARS','G2',G2)
+        call csminp%put('*CULTIVARS','PBASE',PBASE)
+        call csminp%put('*CULTIVARS','PSAT',PSAT)
+        call csminp%put('*CULTIVARS','PHTHRS(8)',0.)
+
 !     Ceres Millet **
       CASE ('MLCER')
         READ (C360, 800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
@@ -282,11 +525,44 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
           G4 = 1.2
         ENDIF
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'P1       ','P2O      ','P2R      ','P5       ',
+     &                 'G1       ','G4       ','PHINT    ',
+     &                 'PHTHRS(8)'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P2O',P2O)
+        call csminp%put('*CULTIVARS','P2R',P2R)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','G1',G1)
+        call csminp%put('*CULTIVARS','G4',G4)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','PHTHRS(8)',0.)
+
 !     Substor Potato **
       CASE ('PTSUB')
         READ (C360, 800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
      &            G2,G3,PD,P2,TC
 !     &            G2,G3,G4,PD,P2,TC
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'G2   ','G3   ','PD   ','P2   ','TC   '/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','G2',G2)
+        call csminp%put('*CULTIVARS','G3',G3)
+        call csminp%put('*CULTIVARS','PD',PD)
+        call csminp%put('*CULTIVARS','P2',P2)
+        call csminp%put('*CULTIVARS','TC',TC)
 
 !     Ceres Rice **
       CASE ('RICER')
@@ -300,6 +576,26 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
           CALL ERROR(ERRKEY,ERRNUM,FILEGG,LINVAR)
         ENDIF
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'P1   ','P2R  ','P5   ','P2O  ','G1   ',
+     &                 'G2   ','G3   ','G4   ','PHINT'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P2R',P2R)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','P2O',P2O)
+        call csminp%put('*CULTIVARS','G1',G1)
+        call csminp%put('*CULTIVARS','G2',G2)
+        call csminp%put('*CULTIVARS','G3',G3)
+        call csminp%put('*CULTIVARS','G4',G4)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+
+      CASE ('RIORZ')
 !        READ (C360,'(90X,F6.0)',IOSTAT=ERRNUM) G5
 !!       For backwards compatibility for cultivar files with no G5.
 !        IF (ERRNUM /= 0 .OR. ABS(G5-1.0) .LT. 1.E-3) THEN
@@ -316,6 +612,15 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
 !        READ (C360,'(A6,1X,A16,7X,A80)',IOSTAT=ERRNUM) VARTY,VRNAME,
 !     &            PLAINTXT
 !        ECONO = '      '
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
 
 !     CaneGro: South African Sugarcane model **
       CASE ('SCCAN') 
@@ -336,6 +641,41 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      
         !WRITE(*, '(A, F10.5)') 'SER0 is ', SER0     
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'MaxPARCE    ','APFMX       ','STKPFMAX    ',
+     &                 'SUCA        ','TBFT        ','Tthalfo     ',
+     &                 'TBase       ','LFMAX       ','MXLFAREA    ',
+     &                 'MXLFARNO    ','PI1         ','PI2         ',
+     &                 'PSWITCH     ','TTPLNTEM    ','TTRATNEM    ',
+     &                 'CHUPIBASE   ','TT_POPGROWTH','MAX_POP     ',
+     &                 'POPTT16     ','LG_AMBASE   '/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','MaxPARCE',MaxPARCE)
+        call csminp%put('*CULTIVARS','APFMX',APFMX)
+        call csminp%put('*CULTIVARS','STKPFMAX',STKPFMAX)
+        call csminp%put('*CULTIVARS','SUCA',SUCA)
+        call csminp%put('*CULTIVARS','TBFT',TBFT)
+        call csminp%put('*CULTIVARS','Tthalfo',Tthalfo)
+        call csminp%put('*CULTIVARS','TBase',TBase)
+        call csminp%put('*CULTIVARS','LFMAX',LFMAX)
+        call csminp%put('*CULTIVARS','MXLFAREA',MXLFAREA)
+        call csminp%put('*CULTIVARS','MXLFARNO',MXLFARNO)
+        call csminp%put('*CULTIVARS','PI1',PI1)
+        call csminp%put('*CULTIVARS','PI2',PI2)
+        call csminp%put('*CULTIVARS','PSWITCH',PSWITCH)
+        call csminp%put('*CULTIVARS','TTPLNTEM',TTPLNTEM)
+        call csminp%put('*CULTIVARS','TTRATNEM',TTRATNEM)
+        call csminp%put('*CULTIVARS','CHUPIBASE',CHUPIBASE)
+        call csminp%put('*CULTIVARS','TT_POPGROWTH',TT_POPGROWTH)
+        call csminp%put('*CULTIVARS','MAX_POP',MAX_POP)
+        call csminp%put('*CULTIVARS','POPTT16',POPTT16)
+        call csminp%put('*CULTIVARS','LG_AMBASE',LG_AMBASE)
+
 !     Casupro: Florida-Colombia Sugarcane model **
       CASE ('SCCSP')
         READ (C360,1055,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
@@ -346,10 +686,84 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      &          TO2(2),TM(2),Ph1P,Ph1R,Ph2,Ph3,Ph4,StkHrNO,RTNFAC,
      &          MinGr,empty,RES30C,RLF30C,R30C2,empty,empty
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'LFMAX    ','PHTMAX   ','StkH2OFac','SuH2OFac ',
+     &                 'PLF1     ','PLF2     ','Gamma    ','StkB     ',
+     &                 'StkM     ','SIZLF    ','LIsun    ','LIshd    ',
+     &                 'TB(1)    ','TO1(1)   ','TO2(1)   ','TM(1)    ',
+     &                 'PI1      ','PI2      ','DTPI     ','LSFAC    ',
+     &                 'LI1      ','TELOM    ','TB(2)    ','TO1(2)   ',
+     &                 'TO2(2)   ','TM(2)    ','Ph1P     ','Ph1R     ',
+     &                 'Ph2      ','Ph3      ','Ph4      ','StkHrNO  ',
+     &                 'RTNFAC   ','MinGr    ','RES30C   ','RLF30C   ',
+     &                 'R30C2    '/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','LFMAX',LFMAX)
+        call csminp%put('*CULTIVARS','PHTMAX',PHTMAX)
+        call csminp%put('*CULTIVARS','StkH2OFac',StkH2OFac)
+        call csminp%put('*CULTIVARS','SuH2OFac',SuH2OFac)
+        call csminp%put('*CULTIVARS','PLF1',PLF1)
+        call csminp%put('*CULTIVARS','PLF2',PLF2)
+        call csminp%put('*CULTIVARS','Gamma',Gamma)
+        call csminp%put('*CULTIVARS','StkB',StkB)
+        call csminp%put('*CULTIVARS','StkM',StkM)
+        call csminp%put('*CULTIVARS','SIZLF',SIZLF)
+        call csminp%put('*CULTIVARS','LIsun',LIsun)
+        call csminp%put('*CULTIVARS','LIshd',LIshd)
+        call csminp%put('*CULTIVARS','TB(1)',TB(1))
+        call csminp%put('*CULTIVARS','TO1(1)',TO1(1))
+        call csminp%put('*CULTIVARS','TO2(1)',TO2(1))
+        call csminp%put('*CULTIVARS','TM(1)',TM(1))
+        call csminp%put('*CULTIVARS','PI1',PI1)
+        call csminp%put('*CULTIVARS','PI2',PI2)
+        call csminp%put('*CULTIVARS','DTPI',DTPI)
+        call csminp%put('*CULTIVARS','LSFAC',LSFAC)
+        call csminp%put('*CULTIVARS','LI1',LI1)
+        call csminp%put('*CULTIVARS','TELOM',TELOM)
+        call csminp%put('*CULTIVARS','TB(2)',TB(2))
+        call csminp%put('*CULTIVARS','TO1(2)',TO1(2))
+        call csminp%put('*CULTIVARS','TO2(2)',TO2(2))
+        call csminp%put('*CULTIVARS','TM(2)',TM(2))
+        call csminp%put('*CULTIVARS','Ph1P',Ph1P)
+        call csminp%put('*CULTIVARS','Ph1R',Ph1R)
+        call csminp%put('*CULTIVARS','Ph2',Ph2)
+        call csminp%put('*CULTIVARS','Ph3',Ph3)
+        call csminp%put('*CULTIVARS','Ph4',Ph4)
+        call csminp%put('*CULTIVARS','StkHrNO',StkHrNO)
+        call csminp%put('*CULTIVARS','RTNFAC',RTNFAC)
+        call csminp%put('*CULTIVARS','MinGr',MinGr)
+        call csminp%put('*CULTIVARS','RES30C',RES30C)
+        call csminp%put('*CULTIVARS','RLF30C',RLF30C)
+        call csminp%put('*CULTIVARS','R30C2',R30C2)
+
 !     Taro, tanier **
       CASE ('TRARO','TNARO')
         READ (C360,800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
      &           P1,P3,P4,P5,G3,G4,PHINT,PCINT,PCGRD
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'P1   ','P3   ','P4   ','P5   ','G3   ',
+     &                 'G4   ','PHINT','PCINT','PCGRD'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P3',P3)
+        call csminp%put('*CULTIVARS','P4',P4)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','G3',G3)
+        call csminp%put('*CULTIVARS','G4',G4)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','PCINT',PCINT)
+        call csminp%put('*CULTIVARS','PCGRD',PCGRD)
 
 !!     Sunflower **
 !      CASE ('SUOIL')
@@ -360,6 +774,7 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
       CASE ('PIALO')
         READ (C360,800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
      &           P1,P2,P3,P4,P5,P6,G2,G3,PHINT
+
       END SELECT
 
       IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEG,LINVAR)

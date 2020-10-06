@@ -35,9 +35,9 @@ C=======================================================================
       SUBROUTINE IPSOIL_Inp (RNMODE,FILES,PATHSL,NSENS,ISWITCH)
 
       USE ModuleDefs
+      use csm_io
+      use dssat_netcdf
       IMPLICIT NONE
-
-      INCLUDE 'COMSOI.blk'
 
       CHARACTER*1   LINE(80),RNMODE,BLANK,ANS,UPCASE
       CHARACTER*5   MH(NL)
@@ -47,15 +47,32 @@ C=======================================================================
       CHARACTER*80  PATHSL
       CHARACTER*92  FILESS
       CHARACTER*255 C255
+      CHARACTER*5 SLTXS,SMHB,SMPX,SMKE,SGRP,SCOM
+      CHARACTER*10 PEDON,SLNO
+      CHARACTER*11 SCOUNT
+      CHARACTER*12 SLSOUR
+      CHARACTER*16 SSITE
+      CHARACTER*50 SLDESC,TAXON
 
       INTEGER I,J,P1,NLAYRI,LINSOL,ISECT
       INTEGER NSENS,NLSOIL,NLOOP,ERR,LUNSL,PATHL, LINSOL_1
+      INTEGER NLAYR
 
 !     05/27/2004 CHP Added these variables to COMSOI.blk
 !      REAL    PTERMA(NL),PTERMB(NL),EXK(NL),EXMG(NL),EXNA(NL),EXTS(NL)
 !      REAL    SLEC(NL),ZLYR(NL),ZZLYR(NL)
       REAL    ZLYR(NL)
       REAL    FLAG,SL,SLDP
+      REAL U,SWCON,CN2,SALB,DEPMAX,LL(NL),DUL(NL),SAT(NL),TOTN(NL)
+      REAL SHF(NL),SWCN(NL),BD(NL),OC(NL),PH(NL),DLAYR(NL)
+      REAL EXTP(NL)
+      REAL SASC(NL)
+      REAL TOTP(NL),ORGP(NL),SLNF,SLPF,DS(NL),CEC(NL),ADCOEF(NL)
+      REAL STONES(NL),CLAY(NL),SILT(NL),PHKCL(NL),SLAT,SLONG
+      REAL CACO(NL),EXTAL(NL),EXTFE(NL),EXTMN(NL),TOTBAS(NL)
+      REAL PTERMA(NL),PTERMB(NL),EXK(NL),EXMG(NL)
+      REAL EXNA(NL),EXTS(NL),SLEC(NL), EXCA(NL) !4/07/05 CHP added EXCA
+      REAL alphaVG(NL), mVG(NL), nVG(NL), WCR(NL)
 
 !     Up to MAXCOL headers per line, up to 10 characters long each
       INTEGER, PARAMETER :: MAXCOL = 50
@@ -65,9 +82,13 @@ C=======================================================================
 
       TYPE (SwitchType) ISWITCH
 
+      real round_real
+
       PARAMETER (ERRKEY = 'IPSOIL')
       PARAMETER (LUNSL  = 12)
       PARAMETER (BLANK = ' ')
+
+      call csminp%get('*FIELDS','SLNO',SLNO)
 
       NLSOIL = 0
 !-----------------------------------------------------------------------
@@ -78,7 +99,7 @@ C=======================================================================
          NLAYR = 1
 
 !     Read soil file
-       ELSE
+      ELSE
          LINSOL = 0
          PATHL  = INDEX(PATHSL,BLANK)
          IF (PATHL .LE. 1) THEN
@@ -607,7 +628,155 @@ C-KRT*******************************************************************
          CALL LMATCH (NLAYRI, ZLYR, mVG,  NLAYR, DS)
          CALL LMATCH (NLAYRI, ZLYR, nVG,  NLAYR, DS)
          CALL LMATCH (NLAYRI, ZLYR, WCR,  NLAYR, DS)
-     
+
+         call csminp%add_sec('*SOIL',ntiers=2)
+         call csminp%add_var('*SOIL',tier=1,int_name=(/'NLAYR'/),
+     &        char_name=(/'SLNO  ','SLSOUR','SLTXS ','SLDESC',
+     &           'SSITE ','SCOUNT','TAXON ','SCOM  ','SMHB  ',
+     &           'SMPX  ','SMKE  ','SGRP  '/))
+         call csminp%add_var('*SOIL',tier=2,
+     &        real_name=(/'SLDP   ','SALB   ','U      ','SWCON  ',
+     &          'CN2    ','SLNF   ','SLPF   ',
+     &          'DS     ','DLAYR  ','SLAT   ','SLONG  ',
+     &          'LL     ','DUL    ','SAT    ','SHF    ','SWCN   ',
+     &          'BD     ','OC     ','CLAY   ','SILT   ','STONES ',
+     &          'TOTN   ','PH     ','PHKCL  ','CEC    ','ADCOEF ',
+     &          'EXTP   ','TOTP   ','ORGP   ','CACO   ','EXTAL  ',
+     &          'EXTFE  ','EXTMN  ','TOTBAS ','PTERMA ','PTERMB ',
+     &          'EXK    ','EXMG   ','EXNA   ','EXTS   ','SLEC   ',
+     &          'EXCA   ','SASC   ','alphaVG','mVG    ','nVG    ',
+     &          'WCR    '/))
+
+
+      if(cmd_arg_present('--mimic_inp'))then
+
+         SALB = round_real(SALB,6,2)
+         U = round_real(U,6,1)
+         SWCON = round_real(SWCON,6,2)
+         CN2 = round_real(CN2,6,0)
+         SLNF = round_real(SLNF,6,2)
+         SLPF = round_real(SLPF,6,2)
+
+         ! Begin code adapted from OPTEMPY2K
+        DO I = 1, NLAYR
+!         Construct format string depending on info avail.
+!     DS(I),LL(I),DUL(I),SAT(I),SHF(I)
+           DS(I) = round_real(DS(I),6,0)
+           if(I==1)then
+              DLAYR(I) = DS(I)
+           else
+              DLAYR(I) = DS(I) - DS(I-1)
+           end if
+           DLAYR(I) = round_real(DLAYR(I),6,0)
+           LL(I) = round_real(LL(I),6,3)
+           DUL(I) = round_real(DUL(I),6,3)
+           SAT(I) = round_real(SAT(I),6,3)
+           SHF(I) = round_real(SHF(I),6,3)
+
+           IF (SWCN(I) < 1.E-6) THEN
+              SWCN(I) = round_real(SWCN(I),6,0)
+           ELSEIF (SWCN(I) < 0.1) THEN                       
+              SWCN(I) = round_real(SWCN(I),6,4)
+           ELSEIF (SWCN(I) < 1.0) THEN                       
+              SWCN(I) = round_real(SWCN(I),6,3)
+           ELSEIF (SWCN(I) < 10.) THEN
+              SWCN(I) = round_real(SWCN(I),6,2)
+           ELSEIF (SWCN(I) < 100.) THEN
+              SWCN(I) = round_real(SWCN(I),6,1)
+           ELSE
+              SWCN(I) = round_real(SWCN(I),6,0)
+           ENDIF
+           BD(I) = round_real(BD(I),6,2)
+           IF (OC(I) > 0.0 .AND. OC(I) < 9.99) THEN
+              OC(I) = round_real(OC(I),6,3)
+           ELSE
+              OC(I) = round_real(OC(I),6,1)
+           ENDIF
+           CLAY(I) = round_real(CLAY(I),6,1)
+           SILT(I) = round_real(SILT(I),6,1)
+           STONES(I) = round_real(STONES(I),6,1)
+           IF (TOTN(I) > 10.0) THEN
+              TOTN(I) = round_real(TOTN(I),6,2)
+           ELSEIF (TOTN(I) > 0.0) THEN
+              TOTN(I) = round_real(TOTN(I),6,3)
+           ELSE
+              TOTN(I) = round_real(TOTN(I),6,1)
+           ENDIF
+           PH(I) = round_real(PH(I),6,2)
+           PHKCL(I) = round_real(PHKCL(I),6,2)
+           CEC(I) = round_real(CEC(I),6,2)
+           ADCOEF(I) = round_real(ADCOEF(I),6,2)
+
+        END DO
+        ! End code adapted from OPTEMPY2K
+      end if
+
+         call csminp%put('*SOIL','NLAYR',NLAYR)
+         call csminp%put('*SOIL','SLNO',PEDON)
+         call csminp%put('*SOIL','SLSOUR',SLSOUR)
+         call csminp%put('*SOIL','SLTXS',SLTXS)
+         call csminp%put('*SOIL','SLDP',SLDP)
+         call csminp%put('*SOIL','SLDESC',SLDESC)
+
+         call csminp%put('*SOIL','SSITE',SSITE)
+         call csminp%put('*SOIL','SCOUNT',SCOUNT)
+         call csminp%put('*SOIL','SLAT',SLAT)
+         call csminp%put('*SOIL','SLONG',SLONG)
+         call csminp%put('*SOIL','TAXON',TAXON)
+
+         call csminp%put('*SOIL','SCOM',SCOM)
+         call csminp%put('*SOIL','SALB',SALB)
+         call csminp%put('*SOIL','U',U)
+         call csminp%put('*SOIL','SWCON',SWCON)
+         call csminp%put('*SOIL','CN2',CN2)
+         call csminp%put('*SOIL','SLNF',SLNF)
+         call csminp%put('*SOIL','SLPF',SLPF)
+         call csminp%put('*SOIL','SMHB',SMHB)
+         call csminp%put('*SOIL','SMPX',SMPX)
+         call csminp%put('*SOIL','SMKE',SMKE)
+         call csminp%put('*SOIL','SGRP',SGRP)
+
+         call csminp%put('*SOIL','DS',DS(1:nlayr))
+         call csminp%put('*SOIL','DLAYR',DLAYR(1:nlayr))
+         call csminp%put('*SOIL','LL',LL(1:nlayr))
+         call csminp%put('*SOIL','DUL',DUL(1:nlayr))
+         call csminp%put('*SOIL','SAT',SAT(1:nlayr))
+         call csminp%put('*SOIL','SHF',SHF(1:nlayr))
+         call csminp%put('*SOIL','SWCN',SWCN(1:nlayr))
+         call csminp%put('*SOIL','BD',BD(1:nlayr))
+         call csminp%put('*SOIL','OC',OC(1:nlayr))
+         call csminp%put('*SOIL','CLAY',CLAY(1:nlayr))
+         call csminp%put('*SOIL','SILT',SILT(1:nlayr))
+         call csminp%put('*SOIL','STONES',STONES(1:nlayr))
+         call csminp%put('*SOIL','TOTN',TOTN(1:nlayr))
+         call csminp%put('*SOIL','PH',PH(1:nlayr))
+         call csminp%put('*SOIL','PHKCL',PHKCL(1:nlayr))
+         call csminp%put('*SOIL','CEC',CEC(1:nlayr))
+         call csminp%put('*SOIL','ADCOEF',ADCOEF(1:nlayr))
+
+         call csminp%put('*SOIL','EXTP',EXTP(1:nlayr))
+         call csminp%put('*SOIL','TOTP',TOTP(1:nlayr))
+         call csminp%put('*SOIL','ORGP',ORGP(1:nlayr))
+         call csminp%put('*SOIL','CACO',CACO(1:nlayr))
+         call csminp%put('*SOIL','EXTAL',EXTAL(1:nlayr))
+         call csminp%put('*SOIL','EXTFE',EXTFE(1:nlayr))
+         call csminp%put('*SOIL','EXTMN',EXTMN(1:nlayr))
+         call csminp%put('*SOIL','TOTBAS',TOTBAS(1:nlayr))
+         call csminp%put('*SOIL','PTERMA',PTERMA(1:nlayr))
+         call csminp%put('*SOIL','PTERMB',PTERMB(1:nlayr))
+         call csminp%put('*SOIL','EXK',EXK(1:nlayr))
+         call csminp%put('*SOIL','EXMG',EXMG(1:nlayr))
+         call csminp%put('*SOIL','EXNA',EXNA(1:nlayr))
+         call csminp%put('*SOIL','EXTS',EXTS(1:nlayr))
+         call csminp%put('*SOIL','SLEC',SLEC(1:nlayr))
+         call csminp%put('*SOIL','EXCA',EXCA(1:nlayr))
+         call csminp%put('*SOIL','SASC',SASC(1:nlayr))
+
+         call csminp%put('*SOIL','alphaVG',alphaVG(1:nlayr))
+         call csminp%put('*SOIL','mVG',mVG(1:nlayr))
+         call csminp%put('*SOIL','nVG',nVG(1:nlayr))
+         call csminp%put('*SOIL','WCR',WCR(1:nlayr))
+
       ENDIF
 
       RETURN

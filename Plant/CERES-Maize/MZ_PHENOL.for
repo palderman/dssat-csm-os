@@ -26,6 +26,8 @@
      &    XNTI,TLNO,XSTAGE,YREMRG,RUE,KCAN,KEP, P3, TSEN, CDAY,   !O
      &    SeedFrac, VegFrac)                                      !O
 
+      use csm_io
+      use dssat_netcdf
       USE ModuleDefs
       IMPLICIT  NONE
       SAVE
@@ -174,141 +176,145 @@
           !-------------------------------------------------------
           !     Read input file name (ie. DSSAT45.INP) and path
           !-------------------------------------------------------
-          CALL GETLUN('FILEIO', LUNIO)
-          OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)  
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
 
-          READ(LUNIO,50,IOSTAT=ERR) FILES, PATHSR; LNUM = 7
-   50     FORMAT(//////,15X,A12,1X,A80)
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-
-          READ(LUNIO,51,IOSTAT=ERR) FILEE, PATHER; LNUM = LNUM + 1
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-   51     FORMAT(15X,A12,1X,A80)
-
-          READ(LUNIO,51,IOSTAT=ERR) FILEC, PATHCR; LNUM = LNUM + 1
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
+          call csminp%get('*FILES','FILEC',FILES)
+          call csminp%get('*FILES','PATHCR',PATHSR)
+          call csminp%get('*FILES','FILEE',FILEE)
+          call csminp%get('*FILES','PATHEC',PATHER)
+          call csminp%get('*FILES','FILEG',FILEC)
+          call csminp%get('*FILES','PATHGE',PATHCR)
 
           !------------------------------------------------------
           !   Read Planting Details Section
           !------------------------------------------------------
-          SECTION = '*PLANT'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) THEN
-            CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          ELSE
-!            READ(LUNIO,60,IOSTAT=ERR) PLTPOP,SDEPTH
-            READ(LUNIO,60,IOSTAT=ERR) YREMRG,PLTPOP,SDEPTH
-            LNUM = LNUM + 1
-! 60         FORMAT(25X,F5.2,25X,F5.2)
- 60         FORMAT(11X,I7,7X,F5.2,25X,F5.2)
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-          ENDIF
+          call csminp%get('*PLANTING DETAILS','PLTPOP',PLTPOP)
+          call csminp%get('*PLANTING DETAILS','IEMRG',YREMRG)
+          call csminp%get('*PLANTING DETAILS','SDEPTH',SDEPTH)
+
 !     -----------------------------------------------------------------
 !             Read crop cultivar coefficients
 !     -----------------------------------------------------------------
-          SECTION = '*CULTI'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) THEN
-            CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          ELSE
-            READ (LUNIO,1800,IOSTAT=ERR) VARNO,VRNAME,ECONO,
-     %                   P1,P2,P5,G2,G3,PHINT ; LNUM = LNUM + 1 
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-1800        FORMAT (A6,1X,A16,1X,A6,1X,6F6.0)    
-          ENDIF
-          CLOSE(LUNIO)
+          call csminp%get('*CULTIVARS','VARNO',VARNO)
+          call csminp%get('*CULTIVARS','VRNAME',VRNAME)
+          call csminp%get('*CULTIVARS','ECONO',ECONO)
+          call csminp%get('*CULTIVARS','P1',P1)
+          call csminp%get('*CULTIVARS','P2',P2)
+          call csminp%get('*CULTIVARS','P5',P5)
+          call csminp%get('*CULTIVARS','G2',G2)
+          call csminp%get('*CULTIVARS','G3',G3)
+          call csminp%get('*CULTIVARS','PHINT',PHINT)
 
 !     -----------------------------------------------------------------
 !              Read Species Coefficients
 !     -----------------------------------------------------------------
 
-          FILECC =  TRIM(PATHSR) // FILES
-          CALL GETLUN('FILEC', LUNCRP)
-          OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
-         
+          if(nc_gen%yes)then
+             call nc_gen%read_spe('DSGT',DSGT)
+             call nc_gen%read_spe('DGET',DGET)
+             call nc_gen%read_spe('SWCG',SWCG)
+          else
+             FILECC =  TRIM(PATHSR) // FILES
+             CALL GETLUN('FILEC', LUNCRP)
+             OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+             IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+
 !         ----------------------------------------------------------------
 !                Find and Read TEMPERATURE Section
 !         ----------------------------------------------------------------
-         
-          SECTION = '*SEED '
-          CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
-          IF (FOUND .EQ. 0) THEN
-            CALL ERROR(SECTION, 42, FILECC, LNUM)
-          ELSE
-         
-            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-            READ(C80,'(9X,F7.3)',IOSTAT=ERR) DSGT
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-         
-            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-            READ(C80,'(9X,F7.3)',IOSTAT=ERR) DGET
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-            
-            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-            READ(C80,'(9X,F7.3)',IOSTAT=ERR) SWCG
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-          ENDIF
-         
-          CLOSE(LUNCRP)
 
+             SECTION = '*SEED '
+             CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
+             IF (FOUND .EQ. 0) THEN
+                CALL ERROR(SECTION, 42, FILECC, LNUM)
+             ELSE
+
+                CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+                CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+                CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+                CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+                CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+                READ(C80,'(9X,F7.3)',IOSTAT=ERR) DSGT
+                IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+
+                CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+                READ(C80,'(9X,F7.3)',IOSTAT=ERR) DGET
+                IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+
+                CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+                READ(C80,'(9X,F7.3)',IOSTAT=ERR) SWCG
+                IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+             ENDIF
+
+             CLOSE(LUNCRP)
+          end if
 !-----------------------------------------------------------------------
 !     Open Ecotype File FILEE
 !-----------------------------------------------------------------------
-          LNUM = 0
-          PATHL  = INDEX(PATHER,BLANK)
-          IF (PATHL .LE. 1) THEN
-            FILEGC = FILEE
-          ELSE
-            FILEGC = PATHER(1:(PATHL-1)) // FILEE
-          ENDIF
+          if(nc_gen%yes)then
+             call nc_gen%read_eco('ECONAME',ECONAM)
+             call nc_gen%read_eco('TBASE',TBASE)
+             call nc_gen%read_eco('TOPT',TOPT)
+             call nc_gen%read_eco('ROPT',ROPT)
+             call nc_gen%read_eco('P20',P2O)
+             call nc_gen%read_eco('DJTI',DJTI)
+             call nc_gen%read_eco('GDDE',GDDE)
+             call nc_gen%read_eco('DSGFT',DSGFT)
+             call nc_gen%read_eco('RUE',RUE)
+             call nc_gen%read_eco('KCAN',KCAN)
+             call nc_gen%read_eco('TSEN',TSEN)
+             IF (TSEN < 1.E-6) TSEN = 6.0
+             call nc_gen%read_eco('CDAY',CDAY)
+             IF (CDAY < 0) CDAY = 15
+          else
+             LNUM = 0
+             PATHL  = INDEX(PATHER,BLANK)
+             IF (PATHL .LE. 1) THEN
+                FILEGC = FILEE
+             ELSE
+                FILEGC = PATHER(1:(PATHL-1)) // FILEE
+             ENDIF
 
 !-----------------------------------------------------------------------
 !    Read Ecotype Parameter File
 !-----------------------------------------------------------------------
-          CALL GETLUN('FILEE', LUNECO)
-          OPEN (LUNECO,FILE = FILEGC,STATUS = 'OLD',IOSTAT=ERRNUM)
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEE,0)
-          ECOTYP = '      '
-          LNUM = 0
-          DO WHILE (ECOTYP .NE. ECONO)
-            CALL IGNORE(LUNECO, LNUM, ISECT, C255)
-            IF (ISECT .EQ. 1 .AND. C255(1:1) .NE. ' ' .AND.
-     &            C255(1:1) .NE. '*') THEN
-              READ(C255,3100,IOSTAT=ERRNUM) ECOTYP,ECONAM,TBASE,TOPT,
-     &             ROPT,P2O,DJTI,GDDE,DSGFT,RUE, KCAN
-3100          FORMAT (A6,1X,A16,1X,9(1X,F5.1))
-              IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEE,LNUM)
+             CALL GETLUN('FILEE', LUNECO)
+             OPEN (LUNECO,FILE = FILEGC,STATUS = 'OLD',IOSTAT=ERRNUM)
+             IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEE,0)
+             ECOTYP = '      '
+             LNUM = 0
+             DO WHILE (ECOTYP .NE. ECONO)
+                CALL IGNORE(LUNECO, LNUM, ISECT, C255)
+                IF (ISECT .EQ. 1 .AND. C255(1:1) .NE. ' ' .AND.
+     &               C255(1:1) .NE. '*') THEN
+                 READ(C255,3100,IOSTAT=ERRNUM) ECOTYP,ECONAM,TBASE,TOPT,
+     &                  ROPT,P2O,DJTI,GDDE,DSGFT,RUE, KCAN
+3100             FORMAT (A6,1X,A16,1X,9(1X,F5.1))
+                 IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEE,LNUM)
         
-              IF (ECOTYP .EQ. ECONO) THEN
+                 IF (ECOTYP .EQ. ECONO) THEN
 !               Read optional cold sensitivity paramter. 
 !               Default to TSEN = 6.0 if no value given.
-                IF (C255(80:84) == '     ') THEN
-                  TSEN = 6.0
-                ELSE
-                  READ(C255(80:84),'(F5.0)',IOSTAT=ERRNUM) TSEN
-                  IF (ERRNUM .NE. 0 .OR. TSEN < 1.E-6) TSEN = 6.0
-                ENDIF
+                    IF (C255(80:84) == '     ') THEN
+                       TSEN = 6.0
+                    ELSE
+                       READ(C255(80:84),'(F5.0)',IOSTAT=ERRNUM) TSEN
+                       IF (ERRNUM .NE. 0 .OR. TSEN < 1.E-6) TSEN = 6.0
+                    ENDIF
         
 !               Read optional number of cold days paramter. 
 !               Default to CDAY = 15.0 if no value given.
-                IF (C255(86:90) == '     ') THEN
-                  CDAY = 15
-                ELSE
-                  READ(C255(86:90),'(I5)',IOSTAT=ERRNUM) CDAY
-                  IF (ERRNUM .NE. 0 .OR. CDAY < 0) CDAY = 15
-                ENDIF
+                    IF (C255(86:90) == '     ') THEN
+                       CDAY = 15
+                    ELSE
+                       READ(C255(86:90),'(I5)',IOSTAT=ERRNUM) CDAY
+                       IF (ERRNUM .NE. 0 .OR. CDAY < 0) CDAY = 15
+                    ENDIF
         
-                EXIT
-              ENDIF
+                    EXIT
+                 ENDIF
 
-            ELSEIF (ISECT .EQ. 0) THEN
-              CALL ERROR(ERRKEY,7,FILEE,LNUM)
+              ELSEIF (ISECT .EQ. 0) THEN
+                 CALL ERROR(ERRKEY,7,FILEE,LNUM)
 
 ! CHP 1/4/2004
 ! IMPLEMENT THIS SECTION OF CODE WHEN A DEFAULT ECOTYPE HAS BEEN ADDED
@@ -326,11 +332,13 @@
 !            ECONO = 'DFAULT'
 !            REWIND(LUNECO)
 !            LNUM = 0
-            ENDIF
-          ENDDO
+              ENDIF
+           ENDDO
 
-          CLOSE (LUNECO)
-        ENDIF
+           CLOSE (LUNECO)
+          end if ! NetCDF input
+
+       ENDIF
 
       KEP = KCAN/(1-0.07)*(1-0.25)
 

@@ -46,6 +46,7 @@ C=======================================================================
 !     ------------------------------------------------------------------
       USE ModuleDefs
       USE ModuleData
+      use csm_io
 
       IMPLICIT  NONE
       SAVE
@@ -133,65 +134,82 @@ C=======================================================================
 !***********************************************************************
       IF (DYNAMIC == SEASINIT) THEN
 C-----------------------------------------------------------------------
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
+!      FILEIO  = CONTROL % FILEIO
+!      LUNIO   = CONTROL % LUNIO
       MULTI   = CONTROL % MULTI
       RNMODE  = CONTROL % RNMODE
       YRDIF   = CONTROL % YRDIF
       YRSIM   = CONTROL % YRSIM
 
 !     Read FPLACE data from FILEIO.
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
-      LNUM = 0
+!      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
+!      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
+!      LNUM = 0
 
 !     ------------------------------------------------------------------
 !     Find AUTOMATIC MANAGEMENT Section
 !     ------------------------------------------------------------------
-      SECTION = '!AUTOM'
-      CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      SECTION = '!AUTOM'
+!      CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
 
-      IF (FOUND == 0) THEN
-        CALL ERROR (SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ (LUNIO,'(//,14X,3F6.0,4X,A2)',IOSTAT=ERRNUM) 
-     &        DSOILN,SOILNC,SOILNX, FERTYPEN
-        LNUM = LNUM + 3
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
-        READ(FERTYPEN,'(I2)',IOSTAT=ERRNUM) FTYPEN
-        IF (ERRNUM .NE. 0) FTYPEN = 1
-      ENDIF
+!      IF (FOUND == 0) THEN
+!        CALL ERROR (SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ (LUNIO,'(//,14X,3F6.0,4X,A2)',IOSTAT=ERRNUM) 
+!     &        DSOILN,SOILNC,SOILNX, FERTYPEN
+!        LNUM = LNUM + 3
+!        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
+!        READ(FERTYPEN,'(I2)',IOSTAT=ERRNUM) FTYPEN
+!        IF (ERRNUM .NE. 0) FTYPEN = 1
+!      ENDIF
 
 !###AJG  Needs an automatic P fertilizer option in fileX ???
 
 !     ------------------------------------------------------------------
 !     Find FERTILIZER Section
 !     ------------------------------------------------------------------
-      SECTION = '*FERTI'
-      CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      SECTION = '*FERTI'
+!      CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
 
-      IF (FOUND == 0) THEN
-        CALL ERROR (SECTION, 42, FILEIO, LNUM)
-      ELSE
-        NFERT = 0
+!      IF (FOUND == 0) THEN
+!        CALL ERROR (SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        NFERT = 0
 
-        DO I = 1, NAPPL
-          READ (LUNIO, '(3X,I7,A90)', ERR = 90, END = 90) FDAY(I), CHAR
-          LNUM = LNUM + 1
+!        DO I = 1, NAPPL
+!          READ (LUNIO, '(3X,I7,A90)', ERR = 90, END = 90) FDAY(I), CHAR
+!          LNUM = LNUM + 1
 
-          READ(CHAR,'(1X,A5,1X,A5,4F6.0)',IOSTAT=ERRNUM) FERTYPE_CDE(I),
-     &      FERMET(I), FERDEP(I), ANFER(I), APFER(I), AKFER(I)
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY, ERRNUM, FILEIO, LNUM)
+!          READ(CHAR,'(1X,A5,1X,A5,4F6.0)',IOSTAT=ERRNUM) FERTYPE_CDE(I),
+!     &      FERMET(I), FERDEP(I), ANFER(I), APFER(I), AKFER(I)
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY, ERRNUM, FILEIO, LNUM)
 
-          READ(FERTYPE_CDE(I),'(2X,I3)') FERTYP(I)
+!          READ(FERTYPE_CDE(I),'(2X,I3)') FERTYP(I)
 !         The number of fertilizer applications to be done in this run.
-          NFERT = NFERT + 1
-        ENDDO
-   90   CONTINUE
-      ENDIF
+!          NFERT = NFERT + 1
+!        ENDDO
+!   90   CONTINUE
+!      ENDIF
 
-      CLOSE (LUNIO)
+!      CLOSE (LUNIO)
 
+      call csminp%get('*SIMULATION CONTROL','DSOILN',DSOILN)
+      call csminp%get('*SIMULATION CONTROL','SOILNC',SOILNC)
+      call csminp%get('*SIMULATION CONTROL','SOILNX',SOILNX)
+      call csminp%get('*SIMULATION CONTROL','FTYPEN',FTYPEN)
+      if(csminp%find('*FERTILIZERS')>0)then
+         call csminp%get('*FERTILIZERS','NFERT',nfert)
+         call csminp%get('*FERTILIZERS','FDAY',FDAY)
+         call csminp%get('*FERTILIZERS','IFTYPE',FERTYPE_CDE)
+         call csminp%get('*FERTILIZERS','FERCOD',FERMET)
+         call csminp%get('*FERTILIZERS','DFERT',FERDEP)
+         call csminp%get('*FERTILIZERS','ANFER',ANFER)
+         call csminp%get('*FERTILIZERS','APFER',APFER)
+         call csminp%get('*FERTILIZERS','AKFER',AKFER)
+         do i=1,nfert
+            READ(FERTYPE_CDE(i),'(2X,I3)') FERTYP(i)
+         end do
+      end if
 !     Check for invalid fertilizer option.
 !     CHP 10/14/2008 Added "F" option
       IF (INDEX('AFRDN',IFERI) .EQ. 0) THEN
@@ -213,27 +231,30 @@ C-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
       IF (MULTI > 1 .AND. NFERT > 0 .AND. IFERI .NE. 'D') THEN
 !       Open the FILEIO input file.
-        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
+!        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
+!        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
 
-        SECTION = '*FERTI'
-        CALL FIND (LUNIO, SECTION, LNUM, FOUND)
+!        SECTION = '*FERTI'
+!        CALL FIND (LUNIO, SECTION, LNUM, FOUND)
 
 !       If the fertilizer section can't be found, call an error, or else
 !       read the input data.
-        IF (FOUND == 0) THEN
-          CALL ERROR (SECTION, 42, FILEIO, LNUM)
-        ELSE
-          DO I = 1, NFERT
-            READ (LUNIO, '(3X, I7)', IOSTAT = ERRNUM, ERR = 5010,
-     &         END = 5010) FDAY(I)
-          ENDDO
-5010      CONTINUE
-        ENDIF   !End of IF block on FOUND.
+!        IF (FOUND == 0) THEN
+!          CALL ERROR (SECTION, 42, FILEIO, LNUM)
+!        ELSE
+!          DO I = 1, NFERT
+!            READ (LUNIO, '(3X, I7)', IOSTAT = ERRNUM, ERR = 5010,
+!     &         END = 5010) FDAY(I)
+!          ENDDO
+!5010      CONTINUE
+!        ENDIF   !End of IF block on FOUND.
 
 !       Close input file.
-        CLOSE (LUNIO)
+!        CLOSE (LUNIO)
 
+      if(csminp%find('*FERTILIZERS')>0)then
+         call csminp%get('*FERTILIZERS','FDAY',FDAY)
+      end if
 !       Adjust dates for seasonal runs.
         DO I = 1, NFERT
           CALL YR_DOY (FDAY(I), YR, IDATE)

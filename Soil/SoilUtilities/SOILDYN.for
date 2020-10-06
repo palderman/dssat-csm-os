@@ -42,6 +42,7 @@ C=======================================================================
 C-----------------------------------------------------------------------
       USE ModuleDefs 
       USE ModuleData
+      use csm_io
 
       IMPLICIT NONE
       SAVE
@@ -250,132 +251,77 @@ C-----------------------------------------------------------------------
       ISWWAT = ISWITCH % ISWWAT
 
 !-----------------------------------------------------------------------
-!     Read FILEIO
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-
-!-----------------------------------------------------------------------
 !     Find and Read Soil Profile Section.
-      SECTION = '*SOIL '
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      SECTION = '*SOIL '
+!      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
+!      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO, LNUM)
 
-      READ(LUNIO,60,IOSTAT=ERRNUM,ERR=1000)SLNO,SLSOUR,SLTXS,SLDP,SLDESC
-   60 FORMAT (1X,A10, 2X, A11,1X,A5,1X,F5.0,1X,A50)
-      LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,LNUM)
-      READ(LUNIO, 70, IOSTAT=ERRNUM,ERR=1000) TAXON ; LNUM = LNUM + 1
-   70 FORMAT (41X,A50)
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,LNUM)
-      
-!-----------------------------------------------------------------------
-      READ(LUNIO, 80, IOSTAT=ERRNUM,ERR=1000) 
-     &           SALB, U, SWCON, CN, DMOD, SLPF, SMPX
-   80 FORMAT(7X,F5.2,1X,F5.1,1X,F5.2,1X,F5.0,2(1X,F5.2),
-     &       7X,A5,12X,F6.0)
-     
-      LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,LNUM)
+        call csminp%get('*SOIL','NLAYR',NLAYR)
 
-!     First tier soils data:
-      NLAYR = 0
-      DO L = 1, NL
-        READ(LUNIO,'(F6.0,6X,A200)',IOSTAT=ERRNUM,ERR=1000) DS(L), CHAR
-        IF (ERRNUM .NE. 0) EXIT
-        IF (L .GT. 1) THEN
-          IF (DS(L) .LT. DS(L-1)) EXIT
-        ENDIF
+        call csminp%get('*SOIL','SLNO',SLNO)
+        call csminp%get('*SOIL','SLSOUR',SLSOUR)
+        call csminp%get('*SOIL','SLTXS',SLTXS)
+        call csminp%get('*SOIL','SLDP',SLDP)
+        call csminp%get('*SOIL','SLDESC',SLDESC)
 
-        READ(CHAR,'(15F6.0)',IOSTAT=ERRNUM,ERR=1000) 
-     &      LL(L), DUL(L), SAT(L), WR(L), SWCN(L), BD(L),
-     &      OC(L), CLAY(L), SILT(L), STONES(L), TOTN(L),
-     &      PH(L), PHKCL(L), CEC(L), ADCOEF(L)
-        LNUM = LNUM + 1
+        call csminp%get('*SOIL','TAXON',TAXON)
 
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,LNUM)
-        NLAYR = NLAYR + 1
-      ENDDO
+        call csminp%get('*SOIL','SALB',SALB)
+        call csminp%get('*SOIL','U',U)
+        call csminp%get('*SOIL','SWCON',SWCON)
+        call csminp%get('*SOIL','CN',CN)
+        call csminp%get('*SOIL','SLNF',DMOD)
+        call csminp%get('*SOIL','SLPF',SLPF)
+        call csminp%get('*SOIL','SMPX',SMPX)
 
-!     Second tier soils data:
-      DO L = 1, NLAYR
-        IF (L == 1 .AND. NLAYR == NL) THEN
-!         If number of layers = NL, need to read the blank line between soil tiers
-          READ(LUNIO,'(/,F6.0,A200)',IOSTAT=ERRNUM,ERR=1000) DS(L), CHAR
-        ELSE
-          READ(LUNIO,'(F6.0,A200)',IOSTAT=ERRNUM,ERR=1000) DS(L), CHAR
-        ENDIF
-        IF (ERRNUM .NE. 0) EXIT
-        IF (L .GT. 1) THEN
-          IF (DS(L) .LT. DS(L-1)) EXIT
-        ENDIF
-        LNUM = LNUM + 1
+        call csminp%get('*SOIL','BD',BD)
+        call csminp%get('*SOIL','OC',OC)
+        call csminp%get('*SOIL','PH',PH)
+        call csminp%get('*SOIL','SLTXS',SLTXS)
+        call csminp%get('*SOIL','TOTN',TOTN)
 
-!       Calcium carbonate is read as CACO (units: g/kg) and converted 
-!       to CACO3 (units: %).
-        READ (CHAR,'(20(F6.0))',IOSTAT=ERRNUM,ERR=1000) 
-     &      EXTP(L), TOTP(L), ORGP(L), CACO(L), 
-     &      EXTAL(L), EXTFE(L), EXTMN(L), TOTBAS(L), PTERMA(L),
-     &      PTERMB(L), EXK(L), EXMG(L), EXNA(L), EXTS(L), SLEC(L),
-     &      EXCA(L), SASC(L)
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDDO
+        call csminp%get('*SOIL','DS',DS)
+        call csminp%get('*SOIL','LL',LL)
+        call csminp%get('*SOIL','DUL',DUL)
+        call csminp%get('*SOIL','SAT',SAT)
+        call csminp%get('*SOIL','SHF',WR)
+        call csminp%get('*SOIL','SWCN',SWCN)
+        call csminp%get('*SOIL','CLAY',CLAY)
+        call csminp%get('*SOIL','SILT',SILT)
+        call csminp%get('*SOIL','STONES',STONES)
+        call csminp%get('*SOIL','TOTN',TOTN)
+        call csminp%get('*SOIL','PHKCL',PHKCL)
+        call csminp%get('*SOIL','CEC',CEC)
+        call csminp%get('*SOIL','ADCOEF',ADCOEF)
 
-!     Third tier soils data (van Genuchten parameters):
-      DO L = 1, NLAYR
-!       Need to read the blank line between soil tiers
-        IF (L == 1) THEN
-!         If number of layers = NL, need to read the blank line between soil tiers
-          READ(LUNIO,'(/,F6.0,A200)',IOSTAT=ERRNUM,ERR=1000) DS(L), CHAR
-        ELSE
-          READ(LUNIO,'(F6.0,A200)',IOSTAT=ERRNUM,ERR=1000) DS(L), CHAR
-        ENDIF
-        IF (ERRNUM .NE. 0) EXIT
-        IF (L .GT. 1) THEN
-          IF (DS(L) .LT. DS(L-1)) EXIT
-        ENDIF
-        LNUM = LNUM + 1
+        call csminp%get('*SOIL','EXTP',EXTP)
+        call csminp%get('*SOIL','TOTP',TOTP)
+        call csminp%get('*SOIL','ORGP',ORGP)
+        call csminp%get('*SOIL','CACO',CACO)
+        call csminp%get('*SOIL','EXTAL',EXTAL)
+        call csminp%get('*SOIL','EXTFE',EXTFE)
+        call csminp%get('*SOIL','EXTMN',EXTMN)
+        call csminp%get('*SOIL','TOTBAS',TOTBAS)
+        call csminp%get('*SOIL','PTERMA',PTERMA)
+        call csminp%get('*SOIL','PTERMB',PTERMB)
+        call csminp%get('*SOIL','EXK',EXK)
+        call csminp%get('*SOIL','EXMG',EXMG)
+        call csminp%get('*SOIL','EXNA',EXNA)
+        call csminp%get('*SOIL','EXTS',EXTS)
+        call csminp%get('*SOIL','SLEC',SLEC)
+        call csminp%get('*SOIL','EXCA',EXCA)
+        call csminp%get('*SOIL','SASC',SASC)
 
-        READ (CHAR,'(20(F6.0))',IOSTAT=ERRNUM,ERR=1000) 
-     &      alphaVG(L), mVG(L), nVG(L), WCR(L)
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDDO
+        call csminp%get('*SOIL','alphaVG',alphaVG)
+        call csminp%get('*SOIL','mVG',mVG)
+        call csminp%get('*SOIL','nVG',nVG)
+        call csminp%get('*SOIL','WCR',WCR)
 
-!-----------------------------------------------------------------------
-!     Find and read Initial Conditions section -- get initial inorganic
-!       N for calculation of total organic N.
-      REWIND(LUNIO)
-      SECTION = '*INITI'
-      CALL FIND (LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO, LNUM)
+        call csminp%get('*INITIAL CONDITIONS','DS',DS)
+        call csminp%get('*INITIAL CONDITIONS','SWINIT',SW)
+        call csminp%get('*INITIAL CONDITIONS','INH4',NH4)
+        call csminp%get('*INITIAL CONDITIONS','INO3',NO3)
 
-!     Read line before layer data -- ignore
-      READ (LUNIO, '(A)', IOSTAT = ERRNUM,ERR=1000) CHAR
-      LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
-
-      DO L = 1, NLAYR
-
-        READ(LUNIO, 100, IOSTAT=ERRNUM,ERR=1000)SW(L), NH4(L),NO3(L)
-100     FORMAT (8X, 3 (1X, F5.1))
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
-      ENDDO
-
-      CLOSE (LUNIO)
-
-      GOTO 2000
-!     Error trap
- 1000 MSG(1) = "Error reading file.  Check soil inputs."
-      WRITE(MSG(2),'(A,A)') "File:    ", FILEIO
-      WRITE(MSG(3),'(A,I3)')"Line:   ",  LNUM+1
-      WRITE(MSG(4),'(A,A)') "Section: ", SECTION
-      CALL WARNING(4, ERRKEY, MSG)
-      CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM+1)
-
-!     ------------------------------------------------------------------
- 2000 CONTINUE
 C-----------------------------------------------------------------------
 !     Check validity of input values:
       IF (SALB < 1.E-4) THEN

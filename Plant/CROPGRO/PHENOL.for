@@ -102,7 +102,7 @@ C=======================================================================
 !     Subroutine IPPHENOL reads required phenology variables from input
 !     files.  
 !-----------------------------------------------------------------------
-      CALL IPPHENOL(CONTROL,
+      CALL IPPHENOL(
      &    ATEMP, CLDVAR, CLDVRR, CSDVAR, CSDVRR, CROP,    !Output
      &    CTMP, DLTYP, EVMODC, NPRIOR, NSENP, OPTBI,      !Output
      &    PHTHRS, PLME, PSENP, SDAGE, SDEPTH, SLOBI,      !Output

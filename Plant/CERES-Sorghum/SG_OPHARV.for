@@ -32,6 +32,8 @@ C  05/11/2007 GH  Added IDAT as output & renumber output variables
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use csm_io
+
       IMPLICIT NONE
       SAVE
 
@@ -41,7 +43,6 @@ C  05/11/2007 GH  Added IDAT as output & renumber output variables
       CHARACTER*6, PARAMETER :: ERRKEY = 'OPHARV'
       CHARACTER*10 STNAME(20)
       CHARACTER*12 FILEA
-      CHARACTER*30 FILEIO
       CHARACTER*80 PATHEX
 
       INTEGER DEMRG, DFLR, DMAT, DPIN
@@ -88,7 +89,6 @@ C  05/11/2007 GH  Added IDAT as output & renumber output variables
       CROP    = CONTROL % CROP
       YRSIM   = CONTROL % YRSIM
       RNMODE  = CONTROL % RNMODE
-      FILEIO  = CONTROL % FILEIO
       RUN     = CONTROL % RUN
 
       StovSenes = SENESCE % ResWt(0)
@@ -159,28 +159,12 @@ C-GH      ACOUNT = 21  !Number of FILEA headings.
       IF (DYNAMIC .EQ. RUNINIT) THEN
 !-----------------------------------------------------------------------
 !       Read FILEIO
-        CALL GETLUN('FILEIO', LUNIO)
-        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
 
-        READ (LUNIO,'(55X,I5)', IOSTAT=ERRNUM) ISENS; LNUM = 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+        call csminp%get('*FILES','ISENS',ISENS)
+        call csminp%get('*FILES','FILEA',FILEA)
+        call csminp%get('*FILES','PATHEX',PATHEX)
 
-        READ (LUNIO,'(3(/),15X,A12,1X,A80)', IOSTAT=ERRNUM) FILEA,
-     &        PATHEX
-        LNUM = LNUM + 4  
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-  
-        SECTION = '*TREAT'
-        CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-        IF (FOUND .EQ. 0) THEN
-          CALL ERROR(SECTION, 42, FILEIO, LNUM)
-        ELSE
-          READ(LUNIO, '(I3)', IOSTAT=ERRNUM) TRTNUM ; LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-        ENDIF
-
-        CLOSE (LUNIO)
+        call csminp%get('*TREATMENTS','TRTNO',TRTNUM)
 
 !     Assign descriptions to Measured and Simulated data 
 !         from DATA.CDE.

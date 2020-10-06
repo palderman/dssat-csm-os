@@ -24,7 +24,7 @@ C=======================================================================
 
       SUBROUTINE FOR_PODS(DYNAMIC, RUN, 
      &    AGRSD1, AGRSH1, DLAYR, DRPP, DUL, FILECC,       !Input
-     &    FILEGC,FILEIO, FNINL, FNINSD, FNINSH, GDMSD,    !Input
+     &    FILEGC, FNINL, FNINSD, FNINSH, GDMSD,           !Input
      &    GRRAT1, ISWWAT, LL, NAVL, NDSET, NLAYR, NRUSSH, !Input
      &    NSTRES, PGAVL, PHTHRS, PHTIM, PNTIM, PUNCSD,    !Input
      &    PUNCTR, RNITP, SDDES, SDGR, SHELWT, SW, SWFAC,  !Input
@@ -39,6 +39,7 @@ C=======================================================================
       USE ModuleDefs     !Definitions of constructed variable types, 
         ! which contain control information, soil
         ! parameters, hourly weather data.
+      use csm_io
       IMPLICIT NONE
       SAVE
 
@@ -49,7 +50,6 @@ C=======================================================================
       PARAMETER (ERRKEY = 'PODS  ')
       CHARACTER*6   ECOTYP, ECONO
       CHARACTER*6   SECTION
-      CHARACTER*30 FILEIO
       CHARACTER*78 MESSAGE(10)
       CHARACTER*80  C80
       CHARACTER*92  FILECC, FILEGC
@@ -102,34 +102,16 @@ C=======================================================================
 !    Find and Read Simulation Control Section from FILEIO
 !               Previously read in IPIBS
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEIO', LUNIO)
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-
 !-----------------------------------------------------------------------
 !    Find and Read Cultivars Section from FILEIO
 !-----------------------------------------------------------------------
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(ERRKEY, 1, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(3X,A2)') CROP
-      ENDIF
-
-!-----------------------------------------------------------------------
-!    Find and Read Cultivars Section from FILEIO
-!-----------------------------------------------------------------------
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(ERRKEY, 1, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(24X,A6,66X,5F6.0)')
-     &    ECONO, WTPSD, SFDUR, SDPDVR, PODUR, THRESH
-      ENDIF
-
-      CLOSE (LUNIO)
+          call csminp%get('*CULTIVARS','CR',CROP)
+          call csminp%get('*CULTIVARS','ECONO',ECONO)
+          call csminp%get('*CULTIVARS','WTPSD',WTPSD)
+          call csminp%get('*CULTIVARS','SFDUR',SFDUR)
+          call csminp%get('*CULTIVARS','SDPDVR',SDPDVR)
+          call csminp%get('*CULTIVARS','PODUR',PODUR)
+          call csminp%get('*CULTIVARS','THRESH',THRESH)
 
 !-----------------------------------------------------------------------
 !     Read in values from input file, which were previously input
@@ -1152,7 +1134,6 @@ C=======================================================================
 ! ERRKEY    Subroutine name for error file 
 ! FILECC    Path plus filename for species file (*.spe) 
 ! FILEGC    Pathname plus filename for ECO file 
-! FILEIO    Filename for INP file (e.g., IBSNAT35.INP) 
 ! FLADD     Number of flowers that are developed and available to form pods
 !             (#)
 ! FLAYR     Fraction of layer within nodule zone 
@@ -1183,7 +1164,6 @@ C=======================================================================
 ! LNGSH     Time required for shell growth (Photo-thermal days)
 ! LUNCRP    Logical unit number for FILEC (*.spe file) 
 ! LUNECO    Logical unit number for FILEE (*.eco file) 
-! LUNIO     Logical unit number for FILEIO 
 ! MNESPM    Minimum time from end of pod set to physiological maturity.
 !             (thermal days)
 ! NAGE      Age of cohort (days)

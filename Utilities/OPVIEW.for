@@ -18,6 +18,7 @@ C=======================================================================
 
 !-----------------------------------------------------------------------
       USE HeaderMod
+      use csm_io
 !      USE ModuleDefs     !Definitions of constructed variable types, 
 !                         ! which contain control information, soil
 !                         ! parameters, hourly weather data.
@@ -34,7 +35,6 @@ C=======================================================================
       CHARACTER*16 CROPD
       CHARACTER*12 FILEA, OUTO
       CHARACTER*25 TITLET
-      CHARACTER*30 FILEIO
       CHARACTER*84 SimText
 
       INTEGER DAP, DOY, DSTRES, DYNAMIC, ERRNUM, FOUND
@@ -95,7 +95,6 @@ C=======================================================================
 
       NYRS    = CONTROL % NYRS
       RNMODE  = CONTROL % RNMODE
-      FILEIO  = CONTROL % FILEIO
       RUN     = CONTROL % RUN
       YRDOY   = CONTROL % YRDOY
       DYNAMIC = CONTROL % DYNAMIC
@@ -111,35 +110,16 @@ C     RUN INITIALIZATION
 C***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
 C-----------------------------------------------------------------------
-!     Read FILEIO
-      CALL GETLUN('FILEIO', LUNIO)
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-      LNUM = 0
 C-----------------------------------------------------------------------
 C    Read FILE names and paths
 C-----------------------------------------------------------------------
-      READ (LUNIO,'(55X,I5)', IOSTAT=ERRNUM) ISENS ; LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      READ (LUNIO,'(2/,15X,A12,1X,A80)', IOSTAT=ERRNUM) FILEA
-      LNUM = LNUM + 3    
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-
+         call csminp%get('*FILES','ISENS',ISENS)
+         call csminp%get('*FILES','FILEA',FILEA)
 C-----------------------------------------------------------------------
 C       Find and Read TREATMENTS Section
 C-----------------------------------------------------------------------
-      SECTION = '*TREAT'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO, '(I3,6X,A25)', IOSTAT=ERRNUM) TRTNUM, TITLET
-        LNUM = LNUM + 1    
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
-      
-      CLOSE (LUNIO)
-
+         call csminp%get('*TREATMENTS','TRTNO',TRTNUM)
+         call csminp%get('*TREATMENTS','TITLET',TITLET)
 C-----------------------------------------------------------------------
       IF (IDETO .EQ. 'Y') THEN
 !       Get unit number for OVERVIEW.OUT

@@ -24,6 +24,7 @@ C========================================================================
 C-----------------------------------------------------------------------
       USE ModuleDefs
       USE ModuleData
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -59,10 +60,12 @@ C-----------------------------------------------------------------------
 !     Read in values from input file, which were previously input
 !       in Subroutine IPCROP.
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
-      LNUM = 0
+      if(.not.nc_gen%yes)then ! SPE file
+         CALL GETLUN('FILEC', LUNCRP)
+         OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+         LNUM = 0
+      end if
 !-----------------------------------------------------------------------
 !    Find and Read Photosynthesis Section
 !-----------------------------------------------------------------------
@@ -88,56 +91,72 @@ C-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !    Find and Read Partitioning Section
 !-----------------------------------------------------------------------
-      SECTION = '!*VEGE'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        DO I=1,4
-          ISECT = 2
-          DO WHILE (ISECT .NE. 1)
-            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-          ENDDO
-        ENDDO
-        READ(CHAR,'(6X,F6.0)',IOSTAT=ERR) PORPT
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+      if(nc_gen%yes)then ! NetCDF I/O
+         call nc_gen%read_spe('PORPT',PORPT)
+      else
+         SECTION = '!*VEGE'
+         CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+         IF (FOUND .EQ. 0) THEN
+            CALL ERROR(SECTION, 42, FILECC, LNUM)
+         ELSE
+            DO I=1,4
+               ISECT = 2
+               DO WHILE (ISECT .NE. 1)
+                  CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+               ENDDO
+            ENDDO
+            READ(CHAR,'(6X,F6.0)',IOSTAT=ERR) PORPT
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         ENDIF
+      end if ! NetCDF I/O
 
 !-----------------------------------------------------------------------
 !    Find and Read Senescence Section
 !    NOTE: First search for Section finds '!*LEAF GROWTH PARAMETERS'
 !          Second search finds '!*LEAF SENESCENCE FACTORS'
 !-----------------------------------------------------------------------
-      SECTION = '!*LEAF'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ENDIF
+      if(nc_gen%yes)then ! NetCDF I/O
+         call nc_gen%read_spe('SENRTE',SENRTE)
+         call nc_gen%read_spe('SENRT2',SENRT2)
+         call nc_gen%read_spe('SENDAY',SENDAY)
+         call nc_gen%read_spe('ICMP',ICMP)
+         call nc_gen%read_spe('TCMP',TCMP)
+         call nc_gen%read_spe('XSTAGE',XSTAGE)
+         call nc_gen%read_spe('XSENMX',XSENMX)
+         call nc_gen%read_spe('SENPOR',SENPOR)
+         call nc_gen%read_spe('SENMAX',SENMAX)
+      else
+         SECTION = '!*LEAF'
+         CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+         IF (FOUND .EQ. 0) THEN
+            CALL ERROR(SECTION, 42, FILECC, LNUM)
+         ENDIF
 
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        READ(CHAR,'(3F6.0)',IOSTAT=ERR) SENRTE, SENRT2, SENDAY
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+         IF (FOUND .EQ. 0) THEN
+            CALL ERROR(SECTION, 42, FILECC, LNUM)
+         ELSE
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            READ(CHAR,'(3F6.0)',IOSTAT=ERR) SENRTE, SENRT2, SENDAY
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        READ(CHAR,'(2F6.0)',IOSTAT=ERR) ICMP, TCMP
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            READ(CHAR,'(2F6.0)',IOSTAT=ERR) ICMP, TCMP
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        READ(CHAR,'(8F6.0)',IOSTAT=ERR)
-     &      (XSTAGE(II),II=1,4),(XSENMX(II),II=1,4)
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            READ(CHAR,'(8F6.0)',IOSTAT=ERR)
+     &           (XSTAGE(II),II=1,4),(XSENMX(II),II=1,4)
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        READ(CHAR,'(8F6.0)',IOSTAT=ERR)
-     &      (SENPOR(II),II=1,4),(SENMAX(II),II=1,4)
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            READ(CHAR,'(8F6.0)',IOSTAT=ERR)
+     &           (SENPOR(II),II=1,4),(SENMAX(II),II=1,4)
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         ENDIF
 
-      CLOSE (LUNCRP)
+         CLOSE (LUNCRP)
+      end if ! NetCDF I/O
 
 !***********************************************************************
 !***********************************************************************

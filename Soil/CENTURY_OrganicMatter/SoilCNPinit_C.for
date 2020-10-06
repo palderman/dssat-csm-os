@@ -46,6 +46,7 @@
 !     ------------------------------------------------------------------
       USE ModuleDefs 
       USE Interface_IpSoil
+      use csm_io
 
       IMPLICIT NONE
       SAVE
@@ -55,7 +56,6 @@
       CHARACTER*1  RNMODE 
       CHARACTER*2  PREV_CROP
       CHARACTER*6  ERRKEY, SECTION
-      CHARACTER*30 FILEIO
       PARAMETER (ERRKEY = 'SOILNI')
       CHARACTER*78 MSG(10)
 
@@ -113,7 +113,6 @@
       TYPE (MulchType)   MULCH
 
 !     Transfer values from constructed data types into local variables.
-      FILEIO  = CONTROL % FILEIO
       LUNIO   = CONTROL % LUNIO
       MULTI   = CONTROL % MULTI
       RNMODE  = CONTROL % RNMODE
@@ -133,29 +132,19 @@
       IF (RUN == 1 .OR. INDEX('QF',RNMODE) <= 0) THEN
 !       --------------------------------------------------------------
 !       Read initial root and shoot residue from FILEIO
-!       Open the FILEIO input file.
-        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
-
-!       If the file can't be found, call an error.
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
 
 !       Find and Read INITIAL CONDITIONS Section
-        SECTION = '*INITI'
-
-!       Find the line number from where to start reading.
-        CALL FIND (LUNIO, SECTION, LNUM, FOUND)
-
-!       If the Initial Conditions section can't be found, call an
-!       error, or else read the input data.
-        IF (FOUND == 0) CALL ERROR (SECTION, 42, FILEIO, LNUM)
 
 !       Read the weight of root residues and nodules from the
 !       previous crop. 
-        READ (LUNIO, '(3X,A2,11X, 2F6.0, 18X, 5F6.0)', IOSTAT = ERRNUM) 
-     &    PREV_CROP, 
-     &    ICRT, ICNOD, ICRES, ICREN, ICREP, ICRIP, ICRID
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
+        call csminp%get('*INITIAL CONDITIONS','PRCROP',PREV_CROP)
+        call csminp%get('*INITIAL CONDITIONS','WRESR',ICRT)
+        call csminp%get('*INITIAL CONDITIONS','WRESND',ICNOD)
+        call csminp%get('*INITIAL CONDITIONS','ICRES',ICRES)
+        call csminp%get('*INITIAL CONDITIONS','ICREN',ICREN)
+        call csminp%get('*INITIAL CONDITIONS','ICREP',ICREP)
+        call csminp%get('*INITIAL CONDITIONS','ICRIP',ICRIP)
+        call csminp%get('*INITIAL CONDITIONS','ICRID',ICRID)
 
         IF (ICRT < 0.) ICRT = 0.
         IF (ICNOD < 0.) ICNOD = 0.
@@ -163,15 +152,12 @@
         IF (ICRID < 0.01) ICRID = 0.
         IF (ICRID < 0.01) ICRIP = 0.
 
+        call csminp%get('*INITIAL CONDITIONS','INH4',NH4I)
+        call csminp%get('*INITIAL CONDITIONS','INO3',NO3I)
+
+
 !       Read initial inorganic N for initialization of organic matter
 !       constituents.  
-        DO L = 1, NLAYR
-          LNUM = LNUM + 1
-          READ(LUNIO, 100, IOSTAT=ERRNUM) NH4I(L),NO3I(L)
-100       FORMAT (14X, 2 (1X, F5.1))
-          IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
-        ENDDO
-        CLOSE (LUNIO)
 
         IF (N_ELEMS > 0) THEN
           DO L=1,NLAYR

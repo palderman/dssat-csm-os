@@ -279,6 +279,7 @@ C-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use csm_io
       IMPLICIT NONE
 
       CHARACTER*5 HCOM(3), HSIZ(3)
@@ -299,58 +300,74 @@ C-----------------------------------------------------------------------
 !     defined in ModuleDefs.for, and contains the following variables.
 !     The components are copied into local variables for use here.
       TYPE (ControlType) CONTROL
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
+!      FILEIO  = CONTROL % FILEIO
+!      LUNIO   = CONTROL % LUNIO
 
 C-----------------------------------------------------------------------
 C    Open Temporary File
 C-----------------------------------------------------------------------
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-      LNUM = 0
+!      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!      LNUM = 0
 C-----------------------------------------------------------------------
 C    Read Automatic Management
 C-----------------------------------------------------------------------
-      SECTION = '!AUTOM'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(30X,3(1X,F5.0))',IOSTAT=ERRNUM) 
-     &    SWPLTL, SWPLTH, SWPLTD
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-        READ (LUNIO,'(///,14X,2(1X,I7),5(1X,F5.0))', IOSTAT=ERRNUM)
-     &    HDLAY, HLATE, HPP, HRP
-        LNUM = LNUM + 4
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      SECTION = '!AUTOM'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ(LUNIO,'(30X,3(1X,F5.0))',IOSTAT=ERRNUM) 
+!     &    SWPLTL, SWPLTH, SWPLTD
+!        LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!        READ (LUNIO,'(///,14X,2(1X,I7),5(1X,F5.0))', IOSTAT=ERRNUM)
+!     &    HDLAY, HLATE, HPP, HRP
+!        LNUM = LNUM + 4
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
 
 C-----------------------------------------------------------------------
 C    Read Harvest Section
 C-----------------------------------------------------------------------
-      SECTION = '*HARVE'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND); LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        NHAR = 0
-        DO I = 1,3
-          READ(LUNIO,'(3X,I7,4X,A90)',ERR=4102,END=4102) HDATE(I), CHAR 
-          LNUM = LNUM + 1
+!      SECTION = '*HARVE'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND); LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        NHAR = 0
+!        DO I = 1,3
+!          READ(LUNIO,'(3X,I7,4X,A90)',ERR=4102,END=4102) HDATE(I), CHAR 
+!          LNUM = LNUM + 1
 
-          READ(CHAR,4100,IOSTAT=ERRNUM) 
-     &         HSTG(I), HCOM(I), HSIZ(I), HPC(I), HBPC(I) 
- 4100     FORMAT(I2,2(1X,A5),2(1X,F5.0))
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-          NHAR = NHAR + 1
+!          READ(CHAR,4100,IOSTAT=ERRNUM) 
+!     &         HSTG(I), HCOM(I), HSIZ(I), HPC(I), HBPC(I) 
+! 4100     FORMAT(I2,2(1X,A5),2(1X,F5.0))
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!          NHAR = NHAR + 1
 
-        ENDDO
- 4102   CONTINUE
+!        ENDDO
+! 4102   CONTINUE
 
-      ENDIF
+!      ENDIF
 
-      CLOSE (LUNIO)
+!      CLOSE (LUNIO)
+      
+      call csminp%get('*SIMULATION CONTROL','SWPLTL',SWPLTL)
+      call csminp%get('*SIMULATION CONTROL','SWPLTH',SWPLTH)
+      call csminp%get('*SIMULATION CONTROL','SWPLTD',SWPLTD)
+      call csminp%get('*SIMULATION CONTROL','HDLAY',HDLAY)
+      call csminp%get('*SIMULATION CONTROL','HLATE',HLATE)
+      call csminp%get('*SIMULATION CONTROL','HPP',HPP)
+      call csminp%get('*SIMULATION CONTROL','HRP',HRP)
+      if(csminp%find('*HARVEST')>0)then
+         call csminp%get('*HARVEST','HDATE',HDATE)
+         call csminp%get('*HARVEST','HSTG',HSTG)
+         call csminp%get('*HARVEST','HCOM',HCOM)
+         call csminp%get('*HARVEST','HSIZ',HSIZ)
+         call csminp%get('*HARVEST','HPC',HPC)
+         call csminp%get('*HARVEST','HBPC',HBPC)
+      end if
 
       !Harvest Initialization Section
       IF (NHAR .EQ. 0) THEN

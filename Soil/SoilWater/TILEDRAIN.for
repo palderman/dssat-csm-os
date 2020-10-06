@@ -15,7 +15,8 @@ C=======================================================================
      &    DRN, SWDELTT, TDFC, TDFD, TDLNO)                !Output
 
 !-----------------------------------------------------------------------
-      USE ModuleDefs     
+      USE ModuleDefs
+      use csm_io
       IMPLICIT NONE
       SAVE
 
@@ -46,26 +47,30 @@ C=======================================================================
 !***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
 C-----------------------------------------------------------------------
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
+!      FILEIO  = CONTROL % FILEIO
+!      LUNIO   = CONTROL % LUNIO
 
 C     Read FILEIO
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-      LNUM = 0
+!      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!      LNUM = 0
 
 C     Find and Read Fields Section.
-      SECTION = '*FIELD'
+!      SECTION = '*FIELD'
 
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(38X,2F6.0)') FLDD, SFDRN; LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!     ELSE
+      if(csminp%find('*FIELDS')>0)then
+!        READ(LUNIO,'(38X,2F6.0)') FLDD, SFDRN; LNUM = LNUM + 1
+!     IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+         call csminp%get('*FIELDS','FLDD',FLDD)
+         call csminp%get('*FIELDS','SFDRN',SFDRN)
+      end if
+!      ENDIF
 
-      CLOSE (LUNIO)
+!      CLOSE (LUNIO)
 
 C     Skip tile drain section if depth of tile is < 0 in file X
       IF (FLDD .LE. 0.0) THEN

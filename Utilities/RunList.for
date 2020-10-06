@@ -13,6 +13,7 @@
 
       USE ModuleDefs 
       USE ModuleData
+      use dssat_mpi
       IMPLICIT NONE
       SAVE
 
@@ -36,6 +37,7 @@
 
       DATA FIRST /.TRUE./
 !-----------------------------------------------------------------------
+      if(mpi_child%use_mpi) return
       IF (FIRST) THEN
         CALL GETLUN('RUNLST',RLUN)
         FIRST = .FALSE.

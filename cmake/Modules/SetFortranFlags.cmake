@@ -60,6 +60,11 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                  Fortran "-fd-lines-as-comments"
                 )
 
+# flag for compiling with OpenMPI
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                 Fortran "-pthread"
+                )
+
 # Enable generation of run-time checks for array subscripts and against the declared
 # minimum and maximum values.
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"

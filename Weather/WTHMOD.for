@@ -37,6 +37,8 @@ C=======================================================================
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+     
+      use csm_io
       IMPLICIT NONE
       SAVE
 
@@ -46,14 +48,13 @@ C=======================================================================
       CHARACTER*1 RADFAC(NMODS), WNDFAC(NMODS)
       CHARACTER*1  WMODB, RNMODE
       CHARACTER*6  SECTION, ERRKEY
-      CHARACTER*30 FILEIO
       CHARACTER*90 CHAR
       CHARACTER*92 FILEWW
 
       INTEGER LINWTH
       PARAMETER (LINWTH=0)
       INTEGER I, NEV, WMDATE(NMODS), YYDDD, YRDIF
-      INTEGER LNUM, LUNIO, FOUND, ERR
+      INTEGER LNUM, FOUND, ERR
       INTEGER DYNAMIC,MULTI,YRSIM,YR,WDATE, YREND
 
       REAL CO2,DEC,DECL,DAYL,HOLD,PAR,RAIN,SNUP,SNDN,SRAD,
@@ -75,8 +76,6 @@ C=======================================================================
 
 !     Transfer values from constructed data types into local variables.
 C     DYNAMIC = CONTROL % DYNAMIC
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
       RNMODE  = CONTROL % RNMODE
       MULTI   = CONTROL % MULTI
       YRDIF   = CONTROL % YRDIF
@@ -88,38 +87,36 @@ C     DYNAMIC = CONTROL % DYNAMIC
 !***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT .OR. DYNAMIC .EQ. SEASINIT) THEN
 !-----------------------------------------------------------------------
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
 !-----------------------------------------------------------------------
 C    Read Environmental Modification Section
 C-----------------------------------------------------------------------
-      SECTION = '*ENVIR'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION,42,FILEIO,LNUM)
-      ELSE
-        NEV = 0
-        DO I = 1,NMODS
-!          READ(LUNIO,120,IOSTAT=ERR,ERR=130)
-!     &        WMDATE(I),DAYFAC(I),DAYADJ(I),RADFAC(I),
-!     &        RADADJ(I),TXFAC(I),TXADJ(I),TMFAC(I),TMADJ(I),
-!     &        PRCFAC(I),PRCADJ(I),CO2FAC(I),CO2ADJ(I),
-!     &        DPTFAC(I),DPTADJ(I),WNDFAC(I),WNDADJ(I)
-!  120     FORMAT(3X,I7,5(1X,A1,F4.1),1X,A1,F4.0,2(1X,A1,F4.1))
-          READ(LUNIO,'(3X,I7,A90)',ERR=130) WMDATE(I), CHAR
-          READ(CHAR,120,IOSTAT=ERR) 
-     &        DAYFAC(I),DAYADJ(I),RADFAC(I),
-     &        RADADJ(I),TXFAC(I),TXADJ(I),TMFAC(I),TMADJ(I),
-     &        PRCFAC(I),PRCADJ(I),CO2FAC(I),CO2ADJ(I),
-     &        DPTFAC(I),DPTADJ(I),WNDFAC(I),WNDADJ(I)
-  120     FORMAT(5(1X,A1,F4.1),1X,A1,F4.0,2(1X,A1,F4.1))
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-          NEV = NEV + 1
-        ENDDO
-  130   CONTINUE
-      ENDIF
-      
-      CLOSE (LUNIO)
+         if(csminp%find('*ENVIRONMENT')<=0)then
+            nev = 0
+         ELSE
+            call csminp%get('*ENVIRONMENT','WMDATE',WMDATE)
+            call csminp%get('*ENVIRONMENT','DAYFAC',DAYFAC)
+            call csminp%get('*ENVIRONMENT','DAYADJ',DAYADJ)
+            call csminp%get('*ENVIRONMENT','RADFAC',RADFAC)
+            call csminp%get('*ENVIRONMENT','RADADJ',RADADJ)
+            call csminp%get('*ENVIRONMENT','TXFAC',TXFAC)
+            call csminp%get('*ENVIRONMENT','TXADJ',TXADJ)
+            call csminp%get('*ENVIRONMENT','TMFAC',TMFAC)
+            call csminp%get('*ENVIRONMENT','TMADJ',TMADJ)
+            call csminp%get('*ENVIRONMENT','PRCFAC',PRCFAC)
+            call csminp%get('*ENVIRONMENT','PRCADJ',PRCADJ)
+            call csminp%get('*ENVIRONMENT','CO2FAC',CO2FAC)
+            call csminp%get('*ENVIRONMENT','CO2ADJ',CO2ADJ)
+            call csminp%get('*ENVIRONMENT','DPTFAC',DPTFAC)
+            call csminp%get('*ENVIRONMENT','DPTADJ',DPTADJ)
+            call csminp%get('*ENVIRONMENT','WNDFAC',WNDFAC)
+            call csminp%get('*ENVIRONMENT','WNDADJ',WNDADJ)
+            nev = 0
+            do i=1,size(WMDATE)
+               if(WMDATE(i)<=0) exit
+               nev = nev + 1
+            end do
+!           call csminp%get('*ENVIRONMENT','NEV',NEV)
+         ENDIF
 
 C-----------------------------------------------------------------------
 C     Adjust for multi year runs

@@ -625,6 +625,7 @@ C========================================================================
 !-----------------------------------------------------------------------
       USE ModuleDefs
       USE ModuleData
+      use dssat_mpi
       IMPLICIT NONE
       SAVE
 
@@ -666,28 +667,30 @@ C========================================================================
         FIRST = .FALSE.
 
 !       On first call to subroutine, open new file to record
-!       input and output file information.
-        INQUIRE (FILE = 'LUN.LST', EXIST = FEXIST)
-        IF (FEXIST) THEN
-          OPEN (UNIT = OUTLUN, FILE = 'LUN.LST', STATUS = 'REPLACE',
-     &      POSITION = 'APPEND')
-        ELSE
-          OPEN (UNIT = OUTLUN, FILE = 'LUN.LST', STATUS = 'NEW')
-          WRITE(OUTLUN,10)
-   10     FORMAT('*Summary of files opened during simulation',
-     &        //,'Unit  File',/'Num.  Variable Name')
-        ENDIF
+!     input and output file information.
+!        if(.not.nc_out%yes.and..not.mpi_child%use_mpi)then
+!           INQUIRE (FILE = 'LUN.LST', EXIST = FEXIST)
+!           IF (FEXIST) THEN
+!              OPEN (UNIT = OUTLUN, FILE = 'LUN.LST', STATUS = 'REPLACE',
+!     &             POSITION = 'APPEND')
+!           ELSE
+!              OPEN (UNIT = OUTLUN, FILE = 'LUN.LST', STATUS = 'NEW')
+!              WRITE(OUTLUN,10)
+! 10           FORMAT('*Summary of files opened during simulation',
+!     &             //,'Unit  File',/'Num.  Variable Name')
+!           ENDIF
 
-        CALL DATE_AND_TIME (VALUES=DATE_TIME)
+!           CALL DATE_AND_TIME (VALUES=DATE_TIME)
       
 !       Version information stored in ModuleDefs.for
-        WRITE (OUTLUN,100) Version, VBranch, MonthTxt(DATE_TIME(2)),
-     &    DATE_TIME(3), DATE_TIME(1), DATE_TIME(5), 
-     &    DATE_TIME(6), DATE_TIME(7)
-  100   FORMAT ("*DSSAT Cropping System Model Ver. ",I1,".",I1,".",I1,
-     &    ".",I3.3,1X,A10,4X,
-     &    A3," ",I2.2,", ",I4,"; ",I2.2,":",I2.2,":",I2.2,
-     &        //," Unit  Filename")
+!           WRITE (OUTLUN,100) Version, VBranch, MonthTxt(DATE_TIME(2)),
+!     &          DATE_TIME(3), DATE_TIME(1), DATE_TIME(5), 
+!     &          DATE_TIME(6), DATE_TIME(7)
+! 100      FORMAT ("*DSSAT Cropping System Model Ver. ",I1,".",I1,".",I1,
+!     &          ".",I3.3,1X,A10,4X,
+!     &          A3," ",I2.2,", ",I4,"; ",I2.2,":",I2.2,":",I2.2,
+!     &          //," Unit  Filename")
+!        end if
       ENDIF
 
 !-----------------------------------------------------------------------
@@ -768,16 +771,18 @@ C========================================================================
 !     (only print the first time a unit is assigned)
 !       OUTPUT.LST - ICASA format headers, etc.
 !     Save FileVarName in case it is used again.
-      IF (.NOT. FPRINT(LUN)) THEN
-        INQUIRE (UNIT = OUTLUN, OPENED = FEXIST)
-        IF (.NOT. FEXIST) THEN
-          OPEN (UNIT = OUTLUN, FILE = 'LUN.LST', STATUS = 'OLD',
-     &      POSITION = 'APPEND')
-        ENDIF
-        WRITE(OUTLUN,'(I5,2X,A)') LUN, FileVarName
-        FPRINT(LUN) = .TRUE.
-        SaveName(LUN) = FileVarName
-      ENDIF
+!      if(.not.nc_out%yes.and..not.mpi_child%use_mpi)then
+!         IF (.NOT. FPRINT(LUN)) THEN
+!            INQUIRE (UNIT = OUTLUN, OPENED = FEXIST)
+!            IF (.NOT. FEXIST) THEN
+!               OPEN (UNIT = OUTLUN, FILE = 'LUN.LST', STATUS = 'OLD',
+!     &              POSITION = 'APPEND')
+!            ENDIF
+!            WRITE(OUTLUN,'(I5,2X,A)') LUN, FileVarName
+!            FPRINT(LUN) = .TRUE.
+!            SaveName(LUN) = FileVarName
+!         ENDIF
+!      end if
 
 !      CLOSE(OUTLUN)
 

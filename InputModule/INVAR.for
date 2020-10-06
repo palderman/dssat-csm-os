@@ -33,9 +33,9 @@ C=======================================================================
 
       SUBROUTINE INVRLE (FILEG,RNMODE,VARTY,VRNAME,PATHGE,ECONO)
 
-      IMPLICIT     NONE
+      use csm_io
 
-      INCLUDE     'COMGEN.blk'
+      IMPLICIT     NONE
 
       CHARACTER*1  LINE(80),ANS,RNMODE,BLANK,UPCASE
       CHARACTER*6  GNAME(18),VARTY,ECONO
@@ -47,8 +47,31 @@ C=======================================================================
       INTEGER      I,IG,PATHL
       LOGICAL      FEXIST
       REAL         GVALUE(18),GENP,GENNEW,FLAG
+      REAL          CSDVAR,PHTHRS(20),SDPDVR,SLAVAR,LFMAX,XFRUIT,WTPSD
+      REAL          SFDUR,PODUR,PPSEN,PH2T5,SIZELF
+      REAL          THRESH, SDPRO, SDLIP
+
+
+! 	  For APSIM-wheat (WHAPS)
 
       PARAMETER (BLANK = ' ')
+
+      call csminp%get('*CULTIVAR','CSDVAR',CSDVAR)
+      call csminp%get('*CULTIVAR','PPSEN',PPSEN)
+      call csminp%get('*CULTIVAR','PH2T5',PH2T5)
+      call csminp%get('*CULTIVAR','PHTHRS',PHTHRS)
+      call csminp%get('*CULTIVAR','LFMAX',LFMAX)
+      call csminp%get('*CULTIVAR','SDPDVR',SDPDVR)
+      call csminp%get('*CULTIVAR','SLAVAR',SLAVAR)
+      call csminp%get('*CULTIVAR','SIZELF',SIZELF)
+      call csminp%get('*CULTIVAR','XFRUIT',XFRUIT)
+      call csminp%get('*CULTIVAR','WTPSD',WTPSD)
+      call csminp%get('*CULTIVAR','SFDUR',SFDUR)
+      call csminp%get('*CULTIVAR','SDPDVR',SDPDVR)
+      call csminp%get('*CULTIVAR','PODUR',PODUR)
+      call csminp%get('*CULTIVAR','THRESH',THRESH)
+      call csminp%get('*CULTIVAR','SDPRO',SDPRO)
+      call csminp%get('*CULTIVAR','SDLIP',SDLIP)
 
       GNAME  (1) = 'CSDL  '
       GVALUE (1) = CSDVAR
@@ -111,7 +134,7 @@ C=======================================================================
       IF (GENP .EQ.  0 .OR. FLAG .EQ. 1) GO TO 1000
   800 IF (INDEX('IE',RNMODE) .GT. 0) THEN
           WRITE (*,20000) GNAME(IG),GVALUE(IG)
-	ENDIF
+      ENDIF
       READ (5,19000) LINE
       CALL VERIFY (LINE,GENNEW,FLAG)
       IF (GENNEW .LT. 0) THEN
@@ -157,6 +180,25 @@ C     VARTY  = 'NEW001'
       CLOSE (19)
 
  1000 CONTINUE
+
+      call csminp%put('*CULTIVAR','CSDVAR',GVALUE(1))
+      call csminp%put('*CULTIVAR','PPSEN',GVALUE(2))
+      call csminp%put('*CULTIVAR','PH2T5',GVALUE(3))
+      call csminp%put('*CULTIVAR','PHTHRS',GVALUE(4),ind=6)
+      call csminp%put('*CULTIVAR','PHTHRS',GVALUE(5),ind=8)
+      call csminp%put('*CULTIVAR','PHTHRS',GVALUE(6),ind=10)
+      call csminp%put('*CULTIVAR','PHTHRS',GVALUE(7),ind=13)
+      call csminp%put('*CULTIVAR','LFMAX',GVALUE(8))
+      call csminp%put('*CULTIVAR','SLAVAR',GVALUE(9))
+      call csminp%put('*CULTIVAR','SIZELF',GVALUE(10))
+      call csminp%put('*CULTIVAR','XFRUIT',GVALUE(11))
+      call csminp%put('*CULTIVAR','WTPSD',GVALUE(12))
+      call csminp%put('*CULTIVAR','SFDUR',GVALUE(13))
+      call csminp%put('*CULTIVAR','SDPDVR',GVALUE(14))
+      call csminp%put('*CULTIVAR','PODUR',GVALUE(15))
+      call csminp%put('*CULTIVAR','THRESH',GVALUE(16))
+      call csminp%put('*CULTIVAR','SDPRO',GVALUE(17))
+      call csminp%put('*CULTIVAR','SDLIP',GVALUE(18))
 
       CSDVAR     =  GVALUE( 1)
       PPSEN      =  GVALUE( 2)
@@ -250,13 +292,54 @@ C=======================================================================
 
       SUBROUTINE INVRCE (CROP, MODEL)
 
-      IMPLICIT  NONE
+      use csm_io
 
-      INCLUDE  'COMGEN.blk'
+      IMPLICIT  NONE
 
       INTEGER     IERR,IPARAM,NDEX
       CHARACTER*2 CROP
       CHARACTER*8 MODEL
+
+      REAL          P1,P1V,P1D,P2,P2O,P2R,P3,P4,P5,G1,G2,G3,G4
+      REAL          PHINT,PD,TC,AX,LX,PANTH
+
+      !     For CSCAS-cassava
+      REAL          PPS1, B01ND, B12ND, B23ND, B34ND, B45ND, B56ND
+      REAL          SRNWT, SRFR, HMPC, LA1S, LAXS
+      REAL          LAXND, LAXN2, LAFS, LAFND, SLASS, LLIFA, LPEFR
+      REAL          STFR
+!     For CSYCA-cassava
+      REAL          LNSLP, NODWT, NODLT
+      REAL          BR1FX, BR2FX, BR3FX, BR4FX
+
+
+!     For CSCRP-wheat
+      REAL VREQ, VBASE, VEFF, PPS2
+      REAL P6, P7, P8
+      REAL GNOWT, GWTS, SHWTS, LAFV, LAFR
+
+!     For SCCSP-SUGARCANE (CASUPRO)
+      REAL      PHTMAX,PLF1,PLF2,Gamma,StkB,StkM
+      REAL      LIsun,LIshd,TB(3),TO1(3),TO2(3),TM(3)
+      REAL      LI1,TELOM, LSFAC
+      REAL      Ph1P,Ph1R,Ph2,Ph3,Ph4,StkHrNO,RTNFAC,MinGr
+      REAL      RES30C,RLF30C,R30C2 
+      REAL      StkH2OFac,SuH2OFac 
+
+!     For CaneGro
+      REAL
+     &      MaxPARCE, APFMX, STKPFMAX, SUCA, TBFT, Tthalfo, TBase, 
+     &      MXLFAREA, MXLFARNO, PSWITCH, TTPLNTEM, 
+     &      TTRATNEM, CHUPIBASE, TT_POPGROWTH, MAX_POP, POPTT16, 
+     &      TAR0, TDELAY, LER0, SER0, LG_AMBASE, AQP_UP5 
+!    &      LFMAX, PI1, PI2, 
+
+      REAL          LFMAX
+      REAL          PI1,PI2
+      REAL          PCINT,PCGRD
+      REAL          DTPI,SIZLF
+      REAL          PBASE, PSAT  !Sorghum
+
 C
 C     Repeat until user chooses to quit
 C
@@ -272,6 +355,13 @@ C
 !=======================================================================
 !     Millet
       CASE ('MLCER')
+         call csminp%get('*CULTIVAR','P1',P1)
+         call csminp%get('*CULTIVAR','P2O',P2O)
+         call csminp%get('*CULTIVAR','P2R',P2R)
+         call csminp%get('*CULTIVAR','P5',P5)
+         call csminp%get('*CULTIVAR','G1',G1)
+         call csminp%get('*CULTIVAR','G4',G4)
+         call csminp%get('*CULTIVAR','PHINT',PHINT)
         WRITE (*,5300) P1,P2O,P2R,P5,G1,G4,PHINT
 5300    FORMAT (12X,'0. End of changes ',//,
      1  12X,'1. P1  (Cumulative growing degree days from',/,
@@ -295,7 +385,15 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE (IPARAM)
-         CASE (0); RETURN
+         CASE (0)
+             call csminp%put('*CULTIVAR','P1',P1)
+             call csminp%put('*CULTIVAR','P2O',P2O)
+             call csminp%put('*CULTIVAR','P2R',P2R)
+             call csminp%put('*CULTIVAR','P5',P5)
+             call csminp%put('*CULTIVAR','G1',G1)
+             call csminp%put('*CULTIVAR','G4',G4)
+             call csminp%put('*CULTIVAR','PHINT',PHINT)
+             return
          CASE (1); CALL GETREAL (P1,   'P1   ',   1.0,  800.0)
          CASE (2); CALL GETREAL (P2O,  'P2O  ',   5.0,   19.0)
          CASE (3); CALL GETREAL (P2R,  'P2R  ',   5.0, 9000.0)
@@ -308,6 +406,13 @@ C        Branch to menu choice
 !=======================================================================
 !     Maize, sweet corn
       CASE ('MZCER', 'SWCER')
+
+         call csminp%get('*CULTIVAR','P1',P1)
+         call csminp%get('*CULTIVAR','P2',P2)
+         call csminp%get('*CULTIVAR','P5',P5)
+         call csminp%get('*CULTIVAR','G2',G2)
+         call csminp%get('*CULTIVAR','G3',G3)
+         call csminp%get('*CULTIVAR','PHINT',PHINT)
 
         WRITE (*,5400) P1,P2,P5,G2,G3,PHINT
 5400    FORMAT (12X,'0. End of changes',//,
@@ -329,7 +434,14 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE (IPARAM)
-         CASE (0); RETURN
+         CASE (0)
+             call csminp%put('*CULTIVAR','P1',P1)
+             call csminp%put('*CULTIVAR','P2',P2)
+             call csminp%put('*CULTIVAR','P5',P5)
+             call csminp%put('*CULTIVAR','G2',G2)
+             call csminp%put('*CULTIVAR','G3',G3)
+             call csminp%put('*CULTIVAR','PHINT',PHINT)
+             return
          CASE (1); CALL GETREAL (P1,'P1   ', 80.0, 500.0)
          CASE (2); CALL GETREAL (P2,'P2   ',  0.0,  10.0)
          CASE (3); CALL GETREAL (P5,'P5   ',100.0,2000.0)
@@ -342,6 +454,13 @@ C        Branch to menu choice
 C**WDB 12/2015 Added this section for Sugarbeet
 
       CASE ('BSCER')
+
+         call csminp%get('*CULTIVAR','P1',P1)
+         call csminp%get('*CULTIVAR','P2',P2)
+         call csminp%get('*CULTIVAR','P5',P5)
+         call csminp%get('*CULTIVAR','G2',G2)
+         call csminp%get('*CULTIVAR','G3',G3)
+         call csminp%get('*CULTIVAR','PHINT',PHINT)
 
         WRITE (*,5401) P1,P2,P5,G2,G3,PHINT
 5401    FORMAT (12X,'0. End of changes',//,
@@ -364,18 +483,40 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE (IPARAM)
-         CASE (0); RETURN
-         CASE (1); CALL GETREAL (P1,'P1   ', 450.0, 1100.0)
+         CASE (0)
+             call csminp%put('*CULTIVAR','P1',P1)
+             call csminp%put('*CULTIVAR','P2',P2)
+             call csminp%put('*CULTIVAR','P5',P5)
+             call csminp%put('*CULTIVAR','G2',G2)
+             call csminp%put('*CULTIVAR','G3',G3)
+             call csminp%put('*CULTIVAR','PHINT',PHINT)
+             return
+C**WDB 12/2015 The value for P1 for Sugarbeet may need to be higher
+C** than the maximum value of 500 as defined in the original code.
+C** Changed maximum allowable value to 999.
+             
+C** Original code         CASE (1); CALL GETREAL (P1,'P1   ', 80.0, 500.0)
+         CASE (1); CALL GETREAL (P1,'P1   ', 80.0, 999.0)
+C** WDB end changes
          CASE (2); CALL GETREAL (P2,'P2   ',  0.0,  0.0001)
          CASE (3); CALL GETREAL (P5,'P5   ',600.0,1000.0)
          CASE (4); CALL GETREAL (G2,'G2   ',170.0,220.0)
          CASE (5); CALL GETREAL (G3,'G3   ', 20.0,  50.0)
          CASE (6); CALL GETREAL (PHINT,'PHINT',1.0,200.0)
          END SELECT
-         
+
 !=======================================================================
 !     Maize - IXIM
       CASE ('MZIXM')
+         call csminp%get('*CULTIVAR','P1',P1)
+         call csminp%get('*CULTIVAR','P2',P2)
+         call csminp%get('*CULTIVAR','P5',P5)
+         call csminp%get('*CULTIVAR','G2',G2)
+         call csminp%get('*CULTIVAR','G3',G3)
+         call csminp%get('*CULTIVAR','PHINT',PHINT)
+         call csminp%get('*CULTIVAR','AX',AX)
+         call csminp%get('*CULTIVAR','LX',LX)
+
         WRITE (*,5450) P1,P2,P5,G2,G3,PHINT,AX,LX
 5450    FORMAT (12X,'0. End of changes',//,
      1  12X,'1. P1 (Growing degree days from emergence to',/,
@@ -398,14 +539,17 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE (IPARAM)
-         CASE (0); RETURN
-C**WDB 12/2015 The value for P1 for Sugarbeet may need to be higher
-C** than the maximum value of 500 as defined in the original code.
-C** Changed maximum allowable value to 999.
-             
-C** Original code         CASE (1); CALL GETREAL (P1,'P1   ', 80.0, 500.0)
-         CASE (1); CALL GETREAL (P1,'P1   ', 80.0, 999.0)
-C** WDB end changes
+         CASE (0)
+             call csminp%put('*CULTIVAR','P1',P1)
+             call csminp%put('*CULTIVAR','P2',P2)
+             call csminp%put('*CULTIVAR','P5',P5)
+             call csminp%put('*CULTIVAR','G2',G2)
+             call csminp%put('*CULTIVAR','G3',G3)
+             call csminp%put('*CULTIVAR','PHINT',PHINT)
+             call csminp%put('*CULTIVAR','AX',AX)
+             call csminp%put('*CULTIVAR','LX',LX)
+             return
+         CASE (1); CALL GETREAL (P1,'P1   ', 80.0, 500.0)
          CASE (2); CALL GETREAL (P2,'P2   ',  0.0,  10.0)
          CASE (3); CALL GETREAL (P5,'P5   ',100.0,2000.0)
          CASE (4); CALL GETREAL (G2,'G2   ',100.0,2000.0)
@@ -418,6 +562,20 @@ C** WDB end changes
 !=======================================================================
 !     Sorghum
       CASE ('SGCER')
+         call csminp%get('*CULTIVAR','P1',P1)
+         call csminp%get('*CULTIVAR','P2O',P2O)
+         call csminp%get('*CULTIVAR','P2R',P2R)
+         call csminp%get('*CULTIVAR','P5',P5)
+         call csminp%get('*CULTIVAR','G1',G1)
+         call csminp%get('*CULTIVAR','G2',G2)
+         call csminp%get('*CULTIVAR','PHINT',PHINT)
+         call csminp%get('*CULTIVAR','P3',P3)
+         call csminp%get('*CULTIVAR','P4',P4)
+         call csminp%get('*CULTIVAR','P2',P2)
+         call csminp%get('*CULTIVAR','PANTH',PANTH)
+         call csminp%get('*CULTIVAR','PBASE',PBASE)
+         call csminp%get('*CULTIVAR','PSAT',PSAT)
+
         WRITE (*,5500) P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4,P2,PBASE,PSAT
 5500    FORMAT 
      &  (12X,'0. End of changes',//,
@@ -450,7 +608,21 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE(IPARAM)
-         CASE(0);  RETURN
+         CASE(0)
+            call csminp%put('*CULTIVAR','P1',P1)
+            call csminp%put('*CULTIVAR','P2O',P2O)
+            call csminp%put('*CULTIVAR','P2R',P2R)
+            call csminp%put('*CULTIVAR','P5',P5)
+            call csminp%put('*CULTIVAR','G1',G1)
+            call csminp%put('*CULTIVAR','G2',G2)
+            call csminp%put('*CULTIVAR','PHINT',PHINT)
+            call csminp%put('*CULTIVAR','P3',P3)
+            call csminp%put('*CULTIVAR','P4',P4)
+            call csminp%put('*CULTIVAR','P2',P2)
+            call csminp%put('*CULTIVAR','PANTH',PANTH)
+            call csminp%put('*CULTIVAR','PBASE',PBASE)
+            call csminp%put('*CULTIVAR','PSAT',PSAT)
+            return
          CASE(1);  CALL GETREAL (P1,   'P1   ',150.0, 500.0)
          CASE(2);  CALL GETREAL (P2O,  'P2O  ',  5.0,  30.0)
          CASE(3);  CALL GETREAL (P2R,  'P2R  ', 10.0,9000.0)
@@ -458,7 +630,7 @@ C        Branch to menu choice
          CASE(5);  CALL GETREAL (G1,   'G1   ',  1.0,  20.0)
          CASE(6);  CALL GETREAL (G2,   'G2   ',  1.0,   8.0)
          CASE(7);  CALL GETREAL (PHINT,'PHINT',  1.0, 200.0)
-	   CASE(8);  CALL GETREAL (P3,   'P3   ',100.0, 900.0)
+         CASE(8);  CALL GETREAL (P3,   'P3   ',100.0, 900.0)
          CASE(9);  CALL GETREAL (P4,   'P4   ',100.0, 900.0)
          CASE(10); CALL GETREAL (P2,   'P2   ',100.0, 900.0)
          CASE(11); CALL GETREAL (PANTH,'PANTH',  0.0,9000.0)
@@ -469,6 +641,12 @@ C        Branch to menu choice
 !=======================================================================
 !     Potato
       CASE ('PTSUB')
+         call csminp%get('*CULTIVAR','G2',G2)
+         call csminp%get('*CULTIVAR','G3',G3)
+         call csminp%get('*CULTIVAR','PD',PD)
+         call csminp%get('*CULTIVAR','P2',P2)
+         call csminp%get('*CULTIVAR','TC',TC)
+
         WRITE (*,5700) G2,G3,PD,P2,TC
 5700    FORMAT (12X,'0. End of changes ',//,
      2  12X,'1. G2 (Leaf expansion rate (cmý/mý/d))..........[',F7.1,/,
@@ -486,7 +664,13 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE(IPARAM)
-         CASE(0);  RETURN
+         CASE(0)
+            call csminp%put('*CULTIVAR','G2',G2)
+            call csminp%put('*CULTIVAR','G3',G3)
+            call csminp%put('*CULTIVAR','PD',PD)
+            call csminp%put('*CULTIVAR','P2',P2)
+            call csminp%put('*CULTIVAR','TC',TC)
+            return
          CASE(1);  CALL GETREAL (G2,'G2   ',0.0,3000.0)
          CASE(2);  CALL GETREAL (G3,'G3   ',0.0,3000.0)
          CASE(3);  CALL GETREAL (PD,'PD   ',0.0,3000.0)
@@ -497,7 +681,15 @@ C        Branch to menu choice
 !=======================================================================
 !     Rice
       CASE ('RICER')
-        WRITE (*,5800) P1,P2R,P5,P2O,G1,G2,G3,G4
+         call csminp%get('*CULTIVAR','P1',P1)
+         call csminp%get('*CULTIVAR','P2R',P2R)
+         call csminp%get('*CULTIVAR','P5',P5)
+         call csminp%get('*CULTIVAR','P2O',P2O)
+         call csminp%get('*CULTIVAR','G1',G1)
+         call csminp%get('*CULTIVAR','G2',G2)
+         call csminp%get('*CULTIVAR','G3',G3)
+         call csminp%get('*CULTIVAR','G4',G4)
+         WRITE (*,5800) P1,P2R,P5,P2O,G1,G2,G3,G4
 5800    FORMAT (12X,'0. End of changes ',//,
      1  12X,'1. P1..(10.00 -  800.0)..........................[',F7.1,/,
      2  12X,'2. P2R.( 5.00 -  500.0)..........................[',F7.2,/,
@@ -517,7 +709,16 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE(IPARAM)
-         CASE(0);  RETURN
+         CASE(0)
+            call csminp%put('*CULTIVAR','P1',P1)
+            call csminp%put('*CULTIVAR','P2R',P2R)
+            call csminp%put('*CULTIVAR','P5',P5)
+            call csminp%put('*CULTIVAR','P2O',P2O)
+            call csminp%put('*CULTIVAR','G1',G1)
+            call csminp%put('*CULTIVAR','G2',G2)
+            call csminp%put('*CULTIVAR','G3',G3)
+            call csminp%put('*CULTIVAR','G4',G4)
+            return
          CASE(1);  CALL GETREAL (P1,  'P1   ',0.0,5000.0)
          CASE(2);  CALL GETREAL (P2R, 'P2R  ',0.0,5000.0)
          CASE(3);  CALL GETREAL (P5,  'P5   ',0.0,5000.0)
@@ -531,7 +732,14 @@ C        Branch to menu choice
 !=======================================================================
 !     CSCER - Wheat, barley
       CASE ('CSCER')
-	  WRITE (*,5600) P1V,P1D,P5,G1,G2,G3,PHINT
+         call csminp%get('*CULTIVAR','P1V',P1V)
+         call csminp%get('*CULTIVAR','P1D',P1D)
+         call csminp%get('*CULTIVAR','P5',P5)
+         call csminp%get('*CULTIVAR','G1',G1)
+         call csminp%get('*CULTIVAR','G2',G2)
+         call csminp%get('*CULTIVAR','G3',G3)
+         call csminp%get('*CULTIVAR','PHINT',PHINT)
+         WRITE (*,5600) P1V,P1D,P5,G1,G2,G3,PHINT
 5600    FORMAT (12X,'0. End of changes',//,
      1  12X,'1. P1V (Vernalization, days)....................[',F7.2,/,
      3  12X,'2. P1D (Photoperiod effect).....................[',F7.2,/,
@@ -550,7 +758,15 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE(IPARAM)
-         CASE(0);  RETURN
+         CASE(0)
+            call csminp%put('*CULTIVAR','P1V',P1V)
+            call csminp%put('*CULTIVAR','P1D',P1D)
+            call csminp%put('*CULTIVAR','P5',P5)
+            call csminp%put('*CULTIVAR','G1',G1)
+            call csminp%put('*CULTIVAR','G2',G2)
+            call csminp%put('*CULTIVAR','G3',G3)
+            call csminp%put('*CULTIVAR','PHINT',PHINT)
+            return
          CASE(1);  CALL GETREAL (P1V,  'P1V  ',  0.0,  60.0)
          CASE(2);  CALL GETREAL (P1D,  'P1D  ',  0.0,  200.)
          CASE(3);  CALL GETREAL (P5,   'P5   ', 100.,  999.)
@@ -572,6 +788,26 @@ C        Branch to menu choice
 !     --------------------------------------------------------------
 !       CSCRP wheat
         CASE ('WH')
+           call csminp%get('*CULTIVAR','VREQ',VREQ)
+           call csminp%get('*CULTIVAR','PPS1',PPS1)
+           call csminp%get('*CULTIVAR','P8',P8)
+           call csminp%get('*CULTIVAR','GNOWT',GNOWT)
+           call csminp%get('*CULTIVAR','GWTS',GWTS)
+           call csminp%get('*CULTIVAR','SHWTS',SHWTS)
+           call csminp%get('*CULTIVAR','PHINT',PHINT)
+           call csminp%get('*CULTIVAR','P1',P1)
+           call csminp%get('*CULTIVAR','P2',P2)
+           call csminp%get('*CULTIVAR','P3',P3)
+           call csminp%get('*CULTIVAR','P4',P4)
+           call csminp%get('*CULTIVAR','P5',P5)
+           call csminp%get('*CULTIVAR','P6',P6)
+           call csminp%get('*CULTIVAR','P7',P7)
+           call csminp%get('*CULTIVAR','LA1S',LA1S)
+           call csminp%get('*CULTIVAR','LAFV',LAFV)
+           call csminp%get('*CULTIVAR','LAFR',LAFR)
+           call csminp%get('*CULTIVAR','VBASE',VBASE)
+           call csminp%get('*CULTIVAR','VEFF',VEFF)
+           call csminp%get('*CULTIVAR','PPS2',PPS2)
           WRITE (*,5920) 
      &      VREQ, PPS1, P8, GNOWT, GWTS, SHWTS, PHINT, 
      &      P1, P2, P3, P4, P5, P6, P7, 
@@ -607,7 +843,28 @@ C         Get menu choice
 C
 C         Branch to menu choice
           SELECT CASE(IPARAM)
-          CASE(0);  RETURN
+          CASE(0)
+             call csminp%put('*CULTIVAR','VREQ',VREQ)
+             call csminp%put('*CULTIVAR','PPS1',PPS1)
+             call csminp%put('*CULTIVAR','P8',P8)
+             call csminp%put('*CULTIVAR','GNOWT',GNOWT)
+             call csminp%put('*CULTIVAR','GWTS',GWTS)
+             call csminp%put('*CULTIVAR','SHWTS',SHWTS)
+             call csminp%put('*CULTIVAR','PHINT',PHINT)
+             call csminp%put('*CULTIVAR','P1',P1)
+             call csminp%put('*CULTIVAR','P2',P2)
+             call csminp%put('*CULTIVAR','P3',P3)
+             call csminp%put('*CULTIVAR','P4',P4)
+             call csminp%put('*CULTIVAR','P5',P5)
+             call csminp%put('*CULTIVAR','P6',P6)
+             call csminp%put('*CULTIVAR','P7',P7)
+             call csminp%put('*CULTIVAR','LA1S',LA1S)
+             call csminp%put('*CULTIVAR','LAFV',LAFV)
+             call csminp%put('*CULTIVAR','LAFR',LAFR)
+             call csminp%put('*CULTIVAR','VBASE',VBASE)
+             call csminp%put('*CULTIVAR','VEFF',VEFF)
+             call csminp%put('*CULTIVAR','PPS2',PPS2)
+             return
           CASE( 1);  CALL GETREAL (VREQ ,'VREQ ', 0.00,  60.0)
           CASE( 2);  CALL GETREAL (PPS1 ,'PPS1 ', 0.00, 300.0)
           CASE( 3);  CALL GETREAL (P8   ,'P8.. ',100.0, 800.0)
@@ -633,6 +890,26 @@ C         Branch to menu choice
 !     --------------------------------------------------------------
 !       CSCRP barley
         CASE ('BA')
+           call csminp%get('*CULTIVAR','VREQ',VREQ)
+           call csminp%get('*CULTIVAR','PPS1',PPS1)
+           call csminp%get('*CULTIVAR','P8',P8)
+           call csminp%get('*CULTIVAR','GNOWT',GNOWT)
+           call csminp%get('*CULTIVAR','GWTS',GWTS)
+           call csminp%get('*CULTIVAR','SHWTS',SHWTS)
+           call csminp%get('*CULTIVAR','PHINT',PHINT)
+           call csminp%get('*CULTIVAR','P1',P1)
+           call csminp%get('*CULTIVAR','P2',P2)
+           call csminp%get('*CULTIVAR','P3',P3)
+           call csminp%get('*CULTIVAR','P4',P4)
+           call csminp%get('*CULTIVAR','P5',P5)
+           call csminp%get('*CULTIVAR','P6',P6)
+           call csminp%get('*CULTIVAR','P7',P7)
+           call csminp%get('*CULTIVAR','LA1S',LA1S)
+           call csminp%get('*CULTIVAR','LAFV',LAFV)
+           call csminp%get('*CULTIVAR','LAFR',LAFR)
+           call csminp%get('*CULTIVAR','VBASE',VBASE)
+           call csminp%get('*CULTIVAR','VEFF',VEFF)
+           call csminp%get('*CULTIVAR','PPS2',PPS2)
           WRITE (*,5930) 
      &      VREQ, PPS1, P8, GNOWT, GWTS, SHWTS, PHINT, 
      &      P1, P2, P3, P4, P5, P6, P7, 
@@ -668,7 +945,28 @@ C         Get menu choice
 C
 C         Branch to menu choice
           SELECT CASE(IPARAM)
-          CASE(0);  RETURN
+          CASE(0)
+             call csminp%put('*CULTIVAR','VREQ',VREQ)
+             call csminp%put('*CULTIVAR','PPS1',PPS1)
+             call csminp%put('*CULTIVAR','P8',P8)
+             call csminp%put('*CULTIVAR','GNOWT',GNOWT)
+             call csminp%put('*CULTIVAR','GWTS',GWTS)
+             call csminp%put('*CULTIVAR','SHWTS',SHWTS)
+             call csminp%put('*CULTIVAR','PHINT',PHINT)
+             call csminp%put('*CULTIVAR','P1',P1)
+             call csminp%put('*CULTIVAR','P2',P2)
+             call csminp%put('*CULTIVAR','P3',P3)
+             call csminp%put('*CULTIVAR','P4',P4)
+             call csminp%put('*CULTIVAR','P5',P5)
+             call csminp%put('*CULTIVAR','P6',P6)
+             call csminp%put('*CULTIVAR','P7',P7)
+             call csminp%put('*CULTIVAR','LA1S',LA1S)
+             call csminp%put('*CULTIVAR','LAFV',LAFV)
+             call csminp%put('*CULTIVAR','LAFR',LAFR)
+             call csminp%put('*CULTIVAR','VBASE',VBASE)
+             call csminp%put('*CULTIVAR','VEFF',VEFF)
+             call csminp%put('*CULTIVAR','PPS2',PPS2)
+             return
           CASE( 1);  CALL GETREAL (VREQ ,'VREQ ', 0.00,  60.0)
           CASE( 2);  CALL GETREAL (PPS1 ,'PPS1 ', 0.00, 300.0)
           CASE( 3);  CALL GETREAL (P8   ,'P8.. ',100.0, 800.0)
@@ -695,6 +993,27 @@ C         Branch to menu choice
 !     --------------------------------------------------------------
 !       CSCAS cassava
         CASE ('CSCAS')
+           call csminp%get('*CULTIVAR','PPS1',PPS1)
+           call csminp%get('*CULTIVAR','B01ND',B01ND)
+           call csminp%get('*CULTIVAR','B12ND',B12ND)
+           call csminp%get('*CULTIVAR','B23ND',B23ND)
+           call csminp%get('*CULTIVAR','B34ND',B34ND)
+           call csminp%get('*CULTIVAR','B45ND',B45ND)
+           call csminp%get('*CULTIVAR','B56ND',B56ND)
+           call csminp%get('*CULTIVAR','SRNWT',SRNWT)
+           call csminp%get('*CULTIVAR','SRFR',SRFR)
+           call csminp%get('*CULTIVAR','HMPC',HMPC)
+           call csminp%get('*CULTIVAR','PHINT',PHINT)
+           call csminp%get('*CULTIVAR','LA1S',LA1S)
+           call csminp%get('*CULTIVAR','LAXS',LAXS)
+           call csminp%get('*CULTIVAR','LAXND',LAXND)
+           call csminp%get('*CULTIVAR','LAXN2',LAXN2)
+           call csminp%get('*CULTIVAR','LAFS',LAFS)
+           call csminp%get('*CULTIVAR','LAFND',LAFND)
+           call csminp%get('*CULTIVAR','SLASS',SLASS)
+           call csminp%get('*CULTIVAR','LLIFA',LLIFA)
+           call csminp%get('*CULTIVAR','LPEFR',LPEFR)
+           call csminp%get('*CULTIVAR','STFR',STFR)
           WRITE(*,5940)  
      &     PPS1, B01ND, B12ND, B23ND, B34ND, B45ND, B56ND,
      &     SRNWT, SRFR, HMPC, PHINT, LA1S, LAXS, LAXND, LAXN2,
@@ -731,7 +1050,29 @@ C         Get menu choice
 C
 C         Branch to menu choice
           SELECT CASE(IPARAM)
-          CASE(0);  RETURN
+          CASE(0)
+           call csminp%put('*CULTIVAR','PPS1',PPS1)
+           call csminp%put('*CULTIVAR','B01ND',B01ND)
+           call csminp%put('*CULTIVAR','B12ND',B12ND)
+           call csminp%put('*CULTIVAR','B23ND',B23ND)
+           call csminp%put('*CULTIVAR','B34ND',B34ND)
+           call csminp%put('*CULTIVAR','B45ND',B45ND)
+           call csminp%put('*CULTIVAR','B56ND',B56ND)
+           call csminp%put('*CULTIVAR','SRNWT',SRNWT)
+           call csminp%put('*CULTIVAR','SRFR',SRFR)
+           call csminp%put('*CULTIVAR','HMPC',HMPC)
+           call csminp%put('*CULTIVAR','PHINT',PHINT)
+           call csminp%put('*CULTIVAR','LA1S',LA1S)
+           call csminp%put('*CULTIVAR','LAXS',LAXS)
+           call csminp%put('*CULTIVAR','LAXND',LAXND)
+           call csminp%put('*CULTIVAR','LAXN2',LAXN2)
+           call csminp%put('*CULTIVAR','LAFS',LAFS)
+           call csminp%put('*CULTIVAR','LAFND',LAFND)
+           call csminp%put('*CULTIVAR','SLASS',SLASS)
+           call csminp%put('*CULTIVAR','LLIFA',LLIFA)
+           call csminp%put('*CULTIVAR','LPEFR',LPEFR)
+           call csminp%put('*CULTIVAR','STFR',STFR)
+           return
           CASE( 1);  CALL GETREAL (PPS1  ,'PPS1 ', 0.00,  0.00)
           CASE( 2);  CALL GETREAL (B01ND ,'B01ND ', 10.0, 100.0)
           CASE( 3);  CALL GETREAL (B12ND ,'B12ND ', 10.0, 100.0)
@@ -758,8 +1099,22 @@ C         Branch to menu choice
 !     --------------------------------------------------------------
 !       CSYCA cassava
         CASE ('CSYCA')
-            
-         
+           call csminp%get('*CULTIVAR','PPS1',PPS1)
+           call csminp%get('*CULTIVAR','B01ND',B01ND)
+           call csminp%get('*CULTIVAR','B12ND',B12ND)
+           call csminp%get('*CULTIVAR','SRNWT',SRNWT)
+           call csminp%get('*CULTIVAR','HMPC',HMPC)
+           call csminp%get('*CULTIVAR','BR1FX',BR1FX)
+           call csminp%get('*CULTIVAR','BR2FX',BR2FX)
+           call csminp%get('*CULTIVAR','BR3FX',BR3FX)
+           call csminp%get('*CULTIVAR','BR4FX',BR4FX)
+           call csminp%get('*CULTIVAR','LAXS',LAXS)
+           call csminp%get('*CULTIVAR','SLASS',SLASS)
+           call csminp%get('*CULTIVAR','LLIFA',LLIFA)
+           call csminp%get('*CULTIVAR','LPEFR',LPEFR)
+           call csminp%get('*CULTIVAR','LNSLP',LNSLP)
+           call csminp%get('*CULTIVAR','NODWT',NODWT)
+           call csminp%get('*CULTIVAR','NODLT',NODLT)
           WRITE(*,5941)  
      &     PPS1, B01ND, B12ND, 
      &     BR1FX, BR2FX, BR3FX, BR4FX, 
@@ -806,7 +1161,24 @@ C         Get menu choice
 C
 C         Branch to menu choice
           SELECT CASE(IPARAM)
-          CASE(0);  RETURN
+          CASE(0)
+             call csminp%put('*CULTIVAR','PPS1',PPS1)
+             call csminp%put('*CULTIVAR','B01ND',B01ND)
+             call csminp%put('*CULTIVAR','B12ND',B12ND)
+             call csminp%put('*CULTIVAR','SRNWT',SRNWT)
+             call csminp%put('*CULTIVAR','HMPC',HMPC)
+             call csminp%put('*CULTIVAR','BR1FX',BR1FX)
+             call csminp%put('*CULTIVAR','BR2FX',BR2FX)
+             call csminp%put('*CULTIVAR','BR3FX',BR3FX)
+             call csminp%put('*CULTIVAR','BR4FX',BR4FX)
+             call csminp%put('*CULTIVAR','LAXS',LAXS)
+             call csminp%put('*CULTIVAR','SLASS',SLASS)
+             call csminp%put('*CULTIVAR','LLIFA',LLIFA)
+             call csminp%put('*CULTIVAR','LPEFR',LPEFR)
+             call csminp%put('*CULTIVAR','LNSLP',LNSLP)
+             call csminp%put('*CULTIVAR','NODWT',NODWT)
+             call csminp%put('*CULTIVAR','NODLT',NODLT)
+             RETURN
           CASE( 1);  CALL GETREAL (PPS1  ,'PPS1 ', 0.00,  0.00)
           CASE( 2);  CALL GETREAL (B01ND ,'B01ND ', 10.0, 100.0)
           CASE( 3);  CALL GETREAL (B12ND ,'B12ND ', 10.0, 100.0)
@@ -827,6 +1199,31 @@ C         Branch to menu choice
 !=======================================================================
 !     CANEGRO sugarcane model
       CASE ('SCCAN')
+           call csminp%get('*CULTIVAR','MaxPARCE',MaxPARCE)
+           call csminp%get('*CULTIVAR','APFMX',APFMX)
+           call csminp%get('*CULTIVAR','STKPFMAX',STKPFMAX)
+           call csminp%get('*CULTIVAR','SUCA',SUCA)
+           call csminp%get('*CULTIVAR','TBFT',TBFT)
+           call csminp%get('*CULTIVAR','Tthalfo',Tthalfo)
+           call csminp%get('*CULTIVAR','TBase',TBase)
+           call csminp%get('*CULTIVAR','LFMAX',LFMAX)
+           call csminp%get('*CULTIVAR','MXLFAREA',MXLFAREA)
+           call csminp%get('*CULTIVAR','MXLFARNO',MXLFARNO)
+           call csminp%get('*CULTIVAR','PI1',PI1)
+           call csminp%get('*CULTIVAR','PI2',PI2)
+           call csminp%get('*CULTIVAR','PSWITCH',PSWITCH)
+           call csminp%get('*CULTIVAR','TTPLNTEM',TTPLNTEM)
+           call csminp%get('*CULTIVAR','TTRATNEM',TTRATNEM)
+           call csminp%get('*CULTIVAR','CHUPIBASE',CHUPIBASE)
+           call csminp%get('*CULTIVAR','TT_POPGROWTH',TT_POPGROWTH)
+           call csminp%get('*CULTIVAR','MAX_POP',MAX_POP)
+           call csminp%get('*CULTIVAR','POPTT16',POPTT16)
+           call csminp%get('*CULTIVAR','TAR0',TAR0)
+           call csminp%get('*CULTIVAR','TDELAY',TDELAY)
+           call csminp%get('*CULTIVAR','LER0',LER0)
+           call csminp%get('*CULTIVAR','SER0',SER0)
+           call csminp%get('*CULTIVAR','LG_AMBASE',LG_AMBASE)
+           call csminp%get('*CULTIVAR','AQP_UP5',AQP_UP5)
         WRITE (*,5900) 
      &      MaxPARCE, APFMX, STKPFMAX, SUCA, TBFT,  
      &      LFMAX, MXLFAREA, MXLFARNO, PI1, PI2, PSWITCH, TTPLNTEM, 
@@ -867,7 +1264,32 @@ C
 C          Branch to menu choice
            SELECT CASE (IPARAM)
              CASE (0)
-                RETURN
+                call csminp%put('*CULTIVAR','MaxPARCE',MaxPARCE)
+                call csminp%put('*CULTIVAR','APFMX',APFMX)
+                call csminp%put('*CULTIVAR','STKPFMAX',STKPFMAX)
+                call csminp%put('*CULTIVAR','SUCA',SUCA)
+                call csminp%put('*CULTIVAR','TBFT',TBFT)
+                call csminp%put('*CULTIVAR','Tthalfo',Tthalfo)
+                call csminp%put('*CULTIVAR','TBase',TBase)
+                call csminp%put('*CULTIVAR','LFMAX',LFMAX)
+                call csminp%put('*CULTIVAR','MXLFAREA',MXLFAREA)
+                call csminp%put('*CULTIVAR','MXLFARNO',MXLFARNO)
+                call csminp%put('*CULTIVAR','PI1',PI1)
+                call csminp%put('*CULTIVAR','PI2',PI2)
+                call csminp%put('*CULTIVAR','PSWITCH',PSWITCH)
+                call csminp%put('*CULTIVAR','TTPLNTEM',TTPLNTEM)
+                call csminp%put('*CULTIVAR','TTRATNEM',TTRATNEM)
+                call csminp%put('*CULTIVAR','CHUPIBASE',CHUPIBASE)
+                call csminp%put('*CULTIVAR','TT_POPGROWTH',TT_POPGROWTH)
+                call csminp%put('*CULTIVAR','MAX_POP',MAX_POP)
+                call csminp%put('*CULTIVAR','POPTT16',POPTT16)
+                call csminp%put('*CULTIVAR','TAR0',TAR0)
+                call csminp%put('*CULTIVAR','TDELAY',TDELAY)
+                call csminp%put('*CULTIVAR','LER0',LER0)
+                call csminp%put('*CULTIVAR','SER0',SER0)
+                call csminp%put('*CULTIVAR','LG_AMBASE',LG_AMBASE)
+                call csminp%put('*CULTIVAR','AQP_UP5',AQP_UP5)
+                return
              CASE (1); CALL GETREAL (MaxPARCE,'MaxPARCE', 0.0, 100.)
              CASE (2); CALL GETREAL (APFMX,   'APFMX',    0.0, 1.)
              CASE (3); CALL GETREAL (STKPFMAX,'STKPFMAX', 0.0, 1.)
@@ -896,6 +1318,38 @@ C          Branch to menu choice
 !=======================================================================
 !     CASUPRO sugarcane model
       CASE ('SCCSP')
+           call csminp%get('*CULTIVAR','LFMAX',LFMAX)
+           call csminp%get('*CULTIVAR','PHTMAX',PHTMAX)
+           call csminp%get('*CULTIVAR','StkH2OFac',StkH2OFac)
+           call csminp%get('*CULTIVAR','SuH2OFac',SuH2OFac)
+           call csminp%get('*CULTIVAR','PLF1',PLF1)
+           call csminp%get('*CULTIVAR','PLF2',PLF2)
+           call csminp%get('*CULTIVAR','Gamma',Gamma)
+           call csminp%get('*CULTIVAR','StkB',StkB)
+           call csminp%get('*CULTIVAR','StkM',StkM)
+           call csminp%get('*CULTIVAR','SIZLF',SIZLF)
+           call csminp%get('*CULTIVAR','LIsun',LIsun)
+           call csminp%get('*CULTIVAR','LIshd',LIshd)
+           call csminp%get('*CULTIVAR','TB',TB)
+           call csminp%get('*CULTIVAR','TO1',TO1)
+           call csminp%get('*CULTIVAR','TO2',TO2)
+           call csminp%get('*CULTIVAR','TM',TM)
+           call csminp%get('*CULTIVAR','PI1',PI1)
+           call csminp%get('*CULTIVAR','PI2',PI2)
+           call csminp%get('*CULTIVAR','DTPI',DTPI)
+           call csminp%get('*CULTIVAR','LSFAC',LSFAC)
+           call csminp%get('*CULTIVAR','LI1',LI1)
+           call csminp%get('*CULTIVAR','TELOM',TELOM)
+           call csminp%get('*CULTIVAR','Ph1P',Ph1P)
+           call csminp%get('*CULTIVAR','Ph1R',Ph1R)
+           call csminp%get('*CULTIVAR','Ph2',Ph2)
+           call csminp%get('*CULTIVAR','Ph3',Ph3)
+           call csminp%get('*CULTIVAR','Ph4',Ph4)
+           call csminp%get('*CULTIVAR','StkHrNO',StkHrNO)
+           call csminp%get('*CULTIVAR','RTNFAC',RTNFAC)
+           call csminp%get('*CULTIVAR','MinGr',MinGr)
+           call csminp%get('*CULTIVAR','RES30C',RES30C)
+           call csminp%get('*CULTIVAR','R0C2',R30C2)
         WRITE (*,5950) 
      &          LFMAX,PHTMAX,StkH2OFac,SuH2OFac,PLF1,
      &          PLF2,Gamma,StkB,StkM,
@@ -952,7 +1406,40 @@ C          Get menu choice
 C
 C          Branch to menu choice
            SELECT CASE (IPARAM)
-             CASE (0); RETURN
+             CASE (0)
+                call csminp%put('*CULTIVAR','LFMAX',LFMAX)
+                call csminp%put('*CULTIVAR','PHTMAX',PHTMAX)
+                call csminp%put('*CULTIVAR','StkH2OFac',StkH2OFac)
+                call csminp%put('*CULTIVAR','SuH2OFac',SuH2OFac)
+                call csminp%put('*CULTIVAR','PLF1',PLF1)
+                call csminp%put('*CULTIVAR','PLF2',PLF2)
+                call csminp%put('*CULTIVAR','Gamma',Gamma)
+                call csminp%put('*CULTIVAR','StkB',StkB)
+                call csminp%put('*CULTIVAR','StkM',StkM)
+                call csminp%put('*CULTIVAR','SIZLF',SIZLF)
+                call csminp%put('*CULTIVAR','LIsun',LIsun)
+                call csminp%put('*CULTIVAR','LIshd',LIshd)
+                call csminp%put('*CULTIVAR','TB',TB)
+                call csminp%put('*CULTIVAR','TO1',TO1)
+                call csminp%put('*CULTIVAR','TO2',TO2)
+                call csminp%put('*CULTIVAR','TM',TM)
+                call csminp%put('*CULTIVAR','PI1',PI1)
+                call csminp%put('*CULTIVAR','PI2',PI2)
+                call csminp%put('*CULTIVAR','DTPI',DTPI)
+                call csminp%put('*CULTIVAR','LSFAC',LSFAC)
+                call csminp%put('*CULTIVAR','LI1',LI1)
+                call csminp%put('*CULTIVAR','TELOM',TELOM)
+                call csminp%put('*CULTIVAR','Ph1P',Ph1P)
+                call csminp%put('*CULTIVAR','Ph1R',Ph1R)
+                call csminp%put('*CULTIVAR','Ph2',Ph2)
+                call csminp%put('*CULTIVAR','Ph3',Ph3)
+                call csminp%put('*CULTIVAR','Ph4',Ph4)
+                call csminp%put('*CULTIVAR','StkHrNO',StkHrNO)
+                call csminp%put('*CULTIVAR','RTNFAC',RTNFAC)
+                call csminp%put('*CULTIVAR','MinGr',MinGr)
+                call csminp%put('*CULTIVAR','RES30C',RES30C)
+                call csminp%put('*CULTIVAR','R30C2',R30C2)
+                return
              CASE (1); CALL GETREAL (LFMAX    ,'LFMAX    ', 0.5, 1.5)
              CASE (2); CALL GETREAL (PHTMAX   ,'PHTMAX   ', 100.,400.)
              CASE (3); CALL GETREAL (StkH2OFac,'StkH2OFac', 2.0, 7.0)
@@ -994,6 +1481,16 @@ C          Branch to menu choice
                                                       
 !=======================================================================
       CASE ('TRARO', 'TNARO')
+         call csminp%get('*CULTIVAR','P1',P1)
+         call csminp%get('*CULTIVAR','P3',P3)
+         call csminp%get('*CULTIVAR','P4',P4)
+         call csminp%get('*CULTIVAR','P5',P5)
+         call csminp%get('*CULTIVAR','G2',G2)
+         call csminp%get('*CULTIVAR','G3',G3)
+         call csminp%get('*CULTIVAR','G4',G4)
+         call csminp%get('*CULTIVAR','PHINT',PHINT)
+         call csminp%get('*CULTIVAR','PCINT',PCINT)
+         call csminp%get('*CULTIVAR','PCGRD',PCGRD)
         WRITE (*,6200) P1,P3,P4,P5,G2,G3,G4,PHINT,PCINT,PCGRD
 6200    FORMAT (12X,'0. End of changes',//,
      1  12X,'1. P1 ..........................................[',F7.1,/,
@@ -1016,7 +1513,18 @@ C        Get menu choice
 C
 C        Branch to menu choice
          SELECT CASE (IPARAM)
-         CASE (0); RETURN
+         CASE (0)
+            call csminp%put('*CULTIVAR','P1',P1)
+            call csminp%put('*CULTIVAR','P3',P3)
+            call csminp%put('*CULTIVAR','P4',P4)
+            call csminp%put('*CULTIVAR','P5',P5)
+            call csminp%put('*CULTIVAR','G2',G2)
+            call csminp%put('*CULTIVAR','G3',G3)
+            call csminp%put('*CULTIVAR','G4',G4)
+            call csminp%put('*CULTIVAR','PHINT',PHINT)
+            call csminp%put('*CULTIVAR','PCINT',PCINT)
+            call csminp%put('*CULTIVAR','PCGRD',PCGRD)
+            return
          CASE (1); CALL GETREAL (P1,   'P1   ', 0.0, 4000.0)
          CASE (2); CALL GETREAL (P3,   'P3   ', 1.0, 4000.0)
          CASE (3); CALL GETREAL (P4,   'P4   ', 1.0, 4000.0)
@@ -1069,14 +1577,31 @@ C=======================================================================
 
       SUBROUTINE INVRCS
 
+      use csm_io
+
       IMPLICIT NONE
 
-      INCLUDE 'COMGEN.blk'
-
       INTEGER  IERR,IPARAM,NDEX,L
+      REAL GCOEFF(15)
 C
 C     Repeat until user chooses to quit
 C
+      call csminp%get('*CULTIVAR','DUB1',GCOEFF(1))
+      call csminp%get('*CULTIVAR','DUBR',GCOEFF(2))
+      call csminp%get('*CULTIVAR','DESP',GCOEFF(3))
+      call csminp%get('*CULTIVAR','PHCX',GCOEFF(4))
+      call csminp%get('*CULTIVAR','S#PE',GCOEFF(5))
+      call csminp%get('*CULTIVAR','S#FX',GCOEFF(6))
+      call csminp%get('*CULTIVAR','S#PX',GCOEFF(7))
+      call csminp%get('*CULTIVAR','SWNX',GCOEFF(8))
+      call csminp%get('*CULTIVAR','L#IS',GCOEFF(9))
+      call csminp%get('*CULTIVAR','L#IP',GCOEFF(10))
+      call csminp%get('*CULTIVAR','LALX',GCOEFF(11))
+      call csminp%get('*CULTIVAR','LAXA',GCOEFF(12))
+      call csminp%get('*CULTIVAR','LAL3',GCOEFF(13))
+      call csminp%get('*CULTIVAR','LAWS',GCOEFF(14))
+      call csminp%get('*CULTIVAR','LFLI',GCOEFF(15))
+
 3001  CONTINUE
 
       CALL CLEAR
@@ -1093,7 +1618,22 @@ C
 C     Branch to menu choice
 C
       IF (IPARAM .EQ. 0) THEN
-          RETURN
+         call csminp%put('*CULTIVAR','DUB1',GCOEFF(1))
+         call csminp%put('*CULTIVAR','DUBR',GCOEFF(2))
+         call csminp%put('*CULTIVAR','DESP',GCOEFF(3))
+         call csminp%put('*CULTIVAR','PHCX',GCOEFF(4))
+         call csminp%put('*CULTIVAR','S#PE',GCOEFF(5))
+         call csminp%put('*CULTIVAR','S#FX',GCOEFF(6))
+         call csminp%put('*CULTIVAR','S#PX',GCOEFF(7))
+         call csminp%put('*CULTIVAR','SWNX',GCOEFF(8))
+         call csminp%put('*CULTIVAR','L#IS',GCOEFF(9))
+         call csminp%put('*CULTIVAR','L#IP',GCOEFF(10))
+         call csminp%put('*CULTIVAR','LALX',GCOEFF(11))
+         call csminp%put('*CULTIVAR','LAXA',GCOEFF(12))
+         call csminp%put('*CULTIVAR','LAL3',GCOEFF(13))
+         call csminp%put('*CULTIVAR','LAWS',GCOEFF(14))
+         call csminp%put('*CULTIVAR','LFLI',GCOEFF(15))
+         RETURN
       ELSE IF (IPARAM .EQ. 1) THEN
           CALL GETREAL (GCOEFF( 1),'DUB1 ', 0.01,7000.0)
       ELSE IF (IPARAM .EQ. 2) THEN

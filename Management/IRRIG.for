@@ -39,6 +39,7 @@ C=======================================================================
       USE ModuleDefs 
       USE ModuleData
       USE FloodModule
+      use csm_io
       IMPLICIT NONE
       SAVE
 !-----------------------------------------------------------------------
@@ -135,8 +136,8 @@ C    Input and Initialization
 C***********************************************************************
       IF (DYNAMIC .EQ. INIT) THEN
 C-----------------------------------------------------------------------
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
+!      FILEIO  = CONTROL % FILEIO
+!      LUNIO   = CONTROL % LUNIO
       MULTI   = CONTROL % MULTI
       YRDIF   = CONTROL % YRDIF
       RNMODE  = CONTROL % RNMODE
@@ -164,9 +165,9 @@ C-----------------------------------------------------------------------
       IF (ISWWAT .EQ. 'Y') THEN
 
           JIRR = 0.0
-          OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-          LNUM = 0
+!          OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!          LNUM = 0
 
 C-----------------------------------------------------------------------
 !     May be needed for MgmtOps output later (OPOPS)
@@ -197,48 +198,38 @@ C-----------------------------------------------------------------------
 C      Read Automatic Management
 C-----------------------------------------------------------------------
           IF (INDEX('AFPWET', ISWITCH % IIRRI) > 0) THEN
-            SECTION = '!AUTOM'
-            CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-            IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO, LNUM)
-            READ(LUNIO,'(/,14X,3(1X,F5.0),1X,A5,4X,I2,2(1X,F5.0))',
-     &        IOSTAT=ERRNUM) DSOIL, THETAC, THETAU, IOFF, AIRRCOD,
-     &                       AIRAMT, EFFIRR
-
-            LNUM = LNUM + 2
-            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+             call csminp%get('*SIMULATION CONTROL','DSOIL',DSOIL)
+             call csminp%get('*SIMULATION CONTROL','THETAC',THETAC)
+             call csminp%get('*SIMULATION CONTROL','IAME',IOFF)
+             read(IOFF(3:5),'(i3)') AIRRCOD
+             call csminp%get('*SIMULATION CONTROL','AIRAMT',AIRAMT)
+             call csminp%get('*SIMULATION CONTROL','EFFIRR',EFFIRR)
           ENDIF
 
 C-----------------------------------------------------------------------
 !     Find and Read Planting Details Section
 C-----------------------------------------------------------------------
-          SECTION = '*PLANT'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO,LNUM)
-          READ(LUNIO,'(35X,A1)', IOSTAT=ERRNUM) PLME
-          LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-
+            call csminp%get('*PLANTING DETAILS','PLME',PLME)
+ 
 C-----------------------------------------------------------------------
 C    Find and Read Irrigation Section
 C-----------------------------------------------------------------------
-          SECTION = '*IRRIG'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          READ(LUNIO,'(3X,F5.3,2(1X,F5.0),19X,F5.1)', IOSTAT=ERRNUM)
-     &      EFFIRX, DSOILX, THETCX, AIRAMX
-          LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+          if(csminp%find('*IRRIGATION')>0) then
+             call csminp%get('*IRRIGATION','EFFIRX',EFFIRX,tier=1)
+             call csminp%get('*IRRIGATION','DSOILX',DSOILX,tier=1)
+             call csminp%get('*IRRIGATION','THETCX',THETCX,tier=1)
+             call csminp%get('*IRRIGATION','AIRAMX',AIRAMX,tier=1)
+             call csminp%get('*IRRIGATION','IDLAPL',IDLAPL,tier=2)
+             call csminp%get('*IRRIGATION','IRRCOD',IRRCOD,tier=2)
+             call csminp%get('*IRRIGATION','AMT',AMT,tier=2)
+          end if
           JIRR = 0
           DO I = 1,NAPPL
-!           READ(LUNIO,'(3X,I7,3X,I3,1X,F5.0,1X,I5)',IOSTAT=ERRNUM,
-!     &        ERR=50)  IDLAPL(I), IRRCOD(I), AMT(I)   !, IIRRC(I)
-            READ(LUNIO,'(3X,I7,3X,A90)',ERR=50, END=50) IDLAPL(I),CHAR
-            LNUM = LNUM + 1
-
-            READ(CHAR,'(I3,1X,F5.0,1X,I5)',IOSTAT=ERRNUM) 
-     &                 IRRCOD(I), AMT(I) 
-            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-            JIRR = JIRR + 1
+             if(IDLAPL(i)>0)then
+                JIRR = JIRR + 1
+             else
+                exit
+             end if
           ENDDO
   
    50     CONTINUE

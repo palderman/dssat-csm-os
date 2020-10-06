@@ -135,8 +135,6 @@ C         added by BAK on 10DEC2015
       CROP    = CONTROL % CROP
       DAS     = CONTROL % DAS
       DYNAMIC = CONTROL % DYNAMIC
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
       model   = control % model
 
       BD     = SOILPROP % BD
@@ -799,6 +797,7 @@ C=======================================================================
       USE ModuleDefs     !Definitions of constructed variable types,
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use csm_io
       IMPLICIT NONE
       SAVE
 
@@ -820,16 +819,8 @@ C=======================================================================
 
 C     Read IBSNAT35.INP file.
 
-      OPEN(LUNIO,FILE=FILEIO,STATUS='OLD',IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-
-      SECTION = '*FILES'
-      CALL FIND(LUNIO,SECTION,LNUM,FOUND)
-      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO,LNUM)
-
-      READ(LUNIO,'(////,15X,A,1X,A)',IOSTAT=ERRNUM) FILEC,PATHCR
-      LNUM = LNUM + 5
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+      call csminp%get('*FILES','FILEC',FILEC)
+      call csminp%get('*FILES','PATHCR',PATHCR)
 
       PATHL  = INDEX(PATHCR,BLANK)
       IF (PATHL .LE. 1) THEN
@@ -838,14 +829,9 @@ C     Read IBSNAT35.INP file.
         FILECC = PATHCR(1:(PATHL-1)) // FILEC
       ENDIF
 
-      REWIND(LUNIO)
-      SECTION = '*PLANT'
-      CALL FIND(LUNIO,SECTION,LNUM,FOUND)
-      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO,LNUM)
-
-      READ(LUNIO,'(24X,F6.0,12X,2F6.0)',IOSTAT=ERRNUM)PLTPOP,ROWSPC,AZIR
-      LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM+1)
+      call csminp%get('*PLANTING DETAILS','PLTPOP',PLTPOP)
+      call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC)
+      call csminp%get('*PLANTING DETAILS','AZIR',AZIR)
 
       DO I = 1,NL
         HCAPS(I) = 0.0
@@ -853,14 +839,7 @@ C     Read IBSNAT35.INP file.
       ENDDO
 
 !     PHTHRS(10) needed for calculation of CUMSTR
-      REWIND(LUNIO)
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO,LNUM)
-      READ(LUNIO,'(60X,F6.0)',IOSTAT=ERRNUM) PHTHRS10; LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-
-      CLOSE(LUNIO)
+      call csminp%get('*CULTIVARS','PHTHRS(10)',PHTHRS10)
 
 C     Read species file.
       CALL GETLUN('FILEC', LUNCRP)
@@ -1032,6 +1011,8 @@ C=======================================================================
      &  XLMAXT, YLMAXT, PHTHRS10,                         !Output
      &  ccneff, cicad, cmxsf, cqesf, pgpath)              !Output
 
+      use csm_io
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -1054,15 +1035,9 @@ C=======================================================================
 
 C     Read IBSNAT35.INP file.
 
-      OPEN(LUNIO,FILE=FILEIO,STATUS='OLD',IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+      call csminp%get('*FILES','FILEC',FILEC)
+      call csminp%get('*FILES','PATHCR',PATHCR)
 
-      SECTION = '*FILES'
-      CALL FIND(LUNIO,SECTION,LNUM,FOUND)
-      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO,LNUM)
-
-      READ (LUNIO,'(////15X,A,1X,A)',IOSTAT=ERRNUM) FILEC,PATHCR
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM+5)
       PATHL  = INDEX(PATHCR,BLANK)
       IF (PATHL .LE. 1) THEN
         FILECC = FILEC
@@ -1070,81 +1045,98 @@ C     Read IBSNAT35.INP file.
         FILECC = PATHCR(1:(PATHL-1)) // FILEC
       ENDIF
 
-      REWIND(LUNIO)
-      SECTION = '*PLANT'
-      CALL FIND(LUNIO,SECTION,LNUM,FOUND)
-      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO,LNUM)
+      call csminp%get('*PLANTING DETAILS','PLTPOP',PLTPOP)
+      call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC)
+      call csminp%get('*PLANTING DETAILS','AZIR',AZIR)
 
-      READ(LUNIO,'(24X,F6.0,12X,2F6.0)',IOSTAT=ERRNUM)PLTPOP,ROWSPC,AZIR
-      LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM+1)
-
-      REWIND(LUNIO)
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO,SECTION,LNUM,FOUND)
-      CALL FIND(LUNIO,SECTION,LINC,FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO,LNUM)
-
-C-GH  READ(LUNIO,'(72X,F6.0)') LMXREF
-      READ(LUNIO,'(60X,F6.0,6X,F6.0)',IOSTAT=ERRNUM) PHTHRS10,LMXREF
-      LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM+1)
-
-      CLOSE(LUNIO)
+      call csminp%get('*CULTIVARS','PHTHRS(10)',PHTHRS10)
+      call csminp%get('*CULTIVARS','LFMAX',LMXREF)
 
 C     Read species file.
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN(LUNCRP,FILE=FILECC,STATUS='OLD',IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,0)
+         if(nc_gen%yes)then ! NetCDF I/O
+            call nc_gen%read_spe('FNPGN',FNPGN)
+            call nc_gen%read_spe('TYPPGN',TYPPGN)
+            call nc_gen%read_spe('XLMAXT',XLMAXT)
+            call nc_gen%read_spe('YLMAXT',YLMAXT)
+            call nc_gen%read_spe('FNPGL',FNPGL)
+            call nc_gen%read_spe('TYPPGL',TYPPGL)
+            call nc_gen%read_spe('PGEFF',QEREF)
+            call nc_gen%read_spe('SCV',SCVP)
+            call nc_gen%read_spe('LFANGB',LFANGB)
+            call nc_gen%read_spe('SLWREF',SLWREF)
+            call nc_gen%read_spe('SLWSLO',SLWSLO)
+            call nc_gen%read_spe('NSLOPE',NSLOPE)
+            call nc_gen%read_spe('LNREF',LNREF)
+            if( model(1:5) == 'PRFRM' ) then
+               call nc_gen%read_spe('CICAD',CICAD)
+               call nc_gen%read_spe('CCNEFF',CCNEFF)
+               call nc_gen%read_spe('CMXSF',CMXSF)
+               call nc_gen%read_spe('CQESF',CQESF)
+               call nc_gen%read_spe('PGPATH',PGPATH)
+            else
+               pgpath='  '
+               cicad = -99
+               ccneff = -99
+               cmxsf = -99
+               cqesf = -99
+            end if
+         else ! SPE file
+            CALL GETLUN('FILEC', LUNCRP)
+            OPEN(LUNCRP,FILE=FILECC,STATUS='OLD',IOSTAT=ERRNUM)
+            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,0)
 
-      SECTION = '!*PHOT'
-      CALL FIND(LUNCRP,SECTION,LNUM,FOUND)
+            SECTION = '!*PHOT'
+            CALL FIND(LUNCRP,SECTION,LNUM,FOUND)
 
 !     Read 3rd line of photosynthesis section of species file
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-      READ(C80,'(4F6.0,3X,A)',IOSTAT=ERRNUM) (FNPGN(I),I=1,4), TYPPGN
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+            READ(C80,'(4F6.0,3X,A)',IOSTAT=ERRNUM)
+     &           (FNPGN(I),I=1,4), TYPPGN
+            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)  !5th line
-      READ(C80,'(6F6.0)',IOSTAT=ERRNUM) (XLMAXT(I),I=1,6)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80) !5th line
+            READ(C80,'(6F6.0)',IOSTAT=ERRNUM) (XLMAXT(I),I=1,6)
+            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)  !6th line
-      READ(C80,'(6F6.0)',IOSTAT=ERRNUM) (YLMAXT(I),I=1,6)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80) !6th line
+            READ(C80,'(6F6.0)',IOSTAT=ERRNUM) (YLMAXT(I),I=1,6)
+            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)  !7th line
-      READ(C80,'(4F6.0,3X,A)',IOSTAT=ERRNUM) (FNPGL(I),I=1,4),TYPPGL
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM+7)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80) !7th line
+            READ(C80,'(4F6.0,3X,A)',IOSTAT=ERRNUM)
+     &           (FNPGL(I),I=1,4),TYPPGL
+            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM+7)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)  !8th line
-      READ(C80,'(2F6.0,6X,F6.0)',IOSTAT=ERRNUM) QEREF,SCVP,LFANGB
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80) !8th line
+            READ(C80,'(2F6.0,6X,F6.0)',IOSTAT=ERRNUM) QEREF,SCVP,LFANGB
+            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,C80)  !9th line
-      READ(C80,'(4F6.0)',IOSTAT=ERRNUM) SLWREF,SLWSLO,NSLOPE,LNREF
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80) !9th line
+            READ(C80,'(4F6.0)',IOSTAT=ERRNUM) SLWREF,SLWSLO,NSLOPE,LNREF
+            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
 
-      if( model(1:5) == 'PRFRM' ) then
-         CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-         CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-         CALL IGNORE(LUNCRP,LNUM,ISECT,C80) !12th line
-         READ(C80,'(4F6.0,2X,A)',IOSTAT=ERRNUM) CICAD,CCNEFF,
-     &        CMXSF,CQESF,PGPATH 
-         IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
-      else
-         pgpath='  '
-         cicad = -99
-         ccneff = -99
-         cmxsf = -99
-         cqesf = -99
-      end if
+            if( model(1:5) == 'PRFRM' ) then
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80) !12th line
+               READ(C80,'(4F6.0,2X,A)',IOSTAT=ERRNUM) CICAD,CCNEFF,
+     &              CMXSF,CQESF,PGPATH 
+               IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILECC,LNUM)
+            else
+               pgpath='  '
+               cicad = -99
+               ccneff = -99
+               cmxsf = -99
+               cqesf = -99
+            end if
 
 
-      CLOSE(LUNCRP)
+            CLOSE(LUNCRP)
+
+         end if ! NetCDF I/O
 
 C     Initialize some parameters.
 

@@ -43,6 +43,7 @@ C=======================================================================
      &    SSOME, MULCH)                                   !Output
       
 !-----------------------------------------------------------------------
+      use csm_io
       USE ModuleDefs
       USE Interface_IpSoil
 
@@ -87,8 +88,8 @@ C=======================================================================
 
 !     Transfer values from constructed data types into local variables.
       CROP    = CONTROL % CROP
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
+!      FILEIO  = CONTROL % FILEIO
+!       LUNIO   = CONTROL % LUNIO
       MULTI   = CONTROL % MULTI
       N_ELEMS = CONTROL % N_ELEMS
       RNMODE  = CONTROL % RNMODE
@@ -120,23 +121,33 @@ C=======================================================================
         SSOME = 0.0
 
 !       Open the FILEIO input file.
-        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
+!        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
+!        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
 !       --------------------------------------------------------------
 !       Find and Read INITIAL CONDITIONS Section.
 !       Read root residue from previous crop and initial soil N values
 !       --------------------------------------------------------------
-        SECTION = '*INITI'
-        CALL FIND (LUNIO, SECTION, LNUM, FOUND)
-        IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO, LNUM)
+!        SECTION = '*INITI'
+!        CALL FIND (LUNIO, SECTION, LNUM, FOUND)
+!        IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO, LNUM)
 
 !       Read the weight of root residues and nodules from the
 !       previous crop. 
-        READ (LUNIO, '(3X,A2,11X, 2F6.0, 18X, 5F6.0)', IOSTAT = ERRNUM) 
-     &    PREV_CROP, 
-     &    ICRT, ICNOD, ICRES, ICREN, ICREP, ICRIP, ICRID
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
+!        READ (LUNIO, '(3X,A2,11X, 2F6.0, 18X, 5F6.0)', IOSTAT = ERRNUM) 
+!     &    PREV_CROP, 
+!     &    ICRT, ICNOD, ICRES, ICREN, ICREP, ICRIP, ICRID
+!        LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
+
+        call csminp%get('*INITIAL CONDITIONS','PRCROP',PREV_CROP)
+        call csminp%get('*INITIAL CONDITIONS','WRESR',ICRT)
+        call csminp%get('*INITIAL CONDITIONS','WRESND',ICNOD)
+        call csminp%get('*INITIAL CONDITIONS','ICRES',ICRES)
+        call csminp%get('*INITIAL CONDITIONS','ICREN',ICREN)
+        call csminp%get('*INITIAL CONDITIONS','ICREP',ICREP)
+        call csminp%get('*INITIAL CONDITIONS','ICRIP',ICRIP)
+        call csminp%get('*INITIAL CONDITIONS','ICRID',ICRID)
+
 
         IF (ICRT < 0.) ICRT = 0.
         IF (ICNOD < 0.) ICNOD = 0.
@@ -144,7 +155,7 @@ C=======================================================================
         IF (ICRID < 0.01) ICRID = 0.
         IF (ICRID < 0.01) ICRIP = 0.
 
-        CLOSE (LUNIO)
+!        CLOSE (LUNIO)
 
 !       --------------------------------------------------------------
 !       Residue from previous crop

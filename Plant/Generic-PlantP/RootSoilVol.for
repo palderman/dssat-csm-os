@@ -26,6 +26,8 @@
 !-----------------------------------------------------------------------
       USE ModuleDefs 
       USE ModuleData
+      use csm_io
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -48,12 +50,11 @@
 !-----------------------------------------------------------------------
       CHARACTER*6, PARAMETER :: ERRKEY='RTSOLV'
       CHARACTER*6 SECTION
-      CHARACTER*30 FILEIO
       CHARACTER*78 MSG(5) 
       CHARACTER*120 CHAR
 
       INTEGER ERR, FOUND, ISECT
-      INTEGER L, LNUM, LUNIO, LUNCRP
+      INTEGER L, LNUM, LUNCRP
 
       REAL FracRootVol, PlantPop, PLANTS, RLVTOT, ROWSPC, Z
 
@@ -78,22 +79,11 @@
       IF (ISWPHO .EQ. 'N') RETURN
 
       CALL GET(CONTROL)
-      FILEIO = CONTROL % FILEIO
-      LUNIO  = CONTROL % LUNIO
 !-----------------------------------------------------------------------
 !     Open and read FILEIO to get ROWSPC
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-
-!     Read Planting Details Section
-      SECTION = '*PLANT'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND) 
-      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      READ(LUNIO,'(18X,2F6.0,12X,F6.0)',IOSTAT=ERR) 
-     &    PLANTS, PlantPop, ROWSPC
-      LNUM = LNUM + 1
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-      CLOSE (LUNIO)
+      call csminp%get('*PLANTING DETAILS','PLANTS',PLANTS)
+      call csminp%get('*PLANTING DETAILS','PLTPOP',PlantPop)
+      call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC)
 
 !     If Planting population not defined, use PLTPOP (at emergence).
 !     This is used if P fertilizer is applied in hills prior to planting.
@@ -105,32 +95,37 @@
 
 !     ------------------------------------------------------------------
 !     Read Species file for P parameters
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+      if(nc_gen%yes)then ! NetCDF I/O
+         call nc_gen%read_spe('ROOTRAD',ROOTRAD)
+      else ! SPE file
+         CALL GETLUN('FILEC', LUNCRP)
+         OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
 
 !     Find and Read Phosphorus Section
-      SECTION = '*PHOSP'
-      CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        MSG(1)='Phosphorus input section not found in species file.'
-        MSG(2)=FILECC
-        MSG(3)= 'Can not simulate phosphorus for this crop. ' //
-     &          'Program will stop.'
-        CALL WARNING(3,ERRKEY,MSG)
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ENDIF
+         SECTION = '*PHOSP'
+         CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
+         IF (FOUND .EQ. 0) THEN
+            MSG(1)='Phosphorus input section not found in species file.'
+            MSG(2)=FILECC
+            MSG(3)= 'Can not simulate phosphorus for this crop. ' //
+     &           'Program will stop.'
+            CALL WARNING(3,ERRKEY,MSG)
+            CALL ERROR(SECTION, 42, FILECC, LNUM)
+         ENDIF
 
-      ROOTRAD = -99.
+         ROOTRAD = -99.
 !     Look for ROOTRAD text
-      DO WHILE (ERR == 0)
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        IF (ISECT /= 1) EXIT
-        IF (INDEX(CHAR,"ROOTRAD") > 0) THEN
-          READ(CHAR,'(F8.0)',IOSTAT=ERR) ROOTRAD
-          IF (ERR == 0) EXIT
-        ENDIF
-      ENDDO
+         DO WHILE (ERR == 0)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            IF (ISECT /= 1) EXIT
+            IF (INDEX(CHAR,"ROOTRAD") > 0) THEN
+               READ(CHAR,'(F8.0)',IOSTAT=ERR) ROOTRAD
+               IF (ERR == 0) EXIT
+            ENDIF
+         ENDDO
+         CLOSE (LUNCRP)
+      end if ! NetCDF I/O
 
       IF (ROOTRAD < 1.E-6) ROOTRAD = 0.002 !default value 2mm
       WRITE(MSG(1),'(A,F7.4,A)') 
@@ -138,7 +133,6 @@
      &  ROOTRAD, " mm"
       CALL INFO(1,ERRKEY,MSG)
 
-      CLOSE (LUNCRP)
 
 !***********************************************************************
 !***********************************************************************

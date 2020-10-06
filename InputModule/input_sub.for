@@ -80,16 +80,14 @@ C=======================================================================
 !      PROGRAM INPUT_PROGRAM
       SUBROUTINE INPUT_SUB(
      &    FILECTL, FILEIO, FILEX, MODELARG, PATHEX,       !Input
-     &    RNMODE, ROTNUM, RUN, TRTNUM,                    !Input
+     &    RNMODE, ROTNUM, RUN, TRTNUM, TRTALL,            !Input
      &    ISWITCH, CONTROL)                               !Output
 
       USE ModuleDefs
+      use csm_io
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
-
-      INCLUDE 'COMSOI.blk'
-      INCLUDE 'COMIBS.blk'
-      INCLUDE 'COMSWI.blk'
 
       CHARACTER*  1 WMODI, RNMODE
       CHARACTER*  2 CROP,PRCROP
@@ -114,7 +112,6 @@ C=======================================================================
       INTEGER       NFORC,NDOF,PMTYPE,ISENS, TRTNUM, ROTNUM
       INTEGER       LNSIM,LNCU,LNHAR,LNENV,LNTIL,LNCHE
       INTEGER       LNFLD,LNSA,LNIC,LNPLT,LNIR,LNFER,LNRES
-
 !      INTEGER       IP,IPX
       INTEGER       IPX
 C-SUN INTEGER       LNBLNK
@@ -130,6 +127,42 @@ C-SUN INTEGER       LNBLNK
       TYPE (ControlType) CONTROL
       TYPE (SwitchType)  ISWITCH
 
+      INTEGER NLAYR
+      REAL LL(NL),DUL(NL),SAT(NL),TOTN(NL)
+      REAL BD(NL),OC(NL),PH(NL),DLAYR(NL)
+      REAL EXTP(NL)
+      REAL SASC(NL)
+      REAL DS(NL)
+      REAL PHKCL(NL)
+      REAL EXK(NL)
+      CHARACTER*5 SLTXS,SMHB,SMPX,SMKE
+      CHARACTER*10 PEDON,SLNO
+      CHARACTER*1 ISIMI
+      CHARACTER*1 DAYFAC(NAPPL),RADFAC(NAPPL),TXFAC(NAPPL),TMFAC(NAPPL)
+      CHARACTER*1 PRCFAC(NAPPL),CO2FAC(NAPPL),DPTFAC(NAPPL)
+      CHARACTER*1 WNDFAC(NAPPL)
+      CHARACTER*5 SLTX
+      CHARACTER*16 CROPD
+      INTEGER YRSIM
+      INTEGER NEV,RESDAY(NAPPL)
+      INTEGER YEAR,NARES
+      REAL DAYADJ(NAPPL),RADADJ(NAPPL),TXADJ(NAPPL),TMADJ(NAPPL)
+      REAL PRCADJ(NAPPL),WTHADJ(2,8)
+      REAL CO2ADJ(NAPPL),DPTADJ(NAPPL),WNDADJ(NAPPL)
+      REAL RESN(NAPPL),RESP(NAPPL)
+      REAL RESIDUE(NAPPL),RINP(NAPPL),DEPRES(NAPPL)
+      REAL RESAMT
+      REAL ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID
+      CHARACTER*1 ISWWAT,ISWNIT,MEWTH
+      CHARACTER*1 IDETO,IDETS,IDETG,IDETC,IDETW,IDETN,IDETP,IDETD,IOX
+      CHARACTER*1 IDETH,IDETR
+      CHARACTER*1 IDETL
+      CHARACTER*12 FILEG,FILES,FILEW
+      CHARACTER*25 TITLER
+      CHARACTER*102 DSSATP
+      CHARACTER*80 PATHSL,PATHGE
+      integer pos
+
       PARAMETER (ERRKEY = 'INPUT ')
       PARAMETER (LUNIO  = 21)
 
@@ -139,28 +172,31 @@ C-----------------------------------------------------------------------
 C   Fortran Compaq Visual Fortran
 C-----------------------------------------------------------------------
       CALL GETARG (0,INPUTX)
-!      call path_adj(inputx)
+      call path_adj(inputx)
       IPX = LEN_TRIM(INPUTX)
 D     INPUTX = STDPATH // 'DSCSM047.EXE'
       CALL PATHD  (DSSATP,INPUTX,IPX)
       CONTROL % DSSATP = DSSATP
 
-C-----------------------------------------------------------------------
-C
-C-----------------------------------------------------------------------
-!      INPUT = INPUTX((index(inputx,slash,back=.true.)+1):IPX)
+      if(csminp%not_empty())then
+         call csminp%get('*EXP.DETAILS','EXPN',EXPP)
+         call csminp%get('*EXP.DETAILS','TRTN',TRTN)
+         call csminp%get('*EXP.DETAILS','TRTALL',TRTALL)
 
-C-----------------------------------------------------------------------
-C    Initialize and delete previous copy of FILEIO
-C-----------------------------------------------------------------------
-      INQUIRE (FILE = FILEIO,EXIST = FEXIST)
-      IF (FEXIST) THEN
-          OPEN (LUNIO, FILE = FILEIO,STATUS = 'UNKNOWN',IOSTAT=ERRNUM)
-          READ (LUNIO,40) EXPP,TRTN,TRTALL
-          READ (LUNIO,70,IOSTAT=ERRNUM) IOX,IDETO,IDETS,FROP,IDETG,
-     &            IDETC,IDETW,IDETN,IDETP,IDETD,IDETL,IDETH,IDETR
-          CLOSE (LUNIO,STATUS = 'DELETE')
-      ENDIF
+         call csminp%get('*SIMULATION CONTROL','IOX',IOX)
+         call csminp%get('*SIMULATION CONTROL','IDETO',IDETO)
+         call csminp%get('*SIMULATION CONTROL','IDETS',IDETS)
+         call csminp%get('*SIMULATION CONTROL','FROP',FROP)
+         call csminp%get('*SIMULATION CONTROL','IDETG',IDETG)
+         call csminp%get('*SIMULATION CONTROL','IDETC',IDETC)
+         call csminp%get('*SIMULATION CONTROL','IDETW',IDETW)
+         call csminp%get('*SIMULATION CONTROL','IDETN',IDETN)
+         call csminp%get('*SIMULATION CONTROL','IDETP',IDETP)
+         call csminp%get('*SIMULATION CONTROL','IDETD',IDETD)
+         call csminp%get('*SIMULATION CONTROL','IDETL',IDETL)
+         call csminp%get('*SIMULATION CONTROL','IDETH',IDETH)
+         call csminp%get('*SIMULATION CONTROL','IDETR',IDETR)
+      end if
 
 C-----------------------------------------------------------------------
 C     BEGINNING of READING INPUT files
@@ -172,9 +208,32 @@ C-----------------------------------------------------------------------
       NSENS  = 0
       ISENS  = 0
       TITLER(1:5) = '     '
-      
-      FILEX_P = TRIM(PATHEX)//FILEX
-      CALL Join_Trim(PATHEX, FILEX, FILEX_P)
+
+! Determine whether to use NetCDF for inputs
+      call nc_gen%set_file_from_cmd_arg('--nc_gen')
+      if(nc_gen%yes) call nc_gen%open()
+
+      call nc_filex%set_file_from_cmd_arg('--nc_filex')
+      if(nc_filex%yes) call nc_filex%open()
+
+      call nc_soil%set_file_from_cmd_arg('--nc_soil')
+      if(nc_soil%yes) call nc_soil%open()
+
+      call nc_wth%set_file_from_cmd_arg('--nc_wth')
+      if(nc_wth%yes) call nc_wth%open()
+
+!      if(len(trim(filex_p))==0)then
+         FILEX_P = TRIM(PATHEX)//FILEX
+         CALL Join_Trim(PATHEX, FILEX, FILEX_P)
+!      else
+!         pos = index(filex_p,slash,back=.true.) + 1
+!         filex = filex_p(pos:)
+!         if(pos == 0)then
+!            pathex = ' '
+!         else
+!            pathex = filex_p(:pos)
+!         end if
+!      end if
 C-----------------------------------------------------------------------
 C     Call IPEXP
 C-----------------------------------------------------------------------
@@ -184,8 +243,10 @@ C-----------------------------------------------------------------------
      &     IIRV,FTYPEN,CHEXTR,NFORC,PLTFOR,NDOF,PMTYPE,
      &     LNSIM,LNCU,LNHAR,LNENV,LNTIL,LNCHE,
      &     LNFLD,LNSA,LNIC,LNPLT,LNIR,LNFER,LNRES, 
-     &     CONTROL, ISWITCH, UseSimCtr, MODELARG)
+     &        CONTROL, ISWITCH, UseSimCtr, MODELARG)
 
+       call csminp%get('*FILES','FILES',FILES)
+       call csminp%get('*FILES','PATHSL',PATHSL)
 C-----------------------------------------------------------------------
 C     Call IPSOIL
 C-----------------------------------------------------------------------
@@ -195,24 +256,53 @@ C-----------------------------------------------------------------------
 !  MESOL = '3' User specified soil layer distribution. Calls LYRSET3.
 !     Skip soils field and soils input for sequence mode
       IF (INDEX('FQ',RNMODE) .LE. 0 .OR. RUN == 1) THEN
-        CALL IPSOIL_Inp (RNMODE,FILES,PATHSL,NSENS,ISWITCH)
+!     CALL IPSOIL_Inp (RNMODE,FILES,PATHSL,NSENS,ISWITCH,PEDON)
+         if(nc_soil%yes)then
+            call read_nc_soil(RNMODE,NSENS,ISWITCH)
+         else
+            CALL IPSOIL_Inp (RNMODE,FILES,PATHSL,NSENS,ISWITCH)
+         end if
       ENDIF
+      call csminp%get('*SOIL','NLAYR',NLAYR)
 C-----------------------------------------------------------------------
 C     Call IPVAR 
 C-----------------------------------------------------------------------
-      IF (CROP .NE. 'FA') THEN
-        CALL IPVAR (FILEG,NSENS,RNMODE,VARNO,VARTY,VRNAME,PATHGE,
-     &              ECONO, MODEL, ATLINE, CROP)
-      ENDIF
+
+      if(nc_gen%yes)then
+         call nc_gen%set_cul_eco(VARNO)
+         call read_nc_gen(NSENS,RNMODE,VARNO,VARTY,VRNAME,PATHGE,
+     &           ECONO, MODEL, ATLINE, CROP)
+      else
+         call csminp%get('*FILES','FILEG',FILEG)
+         call csminp%get('*FILES','PATHGE',PATHGE)
+         IF (CROP .NE. 'FA' .and. index(fileg,' ')/=1
+     &     .and. fileg(1:1)/='/') THEN
+            CALL IPVAR (FILEG,NSENS,RNMODE,VARNO,VARTY,VRNAME,PATHGE,
+     &           ECONO, MODEL, ATLINE, CROP)
+         ENDIF
+      end if
+
 
 C-----------------------------------------------------------------------
 C     Call IPSLIN to read initial soil conditions
 C-----------------------------------------------------------------------
 !      IF (ISWWAT .NE. 'N' .AND. MESIC .EQ. 'M') THEN
       IF (INDEX('FQ',RNMODE) .LE. 0 .OR. RUN == 1) THEN
-         CALL IPSLIN (FILEX,FILEX_P,LNIC,NLAYR,DUL,YRIC,PRCROP,WRESR,
-     &        WRESND,EFINOC,EFNFIX,PEDON,SLNO,DS,SWINIT,INH4,INO3,
-     &        ISWITCH,ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID,YRSIM) 
+         call csminp%get('*SOIL','NLAYR',NLAYR)
+         call csminp%get('*SOIL','DUL',DUL)
+         call csminp%get('*SOIL','DS',DS)
+         call csminp%get('*SOIL','DLAYR',DLAYR)
+         call csminp%get('*FIELDS','SLNO',PEDON)
+         if(nc_filex%yes)then
+            CALL read_nc_ic_sec(
+     &           FILEX,FILEX_P,LNIC,NLAYR,DUL,YRIC,PRCROP,WRESR,
+     &           WRESND,EFINOC,EFNFIX,PEDON,SLNO,DS,SWINIT,INH4,INO3,
+     &           ISWITCH,ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID,YRSIM)
+         else
+            CALL IPSLIN (FILEX,FILEX_P,LNIC,NLAYR,DUL,YRIC,PRCROP,WRESR,
+     &           WRESND,EFINOC,EFNFIX,PEDON,SLNO,DS,SWINIT,INH4,INO3,
+     &           ISWITCH,ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID,YRSIM)
+         end if
          IF (ISIMI .EQ. 'I') THEN
            IF (YRIC .LT. YRSIM .AND. YRIC .GT. 0) THEN
              YRSIM = YRIC
@@ -227,9 +317,11 @@ C-----------------------------------------------------------------------
 C        Call IPSLAN to read soil analysis information
 C-----------------------------------------------------------------------
          IF (ISWNIT .EQ. 'Y') THEN
+            if(.not.nc_filex%yes)then
             CALL IPSLAN (FILEX, FILEX_P,LNSA, BD, DS, EXK, EXTP, OC,
      &            PEDON, PH, PHKCL, SLNO, SMHB, SMKE, SMPX, TOTN, 
-     &            SASC, NLAYR)
+     &              SASC, NLAYR)
+            end if
          ENDIF
 !      ENDIF
       ENDIF
@@ -254,18 +346,27 @@ C-----------------------------------------------------------------------
      &        WRESR,WRESND,ISIM,NYRS,IPLT,WMODI,ECONO,ECONAM,ECOTYP,
      &        PRCROP,SWINIT,INO3,INH4,RUN,FROP,YRIC,EFINOC,EFNFIX,
      &        CROP,IVRGRP,ISENS,MODEL, RNMODE, FILEX,FILEX_P, 
-     &        ISWITCH,CONTROL)
+     &           ISWITCH,CONTROL)
             IF (INITIAL) THEN
                IF ((ISWNIT .EQ. 'Y') .OR. (ISWWAT .NE.'N')) THEN
                   NSENS = 0
                   CALL IPSOIL_Inp(RNMODE,FILES,PATHSL,NSENS,ISWITCH)
-                  CALL IPSLIN (FILEX,FILEX_P,LNIC,NLAYR,DUL,YRIC,
+!                  CALL IPSOIL_Inp(RNMODE,FILES,PATHSL,NSENS,ISWITCH,
+!     &             PEDON)
+                  if(nc_filex%yes)then
+                     CALL read_nc_ic_sec(
+     &               FILEX,FILEX_P,LNIC,NLAYR,DUL,YRIC,PRCROP,WRESR,
+     &              WRESND,EFINOC,EFNFIX,PEDON,SLNO,DS,SWINIT,INH4,INO3,
+     &                 ISWITCH,ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID,YRSIM)
+                  else
+                     CALL IPSLIN (FILEX,FILEX_P,LNIC,NLAYR,DUL,YRIC,
      &                 PRCROP,WRESR,WRESND,EFINOC,EFNFIX,PEDON,SLNO,DS,
      &                 SWINIT,INH4,INO3,ISWITCH,
-     &                 ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID,YRSIM) 
-                  CALL IPSLAN (FILEX, FILEX_P,LNSA, BD, DS, EXK, EXTP, 
-     &            OC, PEDON, PH, PHKCL, SLNO, SMHB, SMKE, SMPX, TOTN, 
-     &            SASC, NLAYR)
+     &                 ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID,YRSIM)
+                    CALL IPSLAN (FILEX, FILEX_P,LNSA, BD, DS, EXK, EXTP, 
+     &               OC, PEDON, PH, PHKCL, SLNO, SMHB, SMKE, SMPX, TOTN, 
+     &                   SASC, NLAYR)
+                  end if
                   NSENS = 1
                ENDIF
             ENDIF
@@ -275,10 +376,49 @@ C-----------------------------------------------------------------------
          IF (TITLER .EQ. '                         ') THEN
             TITLER = TITLET
          ENDIF
+         call csminp%put('*TREATMENTS','TITLER',TITLER)
        ELSE
          TITLER = TITLET
+         call csminp%put('*TREATMENTS','TITLER',TITLER)
       ENDIF
-      
+
+      call csminp%put('*FILES','ISENS',ISENS)
+!-----------------------------------------------------------------------
+!       Write initial conditions data to csm_input structure
+!-----------------------------------------------------------------------
+
+      call csminp%add_sec('*INITIAL CONDITIONS',ntiers=2)
+
+      call csminp%add_var('*INITIAL CONDITIONS',tier=1,
+     &     char_name=(/'PRCROP'/),
+     &     int_name=(/'LNIC','YRIC'/),
+     &     real_name=(/'WRESR ','WRESND','EFINOC','EFNFIX',
+     &                 'ICWD  ','ICRES ','ICREN ','ICREP ',
+     &                 'ICRIP ','ICRID '/))
+
+      call csminp%put('*INITIAL CONDITIONS','PRCROP',PRCROP)
+      call csminp%put('*INITIAL CONDITIONS','LNIC',LNIC)
+      call csminp%put('*INITIAL CONDITIONS','YRIC',YRIC)
+      call csminp%put('*INITIAL CONDITIONS','WRESR',WRESR)
+      call csminp%put('*INITIAL CONDITIONS','WRESND',WRESND)
+      call csminp%put('*INITIAL CONDITIONS','EFINOC',EFINOC)
+      call csminp%put('*INITIAL CONDITIONS','EFNFIX',EFNFIX)
+      call csminp%put('*INITIAL CONDITIONS','ICWD',ICWD)
+      call csminp%put('*INITIAL CONDITIONS','ICRES',ICRES)
+      call csminp%put('*INITIAL CONDITIONS','ICREN',ICREN)
+      call csminp%put('*INITIAL CONDITIONS','ICREP',ICREP)
+      call csminp%put('*INITIAL CONDITIONS','ICRIP',ICRIP)
+      call csminp%put('*INITIAL CONDITIONS','ICRID',ICRID)
+     
+      call csminp%add_var('*INITIAL CONDITIONS',tier=2,
+     &     real_name=(/'DS    ','SWINIT','INH4  ','INO3  '/),
+     &     nrow = nlayr)
+
+      call csminp%put('*INITIAL CONDITIONS','DS',DS)
+      call csminp%put('*INITIAL CONDITIONS','SWINIT',SWINIT)
+      call csminp%put('*INITIAL CONDITIONS','INH4',INH4)
+      call csminp%put('*INITIAL CONDITIONS','INO3',INO3)
+
 C     Regenarate short headers now that Run Title is known.
       CALL OPHEAD (RUNINIT,99,0.0,0.0,"                ",0.0,0.0, 
      &     "      ",RUN,MODEL,TITLER,WTHSTR, RNMODE,
@@ -289,6 +429,18 @@ C     Call INSOIL to calculate initial conditions for each soil layer
 C-----------------------------------------------------------------------
 !     Skip soils field and soils input for sequence mode
       IF (INDEX('FQ',RNMODE) .LE. 0 .OR. RUN == 1) THEN
+         call csminp%get('*SIMULATION CONTROL','ISWWAT',ISWWAT)
+         call csminp%get('*SIMULATION CONTROL','ISWNIT',ISWNIT)
+         call csminp%get('*SOIL','NLAYR',NLAYR)
+         call csminp%get('*SOIL','SAT',SAT)
+         call csminp%get('*SOIL','DUL',DUL)
+         call csminp%get('*SOIL','LL',LL)
+         call csminp%get('*SOIL','DLAYR',DLAYR)
+         call csminp%get('*SOIL','BD',BD)
+         call csminp%get('*SOIL','OC',OC)
+         call csminp%get('*SOIL','PH',PH)
+         call csminp%get('*SOIL','SLTXS',SLTXS)
+         call csminp%get('*SOIL','TOTN',TOTN)
 
         CALL INSOIL (ISWWAT,ISWNIT,AINO3,ANO3,AINH4,ANH4,TNMIN,
      &  SWINIT,TSWINI,NLAYR,DUL,LL,ESW,DLAYR,SAT,SW,TLL,TDUL,
@@ -296,8 +448,20 @@ C-----------------------------------------------------------------------
 !     &  RESN,RESP,RESIDUE,RINP,DEPRES,ICRES,ICREN,ICREP,ICRIP,
 !     &  ICRID,NARES,YRSIM,RESAMT,RESDAY,
      &  SLTX,SLTXS,TOTN)
+
+        call csminp%put('*SOIL','BD',BD)
+        call csminp%put('*SOIL','OC',OC)
+        call csminp%put('*SOIL','PH',PH)
+        call csminp%put('*SOIL','SLTXS',SLTXS)
+        call csminp%put('*SOIL','TOTN',TOTN)
+
+        call csminp%put('*INITIAL CONDITIONS','DS',DS)
+        call csminp%put('*INITIAL CONDITIONS','SWINIT',SWINIT)
+        call csminp%put('*INITIAL CONDITIONS','INH4',INH4)
+        call csminp%put('*INITIAL CONDITIONS','INO3',INO3)
+
       ENDIF
-      
+
 C-----------------------------------------------------------------------
 C     Call WEATHR to set CO2 conditions and weather parameter modifications
 C-----------------------------------------------------------------------
@@ -313,27 +477,27 @@ C     Write DSSAT Format Version 4 Output file for input by Version 4
 C     
 C-----------------------------------------------------------------------
       
-        CALL OPTEMPY2K(RNMODE,FILEX,PATHEX,
-     &            YRIC,PRCROP,WRESR,WRESND,EFINOC,EFNFIX,
-     &            SWINIT,INH4,INO3,NYRS,VARNO,VRNAME,CROP,MODEL,
-     &            RUN,FILEIO,EXPN,ECONO,FROP,TRTALL,TRTN,
-     &            CHEXTR,NFORC,PLTFOR,NDOF,PMTYPE,ISENS)
+!        CALL OPTEMPY2K(RNMODE,FILEX,PATHEX,
+!     &            YRIC,PRCROP,WRESR,WRESND,EFINOC,EFNFIX,
+!     &            SWINIT,INH4,INO3,NYRS,VARNO,VRNAME,CROP,MODEL,
+!     &            RUN,FILEIO,EXPN,ECONO,FROP,TRTALL,TRTN,
+!     &            CHEXTR,NFORC,PLTFOR,NDOF,PMTYPE,ISENS)
       
-        CALL OPTEMPXY2K (YRIC,PRCROP,WRESR,WRESND,EFINOC,EFNFIX,
-     &           SWINIT,INH4,INO3,NYRS,VARNO,VRNAME,CROP,
-     &           FILEIO,FROP,ECONO,ATLINE,
-     &           LNSIM,LNCU,LNHAR,LNENV,LNTIL,LNCHE,
-     &           LNFLD,LNSA,LNIC,LNPLT,LNIR,LNFER,LNRES,
-     &           NFORC,PLTFOR,PMTYPE,NDOF,CHEXTR, MODEL, PATHEX)
+!        CALL OPTEMPXY2K (YRIC,PRCROP,WRESR,WRESND,EFINOC,EFNFIX,
+!     &           SWINIT,INH4,INO3,NYRS,VARNO,VRNAME,CROP,
+!     &           FILEIO,FROP,ECONO,ATLINE,
+!     &           LNSIM,LNCU,LNHAR,LNENV,LNTIL,LNCHE,
+!     &           LNFLD,LNSA,LNIC,LNPLT,LNIR,LNFER,LNRES,
+!     &           NFORC,PLTFOR,PMTYPE,NDOF,CHEXTR, MODEL, PATHEX)
 
 C-----------------------------------------------------------------------
 C     Write DSSAT Format Version 4 Output files
 C-----------------------------------------------------------------------
       
-      CALL OPGEN (CUMDEP,TPESW,VRNAME,AINO3,AINH4,TLL,TDUL,TSAT,
-     &     TSWINI,RUN,MODEL,CROP,CROPD,TITLET,ECONO,VARTY,
-     &     ESW,SWINIT,INO3,INH4,TSOC,WTHSTR,NYRS, RNMODE, 
-     &     CONTROL, ISWITCH, UseSimCtr, ATLINE, PATHEX)
+!      CALL OPGEN (CUMDEP,TPESW,VRNAME,AINO3,AINH4,TLL,TDUL,TSAT,
+!     &     TSWINI,RUN,MODEL,CROP,CROPD,TITLET,ECONO,VARTY,
+!     &     ESW,SWINIT,INO3,INH4,TSOC,WTHSTR,NYRS, RNMODE, 
+!     &     CONTROL, ISWITCH, UseSimCtr, ATLINE, PATHEX)
 
 C-----------------------------------------------------------------------
 C     FORMAT Strings

@@ -67,6 +67,7 @@
 !-----------------------------------------------------------------------
       USE ModuleDefs  
       USE Interface_IpSoil
+      use csm_io
       IMPLICIT  NONE
       SAVE
 
@@ -161,28 +162,30 @@
 !     ------------------------------------------------------------------
 !     Read RPLACE data from FILEIO
 !     ------------------------------------------------------------------
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
-      LNUM =0
+!      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
+!      IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
+!      LNUM =0
 
 !     ------------------------------------------------------------------
 !     Find AUTOMATIC MANAGEMENT Section
 !     ------------------------------------------------------------------
-      SECTION = '!AUTOM'
-      CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      SECTION = '!AUTOM'
+!      CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
 !     If the residue section can't be found, call an error, or else
 !     read the input data.
-      IF (FOUND == 0) THEN
-        CALL ERROR (SECTION, 42, FILEIO, LNUM)
-      ELSE
+!      IF (FOUND == 0) THEN
+!        CALL ERROR (SECTION, 42, FILEIO, LNUM)
+!      ELSE
 !       Read the number of days after planting that residues are
 !       applied (with automatic application) and the residue
 !       application depth.
-        READ (LUNIO,'(///,20X,I6,F6.0)', IOSTAT = ERRNUM) 
-     &        NRESDL, DRESMG
-        LNUM = LNUM + 4
-        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
-      ENDIF
+!        READ (LUNIO,'(///,20X,I6,F6.0)', IOSTAT = ERRNUM) 
+!     &        NRESDL, DRESMG
+!        LNUM = LNUM + 4
+!        IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
+!      ENDIF
+      call csminp%get('*SIMULATION CONTROL','NRESDL',NRESDL)
+      call csminp%get('*SIMULATION CONTROL','DRESMG',DRESMG)
 
 !     ------------------------------------------------------------------
 !     Find RESIDUE Section
@@ -190,27 +193,40 @@
 !     Only read the residue section if residues are going to be
 !     applied.
       IF (IRESI .NE. 'N') THEN
-        SECTION = '*RESID'
+      call csminp%get('*RESIDUES','RESDAY',RESDAY)
+      call csminp%get('*RESIDUES','RESTYP',RESTYP)
+      call csminp%get('*RESIDUES','RESIDUE',RESIDUE)
+      call csminp%get('*RESIDUES','RESN',RESN)
+      call csminp%get('*RESIDUES','RESP',RESP)
+      call csminp%get('*RESIDUES','RIP',RIP)
+      call csminp%get('*RESIDUES','RESDEP',RESDEP)
+      call csminp%get('*RESIDUES','RESMET',RESMET)
+!        SECTION = '*RESID'
 
 !       Find the line number from where to start reading.
-        CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!        CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
 
 !       If the residue section can't be found, call an error, or else
 !       read the input data.
-        IF (FOUND == 0) THEN
-          CALL ERROR (SECTION, 42, FILEIO, LNUM)
-        ELSE
+!        IF (FOUND == 0) THEN
+!          CALL ERROR (SECTION, 42, FILEIO, LNUM)
+!        ELSE
 !         Initialize the number of residue applications to be done.
           NRESAP = 0
           DO I = 1, NAPPL
 !           Read the residue application parameters.
-            READ (LUNIO,'(3X,I7,1X,A90)',ERR=87,END=87) RESDAY(I), CHAR
-            LNUM = LNUM + 1
+!            READ (LUNIO,'(3X,I7,1X,A90)',ERR=87,END=87) RESDAY(I), CHAR
+!            LNUM = LNUM + 1
 
-            READ (CHAR, '(A5,3F6.0,6X,2F6.0,1X,A5)', IOSTAT = ERRNUM) 
-     &        RESTYP(I), RESIDUE(I), RESN(I), RESP(I), 
-     &        RIP(I), RESDEP(I), RESMET(I)
-            IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
+!            READ (CHAR, '(A5,3F6.0,6X,2F6.0,1X,A5)', IOSTAT = ERRNUM) 
+!     &        RESTYP(I), RESIDUE(I), RESN(I), RESP(I), 
+!     &        RIP(I), RESDEP(I), RESMET(I)
+!            IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
+             if(resday(i)>0)then
+                NRESAP = NRESAP + 1
+             else
+                exit
+             end if
 
             IF (RIP(I) .LT. 0.001) THEN
               RIP(I) = 0.0
@@ -218,13 +234,12 @@
 
 !           If the residue code does not start with 'RE'.
             IF (RESTYP(I)(1:2) .NE. 'RE') RESTYP(I)(1:2) = 'RE'
-            NRESAP = NRESAP + 1
           ENDDO
 
 !         Continue here after jumping out of the DO loop with an error
 !         (thus the end of the residue section was reached).
-87        CONTINUE
-        ENDIF   !End of IF block on FOUND=0.
+!87        CONTINUE
+!        ENDIF   !End of IF block on FOUND=0.
 
         DO I = 1, NRESAP
 !         Get default values if lignin content not specified.

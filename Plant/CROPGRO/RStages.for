@@ -52,7 +52,7 @@ C=======================================================================
 
 !     For output file:
 !      CHARACTER*11 OUTRSTG
-!      CHARACTER*30 FILEIO
+!      
 !      INTEGER DAP, DOY, ERRNUM, LUN, RUN, YEAR
 !      LOGICAL FEXIST, FOPEN
 

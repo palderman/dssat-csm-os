@@ -35,7 +35,6 @@ C=======================================================================
       SAVE
 
       CHARACTER*3  TYPPGN, TYPPGT
-      CHARACTER*30 FILEIO
 
       INTEGER DYNAMIC
       INTEGER DAS, NR5
@@ -64,7 +63,6 @@ C=======================================================================
 !     Transfer values from constructed data types into local variables.
       DAS     = CONTROL % DAS
       DYNAMIC = CONTROL % DYNAMIC
-      FILEIO  = CONTROL % FILEIO
 
 C***********************************************************************
 C***********************************************************************
@@ -72,7 +70,7 @@ C     Run Initialization - Called once per simulation
 C***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
 C-----------------------------------------------------------------------
-      CALL PHOTIP(FILEIO,  
+      CALL PHOTIP(
      &  CCEFF, CCMAX, CCMP, FNPGN, FNPGT, LMXSTD, LNREF, PARMAX,   
      &  PGREF, PHTHRS10, PHTMAX, ROWSPC, TYPPGN, TYPPGT, XPGSLW, YPGSLW)
 
@@ -252,22 +250,23 @@ C  Local :
 !  Calls : None
 C=======================================================================
 
-      SUBROUTINE PHOTIP(FILEIO,  
+      SUBROUTINE PHOTIP(
      &  CCEFF, CCMAX, CCMP, FNPGN, FNPGT, LMXSTD, LNREF, PARMAX,   
      &  PGREF, PHTHRS10, PHTMAX, ROWSPC, TYPPGN, TYPPGT, XPGSLW, YPGSLW)
 
 !-----------------------------------------------------------------------
+      use csm_io
+      use dssat_netcdf
       IMPLICIT NONE
 
       CHARACTER*1  BLANK
       CHARACTER*3  TYPPGN, TYPPGT
-      CHARACTER*6  ERRKEY, SECTION
+      CHARACTER*6  ERRKEY
       CHARACTER*12 FILEC
-      CHARACTER*30 FILEIO
       CHARACTER*80 PATHCR,CHAR
       CHARACTER*92 FILECC
 
-      INTEGER LUNIO, LINC, LNUM, FOUND
+      INTEGER LNUM
       INTEGER II, PATHL, LUNCRP, ERR, ISECT
 
       REAL CCEFF, CCMAX, CCMP, LMXSTD, LNREF, 
@@ -282,26 +281,14 @@ C=======================================================================
 !-----------------------------------------------------------------------
 !     Open and read FILEIO
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEIO', LUNIO)
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-
 !-----------------------------------------------------------------------
-      READ(LUNIO,50,IOSTAT=ERR) FILEC, PATHCR; LNUM = 7
-   50 FORMAT(//////,15X,A12,1X,A80)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
+      call csminp%get('*FILES','FILEC',FILEC)
+      call csminp%get('*FILES','PATHCR',PATHCR)
 
 !-----------------------------------------------------------------------
 C    Read Planting Details Section
 !-----------------------------------------------------------------------
-      SECTION = '*PLANT'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(42X,F6.0)',IOSTAT=ERR) ROWSPC ; LNUM = LNUM + 1
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-      ENDIF
+      call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC)
 
 C     CROPGRO uses ROWSPC as m
       ROWSPC = ROWSPC / 100.
@@ -309,71 +296,81 @@ C     CROPGRO uses ROWSPC as m
 !-----------------------------------------------------------------------
 C    Read Cultivars Section
 !-----------------------------------------------------------------------
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(60X,F6.0,6X,F6.0)',IOSTAT=ERR) PHTHRS10, LMXSTD
-        LNUM = LNUM + 1
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-      ENDIF
+      call csminp%get('*CULTIVARS','PHTHRS(10)',PHTHRS10)
+      call csminp%get('*CULTIVARS','LFMAX',LMXSTD)
 
 C-----------------------------------------------------------------------
-      CLOSE (LUNIO)
-
-C-----------------------------------------------------------------------
-      LNUM = 0
-      PATHL  = INDEX(PATHCR,BLANK)
-      IF (PATHL .LE. 1) THEN
-        FILECC = FILEC
-      ELSE
-        FILECC = PATHCR(1:(PATHL-1)) // FILEC
-      ENDIF
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+      if(.not.nc_gen%yes)then ! SPE file
+         LNUM = 0
+         PATHL  = INDEX(PATHCR,BLANK)
+         IF (PATHL .LE. 1) THEN
+            FILECC = FILEC
+         ELSE
+            FILECC = PATHCR(1:(PATHL-1)) // FILEC
+         ENDIF
+         CALL GETLUN('FILEC', LUNCRP)
+         OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+      end if
 
 C-----------------------------------------------------------------------
 C READ PHOTOSYNTHESIS PARAMETERS *******************
 C-----------------------------------------------------------------------
-    5 CONTINUE
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      IF (ISECT .EQ. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      IF (ISECT .EQ. 2) GO TO 5
-      READ(CHAR,'(5F6.2)',IOSTAT=ERR) PARMAX, PHTMAX
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+      if(nc_gen%yes)then ! NetCDF I/O
+            call nc_gen%read_spe('PARMAX',PARMAX)
+            call nc_gen%read_spe('PHTMAX',PHTMAX)
+            call nc_gen%read_spe('CCMP',CCMP)
+            call nc_gen%read_spe('CCMAX',CCMAX)
+            call nc_gen%read_spe('CCEFF',CCEFF)
+            call nc_gen%read_spe('FNPGN',FNPGN)
+            call nc_gen%read_spe('TYPPGN',TYPPGN)
+            call nc_gen%read_spe('FNPGT',FNPGT)
+            call nc_gen%read_spe('TYPPGT',TYPPGT)
+            call nc_gen%read_spe('LNREF',LNREF)
+            call nc_gen%read_spe('PGREF',PGREF)
+            call nc_gen%read_spe('XPGSLW',XPGSLW)
+            call nc_gen%read_spe('YPGSLW',YPGSLW)
+      else ! SPE file
+ 5       CONTINUE
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         IF (ISECT .EQ. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         IF (ISECT .EQ. 2) GO TO 5
+         READ(CHAR,'(5F6.2)',IOSTAT=ERR) PARMAX, PHTMAX
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      READ(CHAR,'(3F6.1)',IOSTAT=ERR) CCMP, CCMAX, CCEFF
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         READ(CHAR,'(3F6.1)',IOSTAT=ERR) CCMP, CCMAX, CCEFF
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      READ(CHAR,'(4F6.0,3X,A3)',IOSTAT=ERR) (FNPGN(II),II=1,4), TYPPGN
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         READ(CHAR,'(4F6.0,3X,A3)',IOSTAT=ERR)
+     &        (FNPGN(II),II=1,4), TYPPGN
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      READ(CHAR,'(4F6.0,3X,A3)',IOSTAT=ERR) (FNPGT(II),II=1,4), TYPPGT
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         READ(CHAR,'(4F6.0,3X,A3)',IOSTAT=ERR)
+     &        (FNPGT(II),II=1,4), TYPPGT
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      READ(CHAR,'(18X,2F6.0)',IOSTAT=ERR) LNREF, PGREF
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         READ(CHAR,'(18X,2F6.0)',IOSTAT=ERR) LNREF, PGREF
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      READ(CHAR,'(10F6.0)',IOSTAT=ERR) (XPGSLW(II),II = 1,10)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         READ(CHAR,'(10F6.0)',IOSTAT=ERR) (XPGSLW(II),II = 1,10)
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-      CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-      READ(CHAR,'(10F6.0)',IOSTAT=ERR) (YPGSLW(II),II = 1,10)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+         READ(CHAR,'(10F6.0)',IOSTAT=ERR) (YPGSLW(II),II = 1,10)
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
 C-----------------------------------------------------------------------
-      CLOSE (LUNCRP)
+         CLOSE (LUNCRP)
+      end if ! NetCDF I/O
 
       END !SUBROUTINE PHOTIP
 !=======================================================================

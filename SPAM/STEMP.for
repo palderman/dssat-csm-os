@@ -40,6 +40,7 @@ C-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use csm_io
       IMPLICIT  NONE
       SAVE
 
@@ -99,8 +100,8 @@ C-----------------------------------------------------------------------
 !      ELSEIF (DYNAMIC .EQ. SEASINIT) THEN
       IF (DYNAMIC .EQ. SEASINIT) THEN
 !-----------------------------------------------------------------------
-      FILEIO  = CONTROL % FILEIO    
-      LUNIO   = CONTROL % LUNIO    
+!      FILEIO  = CONTROL % FILEIO    
+!      LUNIO   = CONTROL % LUNIO    
       RUN     = CONTROL % RUN    
       RNMODE  = CONTROL % RNMODE
 
@@ -109,24 +110,26 @@ C-----------------------------------------------------------------------
         IF (ISWWAT .NE. 'N') THEN
 !         Read inital soil water values from FILEIO 
 !         (not yet done in WATBAL, so need to do here)
-          OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-          SECTION = '*INITI'
-          CALL FIND(LUNIO, SECTION, LNUM, FOUND) 
-          IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!          OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!          SECTION = '*INITI'
+!          CALL FIND(LUNIO, SECTION, LNUM, FOUND) 
+!          IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO, LNUM)
 
 !         Initial depth to water table (not currently used)
-          READ(LUNIO,'(40X,F6.0)',IOSTAT=ERRNUM) ICWD ; LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!          READ(LUNIO,'(40X,F6.0)',IOSTAT=ERRNUM) ICWD ; LNUM = LNUM + 1
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+           call csminp%get('*INITIAL CONDITIONS','ICWD',ICWD)
+           call csminp%get('*INITIAL CONDITIONS','SWI',SWI)
 
           DO L = 1, NLAYR
-            READ(LUNIO,'(9X,F5.3)',IOSTAT=ERRNUM) SWI(L)
-            LNUM = LNUM + 1
-            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!            READ(LUNIO,'(9X,F5.3)',IOSTAT=ERRNUM) SWI(L)
+!            LNUM = LNUM + 1
+!            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
             IF (SWI(L) .LT. LL(L)) SWI(L) = LL(L)
           ENDDO
 
-          CLOSE (LUNIO)
+!          CLOSE (LUNIO)
         ELSE
           SWI = DUL
         ENDIF

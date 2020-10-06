@@ -27,6 +27,7 @@ C  02/09/2007 GH  Add path for FileA
      &    BWAH, SDWTAH)                                   !Output
 
 !-----------------------------------------------------------------------
+      use csm_io
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
@@ -39,13 +40,12 @@ C  02/09/2007 GH  Add path for FileA
       CHARACTER*6, PARAMETER :: ERRKEY = 'OPHARV'
       CHARACTER*10 STNAME(20)
       CHARACTER*12 FILEA
-      CHARACTER*30 FILEIO
 	CHARACTER*80 PATHEX
 
       INTEGER DEMRG, DFLR, DMAT, IFPD, DFPD, IFSD, DFSD
       INTEGER DNR0, DNR1, DNR7, DYNAMIC, ERRNUM, FOUND
       INTEGER IEMRG, IFLR, IMAT
-      INTEGER ISDATE, ISENS, LINC, LNUM, LUNIO, MDATE, ISTAGE, RUN
+      INTEGER ISDATE, ISENS, LINC, LNUM, MDATE, ISTAGE, RUN
       INTEGER TIMDIF, TRTNUM, YRNR1, YRNR2, YRNR3
       INTEGER YRDOY, YREMRG, YRNR5, YRSIM, YRPLT
       INTEGER TRT_ROT
@@ -86,7 +86,6 @@ C  02/09/2007 GH  Add path for FileA
       CROP    = CONTROL % CROP
       YRSIM   = CONTROL % YRSIM
       RNMODE  = CONTROL % RNMODE
-      FILEIO  = CONTROL % FILEIO
       RUN     = CONTROL % RUN
 
       StovSenes = SENESCE % ResWt(0)
@@ -155,28 +154,11 @@ C  02/09/2007 GH  Add path for FileA
       IF (DYNAMIC .EQ. RUNINIT) THEN
 !-----------------------------------------------------------------------
 !       Read FILEIO
-        CALL GETLUN('FILEIO', LUNIO)
-        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
 
-        READ (LUNIO,'(55X,I5)', IOSTAT=ERRNUM) ISENS; LNUM = 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-
-        READ (LUNIO,'(3(/),15X,A12,1X,A80)', IOSTAT=ERRNUM) FILEA,
-     &        PATHEX
-        LNUM = LNUM + 4  
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-  
-        SECTION = '*TREAT'
-        CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-        IF (FOUND .EQ. 0) THEN
-          CALL ERROR(SECTION, 42, FILEIO, LNUM)
-        ELSE
-          READ(LUNIO, '(I3)', IOSTAT=ERRNUM) TRTNUM ; LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-        ENDIF
-
-        CLOSE (LUNIO)
+         call csminp%get('*FILES','ISENS',ISENS)
+         call csminp%get('*FILES','FILEA',FILEA)
+         call csminp%get('*FILES','PATHEX',PATHEX)
+         call csminp%get('*TREATMENTS','TRTNO',TRTNUM)
 
 !     Assign descriptions to Measured and Simulated data 
 !         from DATA.CDE.

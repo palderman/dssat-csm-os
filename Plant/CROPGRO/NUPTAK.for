@@ -22,6 +22,7 @@ C=======================================================================
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -53,9 +54,11 @@ C=======================================================================
 !     Read in values from input file, which were previously input
 !       in Subroutine IPCROP.
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+         if(.not.nc_gen%yes)then ! SPE file
+            CALL GETLUN('FILEC', LUNCRP)
+            OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+         end if
 
 !-----------------------------------------------------------------------
 !    Find and Read Photosynthesis Section
@@ -64,20 +67,25 @@ C=======================================================================
 !     searching for the specified 6-character string at beginning
 !     of each line.
 !-----------------------------------------------------------------------
-      SECTION = '!*ROOT'
-      CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        DO I = 1, 3
-          CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-          IF (ISECT .EQ. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-        ENDDO
-        READ(CHAR,'(2F6.0)',IOSTAT=ERR) RTNO3, RTNH4
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+         if(nc_gen%yes)then ! NetCDF I/O
+            call nc_gen%read_spe('RTNO3',RTNO3)
+            call nc_gen%read_spe('RTNH4',RTNH4)
+         else ! SPE file
+            SECTION = '!*ROOT'
+            CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
+            IF (FOUND .EQ. 0) THEN
+               CALL ERROR(SECTION, 42, FILECC, LNUM)
+            ELSE
+               DO I = 1, 3
+                  CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+                  IF (ISECT .EQ. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+               ENDDO
+               READ(CHAR,'(2F6.0)',IOSTAT=ERR) RTNO3, RTNH4
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            ENDIF
 
-      CLOSE (LUNCRP)
+            CLOSE (LUNCRP)
+         end if ! NetCDF I/O
 
 !***********************************************************************
 !***********************************************************************

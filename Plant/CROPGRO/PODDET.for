@@ -25,6 +25,7 @@ C-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -63,10 +64,12 @@ C-----------------------------------------------------------------------
 !     Read in values from input file, which were previously input
 !       in Subroutine IPCROP.
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
-      LNUM = 0
+         if(.not.nc_gen%yes)then ! SPE file
+            CALL GETLUN('FILEC', LUNCRP)
+            OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+            LNUM = 0
+         end if
 !-----------------------------------------------------------------------
 !    Find and Read Pod Loss Section
 !-----------------------------------------------------------------------
@@ -74,39 +77,55 @@ C-----------------------------------------------------------------------
 !     searching for the specified 6-character string at beginning
 !     of each line.
 !-----------------------------------------------------------------------
-      SECTION = '!*POD '
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(6X,5F6.0)',IOSTAT=ERR)
-     &                  DWC, PR1DET, PR2DET, XP1DET, XP2DET
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+         if(nc_gen%yes)then !NetCDF I/O
+            call nc_gen%read_spe('DWC',DWC)
+            call nc_gen%read_spe('PR1DET',PR1DET)
+            call nc_gen%read_spe('PR2DET',PR2DET)
+            call nc_gen%read_spe('XP1DET',XP1DET)
+            call nc_gen%read_spe('XP2DET',XP2DET)
+         else ! SPE file
+            SECTION = '!*POD '
+            CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+            IF (FOUND .EQ. 0) THEN
+               CALL ERROR(SECTION, 42, FILECC, LNUM)
+            ELSE
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(6X,5F6.0)',IOSTAT=ERR)
+     &              DWC, PR1DET, PR2DET, XP1DET, XP2DET
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            ENDIF
+         end if
 
 !-----------------------------------------------------------------------
 !    Find and Read Phenology Section
 !-----------------------------------------------------------------------
-      SECTION = '!*PHEN'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(4F6.0)',IOSTAT=ERR)TB(1),TO1(1),TO2(1),TM(1)
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         if(nc_gen%yes)then !NetCDF I/O
+            call nc_gen%read_spe('TB',TB)
+            call nc_gen%read_spe('TO1',TO1)
+            call nc_gen%read_spe('TO2',TO2)
+            call nc_gen%read_spe('TM',TM)
+         else ! SPE file
+            SECTION = '!*PHEN'
+            CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+            IF (FOUND .EQ. 0) THEN
+               CALL ERROR(SECTION, 42, FILECC, LNUM)
+            ELSE
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(4F6.0)',IOSTAT=ERR)TB(1),TO1(1),TO2(1),TM(1)
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(4F6.0)',IOSTAT=ERR)TB(2),TO1(2),TO2(2),TM(2)
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(4F6.0)',IOSTAT=ERR)TB(2),TO1(2),TO2(2),TM(2)
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(4F6.0)',IOSTAT=ERR)TB(3),TO1(3),TO2(3),TM(3)
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-        ENDIF
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(4F6.0)',IOSTAT=ERR)TB(3),TO1(3),TO2(3),TM(3)
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            ENDIF
 
-      CLOSE (LUNCRP)
+            CLOSE (LUNCRP)
+
+         end if ! NetCDF I/O
 
       WSHIDT = 0.0
       WTSD   = 0.0

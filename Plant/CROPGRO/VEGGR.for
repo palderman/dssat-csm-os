@@ -43,6 +43,7 @@ C========================================================================
 !-----------------------------------------------------------------------
       USE ModuleDefs
       USE ModuleData
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -97,10 +98,12 @@ C========================================================================
 !     Read in values from input file, which were previously input
 !       in Subroutine IPCROP.
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
-      LNUM = 0
+      if(.not.nc_gen%yes)then ! SPE file
+         CALL GETLUN('FILEC', LUNCRP)
+         OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+         LNUM = 0
+      end if
 !-----------------------------------------------------------------------
 !    Find and Read Plant Composition Section
 !-----------------------------------------------------------------------
@@ -108,51 +111,69 @@ C========================================================================
 !     searching for the specified 6-character string at beginning
 !     of each line.
 !-----------------------------------------------------------------------
-      SECTION = '!*PLAN'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(2F6.0,6X,2F6.0)',IOSTAT=ERR)
-     &          PROLFI, PROLFG, PROSTI, PROSTG
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+      if(nc_gen%yes)then !NetCDF I/O
+         call nc_gen%read_spe('PROLFI',PROLFI)
+         call nc_gen%read_spe('PROLFG',PROLFG)
+         call nc_gen%read_spe('PROSTI',PROSTI)
+         call nc_gen%read_spe('PROSTG',PROSTG)
+         call nc_gen%read_spe('PRORTI',PRORTI)
+         call nc_gen%read_spe('PRORTG',PRORTG)
+      else ! SPE file
+         SECTION = '!*PLAN'
+         CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+         IF (FOUND .EQ. 0) THEN
+            CALL ERROR(SECTION, 42, FILECC, LNUM)
+         ELSE
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+            READ(C80,'(2F6.0,6X,2F6.0)',IOSTAT=ERR)
+     &           PROLFI, PROLFG, PROSTI, PROSTG
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(2F6.0)',IOSTAT=ERR) PRORTI, PRORTG
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+            READ(C80,'(2F6.0)',IOSTAT=ERR) PRORTI, PRORTG
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         ENDIF
+      end if !NetCDF I/O
 !-----------------------------------------------------------------------
 !    Find and Read Plant Composition Section
 !-----------------------------------------------------------------------
-      SECTION = '!*CARB'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(2F6.0)',IOSTAT=ERR) CMOBMX, CADSTF
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+      if(nc_gen%yes)then !NetCDF I/O
+         call nc_gen%read_spe('CMOBMX',CMOBMX)
+         call nc_gen%read_spe('CADSTF',CADSTF)
+      else ! SPE file
+         SECTION = '!*CARB'
+         CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+         IF (FOUND .EQ. 0) THEN
+            CALL ERROR(SECTION, 42, FILECC, LNUM)
+         ELSE
+            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+            READ(C80,'(2F6.0)',IOSTAT=ERR) CMOBMX, CADSTF
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         ENDIF
+      end if !NetCDF I/O
 !-----------------------------------------------------------------------
 !    Find and Read Partitioning Section
 !-----------------------------------------------------------------------
-      SECTION = '!*VEGE'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-          DO I=1,4
-            ISECT = 2
-            DO WHILE (ISECT .NE. 1)
-            CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+      if(nc_gen%yes)then !NetCDF I/O
+         call nc_gen%read_spe('ATOP',ATOP)
+      else ! SPE file
+         SECTION = '!*VEGE'
+         CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+         IF (FOUND .EQ. 0) THEN
+            CALL ERROR(SECTION, 42, FILECC, LNUM)
+         ELSE
+            DO I=1,4
+               ISECT = 2
+               DO WHILE (ISECT .NE. 1)
+                  CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               ENDDO
             ENDDO
-          ENDDO
-        READ(C80,'(24X,F6.0)',IOSTAT=ERR) ATOP
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
-      
-      CLOSE (LUNCRP)
+            READ(C80,'(24X,F6.0)',IOSTAT=ERR) ATOP
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         ENDIF
+
+         CLOSE (LUNCRP)
+      end if !NetCDF I/O
 
 !-----------------------------------------------------------------------
 !    Call CANOPY for input

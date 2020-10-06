@@ -22,7 +22,7 @@ C  05/11/1999 GH  Incorporated in CROPGRO
 
       SUBROUTINE FOR_ROOTS(DYNAMIC,
      &    AGRRT, CADRT, CROP, DLAYR, DS, DTX, DUL, FILECC,!Input
-     &    FILEIO, FRRT, ISWWAT, LL, NADRT, NLAYR, PG,        !Input
+     &    FRRT, ISWWAT, LL, NADRT, NLAYR, PG,        !Input
      &    RLSEN, RO, RP, RTWT, SAT, SRMDOT, SW,                   !Input
      &  SWFAC, VSTAGE, WR, WRDOTN, WTNEW,                        !Input
      &    CUMDEP, RLV, RTDEP, SATFAC, SENRT, SRDOT,             !Output
@@ -38,7 +38,6 @@ C-----------------------------------------------------------------------
       CHARACTER*1 PLME
       CHARACTER*1 ISWWAT
       CHARACTER*2 CROP
-      CHARACTER*30 FILEIO
       CHARACTER*92 FILECC
 
       INTEGER L, L1, NLAYR
@@ -72,7 +71,7 @@ C-----------------------------------------------------------------------
       IF (DYNAMIC .EQ. RUNINIT) THEN
 !-----------------------------------------------------------------------
       CALL FOR_IPROOT(
-     &  FILECC, FILEIO,                                   !Input
+     &  FILECC,                                           !Input
      &  PLME, PLTPOP, PORMIN, RFAC1, RLDSM, RTDEPI,       !Output
      &  RTEXF, RTSEN, RTSDF, XRTFAC, YRTFAC)              !Output
 
@@ -351,7 +350,7 @@ C-----------------------------------------------------------------------
 !  Calls  : FIND, ERROR, IGNORE
 C=======================================================================
       SUBROUTINE FOR_IPROOT(
-     &  FILECC, FILEIO,                                   !Input
+     &  FILECC,                                           !Input
      &  PLME, PLTPOP, PORMIN, RFAC1, RLDSM, RTDEPI,       !Output
      &  RTEXF, RTSEN, RTSDF, XRTFAC, YRTFAC)              !Output
 
@@ -360,6 +359,7 @@ C=======================================================================
         ! which contain control information, soil
         ! parameters, hourly weather data.
 !     NL defined in ModuleDefs.for
+      use csm_io
 
       IMPLICIT NONE
 
@@ -369,10 +369,9 @@ C=======================================================================
 
       CHARACTER*6 SECTION
       CHARACTER*80 CHAR
-      CHARACTER*30 FILEIO
       CHARACTER*92 FILECC
 
-      INTEGER LUNCRP, LUNIO, ERR, LNUM, ISECT, FOUND, II
+      INTEGER LUNCRP, ERR, LNUM, ISECT, FOUND, II
 
       REAL PLTPOP, RTDEPI, RLDSM, PORMIN
       REAL RFAC1, RTSEN, RTSDF, RTEXF
@@ -380,23 +379,10 @@ C=======================================================================
 
 
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEIO', LUNIO)
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-
-!-----------------------------------------------------------------------
 !    Read Planting Details Section
 !-----------------------------------------------------------------------
-        SECTION = '*PLANT'
-        CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-        IF (FOUND .EQ. 0) THEN
-        CALL ERROR(ERRKEY, 1, FILEIO, LNUM)
-        ELSE
-        READ(LUNIO,'(24X,F6.1,5X,A1)')
-     &    PLTPOP, PLME
-        ENDIF
-  
-      CLOSE (LUNIO)
+      call csminp%get('*PLANTING DETAILS','PLTPOP',PLTPOP)
+      call csminp%get('*PLANTING DETAILS','PLME',PLME)
 
 !-----------------------------------------------------------------------
 !     ***** READ ROOT GROWTH PARAMETERS *****************
@@ -562,7 +548,6 @@ C-----------------------------------------------------------------------
 ! LL(L)     Volumetric soil water content in soil layer L at lower limit
 !             ( cm3/cm3)
 ! LUNCRP    Logical unit number for FILEC (*.spe file) 
-! LUNIO     Logical unit number for FILEIO 
 ! MRESPR(L) Maintenance respiration for new root growth in layer L 
 ! NADRT        N added to root N reserves (g[N] / m2 / d)
 ! NL        Maximum number of soil layers = 20 

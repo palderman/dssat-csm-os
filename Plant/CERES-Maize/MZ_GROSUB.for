@@ -62,6 +62,8 @@
 
       USE ModuleDefs
       USE Interface_SenLig_Ceres
+      use csm_io
+      use dssat_netcdf
       IMPLICIT  NONE
       SAVE
 !----------------------------------------------------------------------
@@ -381,48 +383,34 @@
           !-------------------------------------------------------
           !     Read input file name (ie. DSSAT45.INP) and path
           !-------------------------------------------------------
-          CALL GETLUN('FILEIO', LUNIO)
-          OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)  
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-          REWIND (LUNIO)
-          READ(LUNIO,50,IOSTAT=ERR) FILES, PATHSR; LNUM = 7
-   50     FORMAT(//////,15X,A12,1X,A80)
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
 
-          READ(LUNIO,51,IOSTAT=ERR) FILEE, PATHER; LNUM = LNUM + 1   
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
+          call csminp%get('*FILES','FILEC',FILES)
+          call csminp%get('*FILES','PATHCR',PATHSR)
+          call csminp%get('*FILES','FILEE',FILEE)
+          call csminp%get('*FILES','PATHEC',PATHER)
+          call csminp%get('*FILES','FILEG',FILEC)
+          call csminp%get('*FILES','PATHGE',PATHCR)
 
-          READ(LUNIO,51,IOSTAT=ERR) FILEC, PATHCR; LNUM = LNUM + 1 
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-   51     FORMAT(15X,A12,1X,A80)
           !------------------------------------------------------
           !   Read Planting Details Section
           !------------------------------------------------------
-          SECTION = '*PLANT'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) THEN
-            CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          ELSE
-            READ(LUNIO,60,IOSTAT=ERR) PLTPOP,ROWSPC ; LNUM = LNUM + 1
- 60         FORMAT(25X,F5.2,13X,F5.2,7X,F5.2)
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-          ENDIF
+
+          call csminp%get('*PLANTING DETAILS','PLTPOP',PLTPOP)
+          call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC)
+
 !     -----------------------------------------------------------------
 !             Read crop cultivar coefficients
 !     -----------------------------------------------------------------
-          SECTION = '*CULTI'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) THEN
-              CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          ELSE
-            READ (LUNIO,1800,IOSTAT=ERR) VARNO,VRNAME,ECONO,
-     %                 P1,P2,P5,G2,G3,PHINT  
-!CHP 1800        FORMAT (A6,1X,A16,1X,A6,1X,F6.1,F6.3,2(F6.1),2(F6.2))    
-1800        FORMAT (A6,1X,A16,1X,A6,1X,6F6.0)    
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-          ENDIF
 
-        CLOSE(LUNIO)
+          call csminp%get('*CULTIVARS','VARNO',VARNO)
+          call csminp%get('*CULTIVARS','VRNAME',VRNAME)
+          call csminp%get('*CULTIVARS','ECONO',ECONO)
+          call csminp%get('*CULTIVARS','P1',P1)
+          call csminp%get('*CULTIVARS','P2',P2)
+          call csminp%get('*CULTIVARS','P5',P5)
+          call csminp%get('*CULTIVARS','G2',G2)
+          call csminp%get('*CULTIVARS','G3',G3)
+          call csminp%get('*CULTIVARS','PHINT',PHINT)
 
 !         ************************************************************
 !         ************************************************************
@@ -431,6 +419,10 @@
 !         ************************************************************
 !         ************************************************************
 
+      if(nc_gen%yes)then
+         call nc_gen%read_spe('PRFTC',PRFTC)
+         call nc_gen%read_spe('RGFIL',RGFIL)
+      else
 
       FILECC =  TRIM(PATHSR) // FILES
       CALL GETLUN('FILEC', LUNCRP)
@@ -457,9 +449,16 @@
         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
       ENDIF
       REWIND(LUNCRP)
+
+      end if ! NetCDF input
       !---------------------------------------------------------------
       !         Find and Read PHOTOSYNTHESIS section
-      !---------------------------------------------------------------
+!---------------------------------------------------------------
+      if(nc_gen%yes)then
+         call nc_gen%read_spe('PARSR',PARSR)
+         call nc_gen%read_spe('CO2X',CO2X)
+         call nc_gen%read_spe('CO2Y',CO2Y)
+      else
       SECTION = '*PHOTO'
       CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
       IF (FOUND .EQ. 0) THEN
@@ -483,9 +482,17 @@
 
       ENDIF
       REWIND(LUNCRP)
+
+      end if ! NetCDF input
+
       !----------------------------------------------------------------
       !        Find and Read Stress Response
       !----------------------------------------------------------------
+      if(nc_gen%yes)then
+         call nc_gen%read_spe('FSLFW',FSLFW)
+         call nc_gen%read_spe('FSLFN',FSLFN)
+         call nc_gen%read_spe('FSLFP',FSLFP)
+      else
       SECTION = '*STRES'
       CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
       IF (FOUND .EQ. 0) THEN
@@ -506,9 +513,18 @@
       ENDIF
       ENDIF
       REWIND(LUNCRP)
+
+      end if ! NetCDF input
+
       !----------------------------------------------------------------
       !        Find and Read Seed Growth Parameters
       !----------------------------------------------------------------
+      if(nc_gen%yes)then
+         call nc_gen%read_spe('SDSZ',SDSZ)
+         call nc_gen%read_spe('RSGR',RSGR)
+         call nc_gen%read_spe('RSGRT',RSGRT)
+         call nc_gen%read_spe('CARBOT',CARBOT)
+      else
       SECTION = '*SEED '
       CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
       IF (FOUND .EQ. 0) THEN
@@ -533,9 +549,20 @@
 
       ENDIF    
       REWIND(LUNCRP)
+
+      end if ! NetCDF input
+
       !----------------------------------------------------------------
       !        Find and Read Emergence Initial Conditions
       !----------------------------------------------------------------
+      if(nc_gen%yes)then
+         call nc_gen%read_spe('STMWTE',STMWTE)
+         call nc_gen%read_spe('RTWTE',RTWTE)
+         call nc_gen%read_spe('LFWTE',LFWTE)
+         call nc_gen%read_spe('SEEDRVE',SEEDRVE)
+         call nc_gen%read_spe('LEAFNOE',LEAFNOE)
+         call nc_gen%read_spe('PLAE',PLAE)
+      else
       SECTION = '*EMERG'
       CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
       IF (FOUND .EQ. 0) THEN
@@ -568,9 +595,24 @@
       ENDIF
       REWIND(LUNCRP)
 
+      end if ! NetCDF input
+
       !----------------------------------------------------------------
       !        Find and Read Plant Nitrogen Parameters
       !----------------------------------------------------------------
+      if(nc_gen%yes)then
+         call nc_gen%read_spe('TMNC',TMNC)
+         call nc_gen%read_spe('TANCE',TANCE)
+         call nc_gen%read_spe('RCNP',RCNP)
+         call nc_gen%read_spe('RANCE',RANCE)
+         call nc_gen%read_spe('CTCNP1',CTCNP1)
+         call nc_gen%read_spe('CTCNP2',CTCNP2)
+!       If error reading either value, use defaults
+        IF (CTCNP1 < 1.E-6 .or. CTCNP2 < 1.E-6) THEN 
+            CTCNP1 = 1.52
+            CTCNP2 = 0.160
+        ENDIF
+      else
       SECTION = '*NITRO'
       CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
       IF (FOUND .EQ. 0) THEN
@@ -613,9 +655,17 @@
       ENDIF
       REWIND(LUNCRP)
 
+      end if ! NetCDF input
+
       !----------------------------------------------------------------
       !        Find and Read Root parameters
       !----------------------------------------------------------------
+      if(nc_gen%yes)then
+         call nc_gen%read_spe('PORM',PORMIN)
+         call nc_gen%read_spe('RWMX',RWUMX)
+         call nc_gen%read_spe('RLWR',RLWR)
+         call nc_gen%read_spe('RWUEP1',RWUEP1)
+      else
       SECTION = '*ROOT '
       CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
       IF (FOUND .EQ. 0) THEN
@@ -639,6 +689,8 @@
       ENDIF
 
       CLOSE (LUNCRP)
+
+      end if ! NetCDF input
 
 !** Initialize variables
 

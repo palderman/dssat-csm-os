@@ -38,8 +38,8 @@ C=======================================================================
       USE ModuleDefs
       IMPLICIT NONE
 
-      INCLUDE 'COMSOI.blk'
-      INCLUDE 'COMSWI.blk'
+!      INCLUDE 'COMSOI.blk'
+!      INCLUDE 'COMSWI.blk'
 
       CHARACTER*  1 ANS, RNMODE
       CHARACTER*  2 CROP
@@ -63,6 +63,11 @@ C=======================================================================
 
       TYPE (ControlType) CONTROL
       TYPE (SwitchType)  ISWITCH
+
+      INTEGER NLAYR
+      REAL U,SWCON,CN2,SALB,LL(NL),DUL(NL),SAT(NL)
+      REAL SHF(NL),BD(NL),OC(NL),PH(NL),DLAYR(NL)
+      REAL SLNF,SLPF,DS(NL)
 
       PARAMETER (LUNOUT = 30, LUNOV = 80)
 

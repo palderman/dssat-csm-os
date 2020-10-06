@@ -140,12 +140,13 @@ C=======================================================================
 
       USE ModuleDefs
       USE HeaderMod
+      use csm_io
       IMPLICIT NONE
       SAVE
 
-      INCLUDE 'COMSWI.blk'
-      INCLUDE 'COMSOI.blk'
-      INCLUDE 'COMIBS.blk'
+!      INCLUDE 'COMSWI.blk'
+!      INCLUDE 'COMSOI.blk'
+!      INCLUDE 'COMIBS.blk'
 
       CHARACTER*1   RNMODE
       CHARACTER*3   RMP,RMS
@@ -156,21 +157,44 @@ C=======================================================================
       CHARACTER*80  PATHEX
       CHARACTER*120 HEADER(100) !Simulation header
       CHARACTER*120 WTHSTR
+      CHARACTER*4 WSTA
+      CHARACTER*5 SLTX
+      CHARACTER*8 EXPER
+      CHARACTER*16 CROPD
+      CHARACTER*1 ISWWAT,ISWNIT,ISWSYM,ISWPHO,ISWDIS,MEWTH
+      CHARACTER*1 ICO2
+      CHARACTER*1 MEEVP,MEINF,MEPHO,IPLTI,IIRRI,IFERI,IRESI,IHARI
+      CHARACTER*1 ISWTIL,MEHYD,MESOM, MESOL, MESEV, METMP
+      CHARACTER*2 CG
+      CHARACTER*25 TITLER
+      CHARACTER*60 ENAME
+      CHARACTER*10 PEDON
+      CHARACTER*50 SLDESC
 
       INTEGER       DYNAMIC
       INTEGER       ICOUNT, I, IDYP,IDYS,IPYRP,IPYRS,NNFERT
       INTEGER       NNAPW,ISIM,IPLT,LUNOV,RUN
       INTEGER       SimLen, LenString
-
-      REAL          AINH4,AINO3,CUMDEP,TPESW
-
 c     MJ, Mar 2008: added HDATE_YR and HDATE_DOY
       INTEGER HDATE_YR, HDATE_DOY
+      INTEGER DATE_TIME(8)
+      integer doy
+      INTEGER YRPLT,TRTNO
+      INTEGER HDATE(3)
+      INTEGER NFERT,YEAR,NARES,NAPW
+      INTEGER NSWITCH
+
+      REAL          AINH4,AINO3,CUMDEP,TPESW
+      REAL PLTPOP,ROWSPC
+      REAL DSOIL,THETAC
+      REAL DSOILN,SOILNC,SOILNX
+      REAL TOTNAP
+      REAL RESAMT,TOTAPW
+      REAL ICRES
 
       TYPE (ControlType) CONTROL
       TYPE (SwitchType)  ISWITCH
 
-      INTEGER DATE_TIME(8)
       LOGICAL UseSimCtr
 
 !     Write header to console when LUNOV=6
@@ -181,7 +205,10 @@ c     MJ, Mar 2008: added HDATE_YR and HDATE_DOY
         RETURN
       ENDIF
 
-	 IF (TITLER(1:5) .EQ. '     ') THEN
+      if(csminp%not_empty())
+     &     call csminp%get('*EXP.DETAILS','TRTN',trtno)
+
+      IF (TITLER(1:5) .EQ. '     ') THEN
          TITLER = TITLET
        ENDIF
 	
@@ -227,6 +254,8 @@ c     MJ, Mar 2008: added HDATE_YR and HDATE_DOY
 !  202 FORMAT ('*RUN ',I3,2X,'Tr ',I2,' : ',A25,1X,A8,1X,A8)
 !  203 FORMAT ('*RUN ',I3,2X,'Tr ',I3,': ',A25,1X,A8,1X,A8)
 !  204 FORMAT ('*RUN ',I3,2X,'Tr',I4,': ',A25,1X,A8,1X,A8)
+
+      call get_cropd(cg,cropd)
 
       I = INDEX(MODEL," ")
       IF (I < 1) THEN
@@ -319,6 +348,7 @@ c         Write to output
       ENDIF
 c     ::::::::::::::::::::::::::::::::::
 
+      call yr_doy(control%yrsim,year,doy)
 c     MJ, Mar 2008: weather station and year:
       WRITE (HEADER(I),500) WSTA, YEAR; I=I+1
 
@@ -540,7 +570,7 @@ C=======================================================================
       USE HeaderMod
       IMPLICIT NONE
 
-      INCLUDE 'COMGEN.blk'
+!      INCLUDE 'COMGEN.blk'
 
       CHARACTER*1  ISWWAT, RNMODE
       CHARACTER*2  CROP
@@ -558,6 +588,26 @@ C=======================================================================
       REAL         ESW(NL),SHF(NL),BD(NL),PH(NL),INO3(NL),INH4(NL)
       REAL         OC(NL),TLL,TDUL,TSAT,TPESW,TSWINI,AINO3,AINH4,TSOC
       REAL         SWCON,U,SALB,CN2,SLPF,SLNF
+      REAL P1,P1V,P1D,P2,P2O,P2R,P3,P4,P5,G1,G2,G3,G4
+      REAL PHINT,PD,TC,AX,LX
+      REAL PPS1, B01ND, B12ND, B23ND, B34ND, B45ND, B56ND
+      REAL SRNWT, SRFR, HMPC, LA1S, LAXS
+      REAL LAXND, LAXN2, LAFS, LAFND, SLASS, LLIFA, LPEFR
+      REAL STFR
+      REAL VREQ, VBASE, VEFF, PPS2
+      REAL P6, P7, P8
+      REAL GNOWT, GWTS, SHWTS, LAFV, LAFR
+      REAL CSDVAR,PHTHRS(20),SDPDVR,XFRUIT,WTPSD
+      REAL SFDUR,PODUR,PPSEN,PH2T5
+      REAL PCINT,PCGRD
+      REAL PBASE, PSAT
+      REAL THRESH, SDPRO, SDLIP
+!     For CSYCA-cassava
+      REAL          LNSLP, NODWT, NODLT
+      REAL          BR1FX, BR2FX, BR3FX, BR4FX
+!CHP 2019-04-25 Rice changes
+      REAL          THOT, TCLDP, TCLDF
+      CHARACTER*360 PLAINTXT
 
       TYPE (SwitchType) ISWITCH
 
@@ -1021,8 +1071,8 @@ C========================================================================
       USE ModuleData
       USE HeaderMod
       IMPLICIT NONE
-      INCLUDE 'COMIBS.blk'
-      INCLUDE 'COMSWI.blk'
+!      INCLUDE 'COMIBS.blk'
+!      INCLUDE 'COMSWI.blk'
       SAVE
 
       CHARACTER*6, PARAMETER :: ERRKEY = 'HEADER'

@@ -99,6 +99,7 @@ C-----------------------------------------------------------------------
       USE ModuleDefs
       USE ModuleData
       USE FloodModule
+      use dssat_mpi
 
       IMPLICIT NONE
       SAVE
@@ -107,7 +108,7 @@ C-----------------------------------------------------------------------
       CHARACTER*6  ERRKEY
       PARAMETER (ERRKEY = 'PLANTS')
       CHARACTER*8  MODEL
-      CHARACTER*78 MESSAGE(10)    !Up to 10 lines of text to be output
+      CHARACTER*78 MESSAGE(10)  !Up to 10 lines of text to be output
 
       INTEGER DYNAMIC
       INTEGER RUN !, NVALP0
@@ -148,6 +149,14 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
       REAL, DIMENSION(0:NL) :: SomLitC
       REAL, DIMENSION(0:NL,NELEM) :: SomLitE
       LOGICAL, PARAMETER :: OR_OUTPUT = .FALSE.
+
+! NetCDF Output
+      character*30 tmpname
+      integer i,timdif
+      real,dimension(nl) :: esw,cum_sw,avg_sw
+      real tot_esw,cum_tot_esw,avg_tot_esw
+      real rz_esw,cum_rz_esw,avg_rz_esw
+      real dap
 
 !-----------------------------------------------------------------------
 !     Constructed variables are defined in ModuleDefs.
@@ -274,6 +283,16 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
       UNO3     = 0.0
       UH2O     = 0.0
 
+      if(mpi_child%use_mpi)then
+         do i=1,soilprop%nlayr
+            write(tmpname,'(i2)') i
+            tmpname = 'avg_sw('//trim(adjustl(tmpname))//')'
+            call seasonal_registry%set_target(
+     &              trim(adjustl(tmpname)),avg_sw(i))
+         end do
+         call seasonal_registry%set_target('avg_tot_esw',avg_tot_esw)
+         call seasonal_registry%set_target('avg_rz_esw',avg_rz_esw)
+      end if
 !***********************************************************************
 !***********************************************************************
       ELSEIF (DYNAMIC .EQ. SEASINIT) THEN
@@ -290,6 +309,13 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
       ENDIF
 
       KUptake = 0.0
+
+      if(mpi_child%use_mpi)then
+         cum_sw = 0
+         cum_tot_esw = 0
+         cum_rz_esw = 0
+      end if
+
 
 !***********************************************************************
 !***********************************************************************
@@ -340,6 +366,7 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
         IF (DYNAMIC .EQ. SEASINIT) THEN
           KTRANS = KEP
           KSEVAP = KEP
+          XHLAI = XLAI
         ELSEIF (DYNAMIC .EQ. INTEGR) THEN
           XHLAI = XLAI
         ENDIF
@@ -356,6 +383,7 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
         IF (DYNAMIC .EQ. SEASINIT) THEN
           KTRANS = KEP
           KSEVAP = KEP
+          XHLAI = XLAI
         ELSEIF (DYNAMIC .EQ. INTEGR) THEN
           XHLAI = XLAI
         ENDIF
@@ -372,6 +400,7 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
         IF (DYNAMIC .EQ. SEASINIT) THEN
           KTRANS = KEP
           KSEVAP = KEP
+          XHLAI = XLAI
         ELSEIF (DYNAMIC .EQ. INTEGR) THEN
           XHLAI = XLAI
         ENDIF
@@ -388,6 +417,7 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
         IF (DYNAMIC .EQ. SEASINIT) THEN
           KTRANS = KEP
           KSEVAP = KEP
+          XHLAI = XLAI
         ELSEIF (DYNAMIC .EQ. INTEGR) THEN
           XHLAI = XLAI
         ENDIF
@@ -442,6 +472,7 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
 !          KTRANS = KCAN + 0.15        !Or use KEP here??
           KTRANS = KEP        !KJB/WDB/CHP 10/22/2003
           KSEVAP = KEP
+          XHLAI = XLAI
         ELSEIF (DYNAMIC .EQ. INTEGR) THEN
           XHLAI = XLAI
         ENDIF
@@ -583,6 +614,7 @@ c     Total LAI must exceed or be equal to healthy LAI:
 !          KTRANS = KCAN + 0.15        !Or use KEP here??
           KTRANS = KEP        !KJB/WDB/CHP 10/22/2003
           KSEVAP = KEP
+          XHLAI = XLAI
         ELSEIF (DYNAMIC .EQ. INTEGR) THEN
           XHLAI = XLAI
         ENDIF
@@ -640,6 +672,25 @@ c     Total LAI must exceed or be equal to healthy LAI:
           CANHT = 0.5
           FixCanht = .FALSE.
         ENDIF
+
+      elseif (DYNAMIC .eq. OUTPUT) then
+
+         if(mpi_child%use_mpi)then
+            dap = real(timdif(yrplt,control%yrdoy))
+            tot_esw = 0
+            rz_esw = 0
+            do i=1,soilprop%nlayr
+               cum_sw(i) = cum_sw(i) + sw(i)
+               esw(i) = (sw(i) - soilprop%ll(i))*soilprop%DLAYR(i)*10  ! cm3/cm3 to mm
+               tot_esw = tot_esw + esw(i)
+               if(rlv(i)>0) rz_esw = rz_esw + esw(i)
+            end do
+            cum_tot_esw = cum_tot_esw + tot_esw
+            cum_rz_esw = cum_rz_esw + rz_esw
+            avg_tot_esw = cum_tot_esw/dap
+            avg_rz_esw  = cum_rz_esw/dap
+            avg_sw(1:soilprop%nlayr) = cum_sw(1:soilprop%nlayr)/dap
+         end if
 
 !***********************************************************************
       ENDIF

@@ -37,7 +37,7 @@
 
       SUBROUTINE NFIX(DYNAMIC,
      &    AGRNOD, CNODMN, CTONOD, DLAYR, DXR57,           !Input
-     &    FILECC, FILEIO, NLAYR, NR7, PLTPOP,             !Input
+     &    FILECC, NLAYR, NR7, PLTPOP,             !Input
      &    SAT, ST, SW, TURFAC,                            !Input
      &    CNOD, DWNOD, DWNODA, NDTH, NFIXN,               !Output
      &    NODGR, WTNFX, SENNOD)                           !Output
@@ -45,6 +45,8 @@
 !-----------------------------------------------------------------------
       USE ModuleDefs
       USE ModuleData
+      use csm_io
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -53,11 +55,8 @@
       PARAMETER (ERRKEY = 'NFIX')
 
       CHARACTER*6  SECTION
-      CHARACTER*30 FILEIO
       CHARACTER*80 C80
       CHARACTER*92 FILECC
-
-      INTEGER LUNIO
 
       INTEGER LUNCRP, ERR, LINC, LNUM, FOUND, ISECT
       INTEGER I, II, NR7, NLAYR, J, DAS
@@ -88,35 +87,25 @@
 !***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEIO', LUNIO)
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-      LNUM = 0
 !-----------------------------------------------------------------------
 !    Find and Read Field Section
 !-----------------------------------------------------------------------
-      SECTION = '*INITI'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-          READ(LUNIO,'(28X,2F6.0)',IOSTAT=ERR) EFINOC, EFNFIX
-          LNUM = LNUM + 1
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-      ENDIF
+         call csminp%get('*INITIAL CONDITIONS','EFINOC',EFINOC)
+         call csminp%get('*INITIAL CONDITIONS','EFNFIX',EFNFIX)
 
-      IF (EFINOC .LE. 0.0) EFINOC = 1.0
-      IF (EFNFIX .LE. 0.0) EFNFIX = 1.0
+         IF (EFINOC .LE. 0.0) EFINOC = 1.0
+         IF (EFNFIX .LE. 0.0) EFNFIX = 1.0
 
-      CLOSE (LUNIO)
 !-----------------------------------------------------------------------
 !     Read in values from input file, which were previously input
 !       in Subroutine IPCROP.
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
-      LNUM = 0
+         if(.not.nc_gen%yes)then ! SPE file
+            CALL GETLUN('FILEC', LUNCRP)
+            OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+            LNUM = 0
+         end if
 !-----------------------------------------------------------------------
 !    Find and Read Respiration Section
 !-----------------------------------------------------------------------
@@ -124,65 +113,97 @@
 !     searching for the specified 6-character string at beginning
 !     of each line.
 !-----------------------------------------------------------------------
-      SECTION = '!*RESP'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(18X,F6.0)',IOSTAT=ERR) RFIXN
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+         if(nc_gen%yes)then ! NetCDF I/O
+            call nc_gen%read_spe('RFIXN',RFIXN)
+         else
+            SECTION = '!*RESP'
+            CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+            IF (FOUND .EQ. 0) THEN
+               CALL ERROR(SECTION, 42, FILECC, LNUM)
+            ELSE
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(18X,F6.0)',IOSTAT=ERR) RFIXN
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            ENDIF
+         end if ! NetCDF I/O
 !-----------------------------------------------------------------------
 !    Find and Read Plant Composition Section
 !-----------------------------------------------------------------------
-      SECTION = '!*PLAN'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(12X,F6.0)',IOSTAT=ERR) PRONOD
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+         if(nc_gen%yes)then ! NetCDF I/O
+            call nc_gen%read_spe('PRONOD',PRONOD)
+         else
+            SECTION = '!*PLAN'
+            CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+            IF (FOUND .EQ. 0) THEN
+               CALL ERROR(SECTION, 42, FILECC, LNUM)
+            ELSE
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(12X,F6.0)',IOSTAT=ERR) PRONOD
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            ENDIF
+         end if ! NetCDF I/O
 !-----------------------------------------------------------------------
 !    Find and Read Nitrogen Fixation Section
 !-----------------------------------------------------------------------
-      SECTION = '!*NITR'
-      CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(3F6.0,6X,2F6.0)',IOSTAT=ERR)
-     &                  SNACTM, NODRGM, DWNODI, NDTHMX, CNODCR
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         if(nc_gen%yes)then ! NetCDF I/O
+            call nc_gen%read_spe('SNACTM',SNACTM)
+            call nc_gen%read_spe('NODRGM',NODRGM)
+            call nc_gen%read_spe('DWNODI',DWNODI)
+            call nc_gen%read_spe('NDTHMX',NDTHMX)
+            call nc_gen%read_spe('CNODCR',CNODCR)
+            call nc_gen%read_spe('FNNGT',FNNGT)
+            call nc_gen%read_spe('TYPNGT',TYPNGT)
+            call nc_gen%read_spe('FNFXT',FNFXT)
+            call nc_gen%read_spe('TYPFXT',TYPFXT)
+            call nc_gen%read_spe('FNFXD',FNFXD)
+            call nc_gen%read_spe('TYPFXD',TYPFXD)
+            call nc_gen%read_spe('FNFXW',FNFXW)
+            call nc_gen%read_spe('TYPFXW',TYPFXW)
+            call nc_gen%read_spe('FNFXA',FNFXA)
+            call nc_gen%read_spe('TYPFXA',TYPFXA)
+         else
+            SECTION = '!*NITR'
+            CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+            IF (FOUND .EQ. 0) THEN
+               CALL ERROR(SECTION, 42, FILECC, LNUM)
+            ELSE
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(3F6.0,6X,2F6.0)',IOSTAT=ERR)
+     &              SNACTM, NODRGM, DWNODI, NDTHMX, CNODCR
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)(FNNGT(II),II=1,4), TYPNGT
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)
+     &              (FNNGT(II),II=1,4), TYPNGT
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)(FNFXT(II),II=1,4), TYPFXT
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)
+     &              (FNFXT(II),II=1,4), TYPFXT
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)(FNFXD(II),II=1,4), TYPFXD
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)
+     &              (FNFXD(II),II=1,4), TYPFXD
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)(FNFXW(II),II=1,4), TYPFXW
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)
+     &              (FNFXW(II),II=1,4), TYPFXW
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
-        READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)(FNFXA(II),II=1,4), TYPFXA
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
-      ENDIF
+               CALL IGNORE(LUNCRP,LNUM,ISECT,C80)
+               READ(C80,'(4F6.0,3X,A3)',IOSTAT=ERR)
+     &              (FNFXA(II),II=1,4), TYPFXA
+               IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            ENDIF
 
-      CLOSE(LUNCRP)
+            CLOSE(LUNCRP)
+
+         end if ! NetCDF I/O
 
 !***********************************************************************
 !***********************************************************************

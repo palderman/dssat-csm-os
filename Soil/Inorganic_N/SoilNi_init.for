@@ -37,6 +37,7 @@ C=======================================================================
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use csm_io
       IMPLICIT  NONE
       SAVE
 
@@ -64,8 +65,6 @@ C=======================================================================
       TYPE (SoilType)    SOILPROP
 
 !     Transfer values from constructed data types into local variables.
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
       RNMODE  = CONTROL % RNMODE
       RUN     = CONTROL % RUN
 
@@ -76,28 +75,10 @@ C=======================================================================
       IF (RUN .EQ. 1 .OR. INDEX('QF',RNMODE) .LE. 0) THEN
         IF (INDEX(ISWNIT,'N') < 1) THEN
 !         --------------------------------------------------------------
-!         Open the FILEIO input file.
-          OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT = ERRNUM)
-          IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, 0)
-!         --------------------------------------------------------------
 !         Find and Read INITIAL CONDITIONS Section.
 !         --------------------------------------------------------------
-          SECTION = '*INITI'
-          CALL FIND (LUNIO, SECTION, LNUM, FOUND)
-          IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO, LNUM)
-        
-!         Read line before layer data 
-          READ (LUNIO, '(A6)', IOSTAT = ERRNUM) DUMMY
-          LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
-        
-          DO L = 1, NLAYR
-            LNUM = LNUM + 1
-            READ(LUNIO, 100, IOSTAT=ERRNUM) NH4(L),NO3(L)
-100         FORMAT (14X, 2 (1X, F5.1))
-            IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
-          ENDDO
-          CLOSE (LUNIO)
+           call csminp%get('*INITIAL CONDITIONS','INH4',NH4)
+           call csminp%get('*INITIAL CONDITIONS','INO3',NO3)
         ELSE
 !         Set some default concentrations, needed for ORYZA even when no N simulated
           NO3 = 0.1

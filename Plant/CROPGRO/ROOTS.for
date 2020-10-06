@@ -394,6 +394,7 @@ C=======================================================================
                          ! parameters, hourly weather data.
 !     NL defined in ModuleDefs.for
 
+      use dssat_netcdf
       IMPLICIT NONE
 
       CHARACTER*6 ERRKEY
@@ -419,38 +420,51 @@ C=======================================================================
 !     Read in values from input file, which were previously input
 !       in Subroutine IPCROP.
 !-----------------------------------------------------------------------
-      CALL GETLUN('FILEC', LUNCRP)
-      OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
+      if(nc_gen%yes)then ! NetCDF I/O
+         call nc_gen%read_spe('RTDEPI',RTDEPI)
+         call nc_gen%read_spe('RFAC1',RFAC1)
+         call nc_gen%read_spe('RTSEN',RTSEN)
+         call nc_gen%read_spe('RLDSM',RLDSM)
+         call nc_gen%read_spe('RTSDF',RTSDF)
+         call nc_gen%read_spe('XRTFAC',XRTFAC)
+         call nc_gen%read_spe('YRTFAC',YRTFAC)
+         call nc_gen%read_spe('PORMIN',PORMIN)
+         call nc_gen%read_spe('RTEXF',RTEXF)
+         call nc_gen%read_spe('RTWTMIN',RTWTMIN,optional=.true.)
+         if(RTWTMIN < 0.) RTWTMIN = 0
+      else
+         CALL GETLUN('FILEC', LUNCRP)
+         OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
+         IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
 
-!-----------------------------------------------------------------------
-!    Find and Read Photosynthesis Section
-!-----------------------------------------------------------------------
-      SECTION = '!*ROOT'
-      CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILECC, LNUM)
-      ELSE
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        READ(CHAR,'(5F6.0)',IOSTAT=ERR) RTDEPI,RFAC1,RTSEN,RLDSM,RTSDF
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+         SECTION = '!*ROOT'
+         CALL FIND(LUNCRP, SECTION, LNUM, FOUND)
+         IF (FOUND .EQ. 0) THEN
+            CALL ERROR(SECTION, 42, FILECC, LNUM)
+         ELSE
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            READ(CHAR,'(5F6.0)',IOSTAT=ERR)
+     &           RTDEPI,RFAC1,RTSEN,RLDSM,RTSDF
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        READ(CHAR,'(8F6.0)',IOSTAT=ERR)(XRTFAC(II),YRTFAC(II),II = 1,4)
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            READ(CHAR,'(8F6.0)',IOSTAT=ERR)
+     &           (XRTFAC(II),YRTFAC(II),II = 1,4)
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        READ(CHAR,'(12X,2F6.0)',IOSTAT=ERR) PORMIN, RTEXF
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            READ(CHAR,'(12X,2F6.0)',IOSTAT=ERR) PORMIN, RTEXF
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LNUM)
 
-        CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
-        READ(CHAR,'(F6.0,T45,A7)',IOSTAT=ERR) RTWTMIN, RWMTXT
-        IF (ERR .NE. 0 .OR. RWMTXT .NE. 'RTWTMIN') THEN
-          RTWTMIN = 0.0
-        ENDIF
-      ENDIF
+            CALL IGNORE(LUNCRP,LNUM,ISECT,CHAR)
+            READ(CHAR,'(F6.0,T45,A7)',IOSTAT=ERR) RTWTMIN, RWMTXT
+            IF (ERR .NE. 0 .OR. RWMTXT .NE. 'RTWTMIN') THEN
+               RTWTMIN = 0.0
+            ENDIF
+         ENDIF
 
-      CLOSE (LUNCRP)
+         CLOSE (LUNCRP)
+      end if ! NetCDF I/O
 
 !***********************************************************************
       RETURN

@@ -379,6 +379,7 @@ C-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use csm_io
       IMPLICIT NONE
 
       CHARACTER*1 PLME
@@ -398,51 +399,61 @@ C-----------------------------------------------------------------------
 !     defined in ModuleDefs.for, and contains the following variables.
 !     The components are copied into local variables for use here.
       TYPE (ControlType) CONTROL
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
+!      FILEIO  = CONTROL % FILEIO
+!      LUNIO   = CONTROL % LUNIO
 
 C-----------------------------------------------------------------------
 C    Open Temporary File
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-      LNUM = 0
+!      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!      LNUM = 0
 
       !Read Automatic Management
-      SECTION = '!AUTOM'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND); LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO, 1930, IOSTAT=ERRNUM) 
-     &        PWDINF, PWDINL, SWPLTL, SWPLTH, SWPLTD, PTX, PTTN
- 1930   FORMAT(14X,2(1X,I7),5(1X,F5.0))
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
-
+!      SECTION = '!AUTOM'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND); LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ(LUNIO, 1930, IOSTAT=ERRNUM) 
+!     &        PWDINF, PWDINL, SWPLTL, SWPLTH, SWPLTD, PTX, PTTN
+! 1930   FORMAT(14X,2(1X,I7),5(1X,F5.0))
+!        LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
       !Read crop code from Cultivar Section
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND); LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ (LUNIO,'(3X,A2)', IOSTAT=ERRNUM) CROP; LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      SECTION = '*CULTI'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND); LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ (LUNIO,'(3X,A2)', IOSTAT=ERRNUM) CROP; LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
 
       !Read Planting Details Section
-      SECTION = '*PLANT'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND); LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(3X,I7,25X,A1)', IOSTAT=ERRNUM) YRPLT, PLME
-        LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      SECTION = '*PLANT'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND); LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ(LUNIO,'(3X,I7,25X,A1)', IOSTAT=ERRNUM) YRPLT, PLME
+!        LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
 
-      CLOSE (LUNIO)
+!      CLOSE (LUNIO)
 
+      call csminp%get('*SIMULATION CONTROL','PWDINF',PWDINF)
+      call csminp%get('*SIMULATION CONTROL','PWDINL',PWDINL)
+      call csminp%get('*SIMULATION CONTROL','SWPLTL',SWPLTL)
+      call csminp%get('*SIMULATION CONTROL','SWPLTH',SWPLTH)
+      call csminp%get('*SIMULATION CONTROL','SWPLTD',SWPLTD)
+      call csminp%get('*SIMULATION CONTROL','PTX',PTX)
+      call csminp%get('*SIMULATION CONTROL','PTTN',PTTN)
+      call csminp%get('*CULTIVARS','CROP',CROP)
+      call csminp%get('*PLANTING DETAILS','YRPLT',YRPLT)
+      call csminp%get('*PLANTING DETAILS','PLME',PLME)
+      
       RETURN
       END SUBROUTINE IPAPLT
 

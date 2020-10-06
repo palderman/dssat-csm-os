@@ -68,12 +68,11 @@ C=======================================================================
 
       USE ModuleDefs
       USE ModuleData    
+      use csm_io
+      use dssat_netcdf
       Use CsvOutput   ! VSH
       IMPLICIT NONE
       SAVE
-
-      INCLUDE 'COMIBS.blk'
-      INCLUDE 'COMSWI.blk'
 
       CHARACTER* 1 LINE(80),BLANK, RNMODE
       CHARACTER* 1 WMODI,ANS
@@ -103,6 +102,60 @@ C=======================================================================
       REAL    FLAG,EXP,TRT,PLTFOR,FREQ,CUHT !NEW FORAGE VARIABLES (DIEGO-2/14/2017)
 
       LOGICAL FEXIST, UseSimCtr, SimLevel
+
+      CHARACTER*1 ISIMI
+      CHARACTER*1 DAYFAC(NAPPL),RADFAC(NAPPL),TXFAC(NAPPL),TMFAC(NAPPL)
+      CHARACTER*1 PRCFAC(NAPPL),CO2FAC(NAPPL),DPTFAC(NAPPL)
+      CHARACTER*1 WNDFAC(NAPPL)
+      CHARACTER*1 PLME,PLDS
+      CHARACTER*4 WSTA
+      CHARACTER*5 DFDRN,FLST,IAME,IOFF,SLTX
+      CHARACTER*5 NCODE,NEND,IOFFX,IAMEX, FldHist
+      CHARACTER*5 HSTG(3),HCOM(3),HSIZ(3),IRRCOD(NAPPL)
+      CHARACTER*5 RESCOD(NAPPL),RMET(NAPPL)
+      CHARACTER*5 FERCOD(NAPPL),FOCOD(NAPPL),IFTYPE(NAPPL)
+      CHARACTER*5 CHCOD(NAPPL),CHMET(NAPPL),CHT(NAPPL),TIMPL(NAPPL)
+      CHARACTER*8 FLDNAM,EXPER
+      CHARACTER*16 CROPD
+      CHARACTER*25 TITSIM
+      INTEGER YRSIM,YRPLT,IEMRG,TRTNO,ROTNO,ROTOPT,CRPNO,RSEED1
+      INTEGER PWDINF,PWDINL,NRESDL,HDLAY,HLATE,NHAR,HDATE(3)
+      INTEGER NEV,WMDATE(NAPPL),NIRR,IDLAPL(NAPPL),RESDAY(NAPPL)
+      INTEGER FDAY(NAPPL),NFERT,YEAR,NARES,NAPW,NREPSQ
+      INTEGER NCHEM,NTIL,CDATE(NAPPL),TDATE(NAPPL)
+      INTEGER FHDur
+      integer HSTG_int(3)
+      REAL PLANTS,PLTPOP,ROWSPC,AZIR,SDEPTH,SDWTPL
+      REAL SDAGE,ATEMP,PLPH,FLOB,FLDD,SFDRN,SWPLTL,SWPLTH
+      REAL SWPLTD,PTX,PTTN,DSOIL,THETAC,IEPT,AIRAMT,EFFIRR
+      REAL DSOILN,SOILNC,SOILNX,RIP,DRESMG,HPP,HRP
+      REAL DAYADJ(NAPPL),RADADJ(NAPPL),TXADJ(NAPPL),TMADJ(NAPPL)
+      REAL PRCADJ(NAPPL),RESK(NAPPL),ANFER(NAPPL)
+      REAL CO2ADJ(NAPPL),DPTADJ(NAPPL),WNDADJ(NAPPL),DSOILX,THETCX
+      REAL IEPTX,AIRAMX,EFFIRX,AMT(NAPPL),RESN(NAPPL),RESP(NAPPL)
+      REAL RESIDUE(NAPPL),RINP(NAPPL),DEPRES(NAPPL),DFERT(NAPPL)
+      REAL APFER(NAPPL),AKFER(NAPPL),ACFER(NAPPL),AOFER(NAPPL),TOTNAP
+      REAL RESAMT,TOTAPW,WTHADJ(2,8),SLDP,SPRLAP
+      REAL SLOPE,XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS
+      REAL HPC(3),HBPC(3)
+      REAL CHAMT(NAPPL),CHDEP(NAPPL),TDEP(NAPPL)
+      CHARACTER*1 ISWWAT,ISWNIT,ISWSYM,ISWPHO,ISWPOT,ISWDIS,MEWTH,MESIC
+      CHARACTER*1 ICO2
+      CHARACTER*1 MELI,MEEVP,MEINF,MEPHO,IPLTI,IIRRI,IFERI,IRESI,IHARI
+      CHARACTER*1 ISWCHE,ISWTIL,MEHYD,MESOM, MESOL, MESEV, METMP
+      CHARACTER*1 IDETO,IDETS,IDETG,IDETC,IDETW,IDETN,IDETP,IDETD,IOX
+      CHARACTER*1 IDETH,IDETR
+      CHARACTER*1 IDETL
+      CHARACTER*2 CG
+      CHARACTER*12 FILEA,FILEC,FILEE,FILEG,FILEP,FILES,FILET,FILEW
+      CHARACTER*12 OUTO
+      CHARACTER*25 TITLER
+      CHARACTER*102 DSSATP
+      CHARACTER*60 ENAME
+      CHARACTER*80 PATHSL,PATHWT,PATHCR,PATHGE,PATHPE,PATHEC
+      INTEGER NSWITCH
+
+      integer tmp_int
 
       TYPE (ControlType) CONTROL
       TYPE (SwitchType)  ISWITCH
@@ -175,14 +228,17 @@ C-----------------------------------------------------------------------
                WRITE (*,600)
                READ (5,'(A1)') ANS
             ENDIF
-            READ(EXPER(5:6),'(I2)') YR
-            IF (YR .GE. 10) THEN
-              WRITE (*,500) I,CG,ENAME(1:45),EXPER(1:2),EXPER(3:4),
+            if(index(' 0123456789',exper(5:5))/=0 .and.
+     &         index(' 0123456789',exper(6:6))/=0) then
+               READ(EXPER(5:6),'(I2)',IOSTAT=ERRNUM) YR
+               IF (YR .GE. 10) THEN
+                 WRITE (*,500) I,CG,ENAME(1:45),EXPER(1:2),EXPER(3:4),
      &                    EXPER(5:6),EXPER(7:8)
-            ELSE
-              WRITE (*,501) I,CG,ENAME(1:45),EXPER(1:2),EXPER(3:4),
+               ELSE
+                 WRITE (*,501) I,CG,ENAME(1:45),EXPER(1:2),EXPER(3:4),
      &                      EXPER(5:6),EXPER(7:8)
-            ENDIF
+               ENDIF
+            end if
 
           ELSE
             GO TO 800
@@ -252,7 +308,15 @@ C-----------------------------------------------------------------------
 
       NLOOP = 0
       I     = 0
+      if(nc_filex%yes)then
 
+         call read_nc_trt_sec(TRTNUM,ENAME,TITLET,LNCU,LNFLD,LNSA,LNIC,
+     &        LNPLT,LNIR,LNFER,LNRES,LNCHE,LNTIL,LNENV,LNHAR,LNSIM)
+
+         SimLevel = lnsim > 0
+         TRTNO = TRTNUM
+
+      else ! use ascii text file X
       OPEN (LUNEXP,FILE = FILEX_P,STATUS = 'OLD',IOSTAT=ERRNUM)
       IF (ERRNUM .NE. 0) THEN
         MSG(1) = "File not found:"
@@ -299,14 +363,17 @@ C-----------------------------------------------------------------------
                WRITE (*,600)
                READ (5,'(A1)') ANS
             ENDIF
-            READ(EXPER(5:6),'(I2)') YR
-            IF (YR .GE. 10) THEN
-            IF (RNMODE .EQ. 'I') WRITE (*,2600) I,TITLET,
-     &          EXPER(1:2),EXPER(3:4),EXPER(5:6),EXPER(7:8),TRTNO
-          ELSE
-              IF (RNMODE .EQ. 'I') WRITE (*,2601) I,TITLET,
-     &            EXPER(1:2),EXPER(3:4),EXPER(5:6),EXPER(7:8),TRTNO
-            ENDIF
+            if(index(' 0123456789',exper(5:5))/=0.and.
+     &         index(' 0123456789',exper(6:6))/=0)then
+                READ(EXPER(5:6),'(I2)') YR
+                IF (YR .GE. 10) THEN
+                IF (RNMODE .EQ. 'I') WRITE (*,2600) I,TITLET,
+     &              EXPER(1:2),EXPER(3:4),EXPER(5:6),EXPER(7:8),TRTNO
+              ELSE
+                  IF (RNMODE .EQ. 'I') WRITE (*,2601) I,TITLET,
+     &                EXPER(1:2),EXPER(3:4),EXPER(5:6),EXPER(7:8),TRTNO
+              ENDIF
+            end if
           ELSE
             GO TO 2700
          ENDIF
@@ -399,6 +466,7 @@ C     IF (I .LT. TRTN) GO TO 50
      &                     (TRTN .NE. TRTNO .OR. ROTN .NE. ROTNO)) .OR. 
      &    (INDEX('AI',RNMODE) .GT. 0 .AND. I .LT. TRTN))
      &    GO TO 50
+      end if ! use ascii text file X?
 
 !     Generate header information for Warnings or Errors in input module
       CALL OPHEAD (RUNINIT,99,0.0,0.0,"                ",0.0,0.0, 
@@ -413,14 +481,39 @@ c         CALL CLEAR
 c         WRITE(*,3450)
 c      ENDIF
 
+      call csminp%add_sec('*EXP.DETAILS',ntiers=1)
+
+      call csminp%add_var('*EXP.DETAILS',tier=1,
+     &     char_name=(/'EXPER','CG   ','ENAME'/),
+     &     int_name=(/'EXPN  ','TRTN  ','TRTALL'/))
+
+      call csminp%put('*EXP.DETAILS','EXPN',EXPN)
+      call csminp%put('*EXP.DETAILS','EXPER',EXPER)
+      call csminp%put('*EXP.DETAILS','CG',CG)
+      call csminp%put('*EXP.DETAILS','ENAME',ENAME)
+      call csminp%put('*EXP.DETAILS','TRTN',TRTN)
+      call csminp%put('*EXP.DETAILS','TRTALL',TRTALL)
+
 C-----------------------------------------------------------------------
 C     Call input section for cultivar selection
 C-----------------------------------------------------------------------
+      if(nc_filex%yes)then
+         call nc_filex%read('CR',LNCU,CROP)
+         call nc_filex%read('INGENO',LNCU,VARNO)
+      else
+         CALL IPCUL (LUNEXP,FILEX,LNCU,CROP,VARNO)
+         IF (CROP   .EQ. '  ') CALL ERROR (ERRKEY,10,FILEX,LINEXP)
+         IF (VARNO  .EQ. '  ') CALL ERROR (ERRKEY,11,FILEX,LINEXP)
+      end if
+      CONTROL % CROP = CROP 
 
-      CALL IPCUL (LUNEXP,FILEX,LNCU,CROP,VARNO)
-      IF (CROP   .EQ. '  ') CALL ERROR (ERRKEY,10,FILEX,LINEXP)
-      IF (VARNO  .EQ. '  ') CALL ERROR (ERRKEY,11,FILEX,LINEXP)
-      CONTROL % CROP = CROP
+      call csminp%add_sec('*CULTIVARS')
+
+      call csminp%add_var('*CULTIVARS',
+     &                char_name=(/'CROP ','VARNO'/))
+
+      call csminp%put('*CULTIVARS','CROP',CROP)
+      call csminp%put('*CULTIVARS','VARNO',VARNO)
 
 !     CHP 10/25/2006 Move this to IPSIM 
 !C-----------------------------------------------------------------------
@@ -435,31 +528,58 @@ C  12/12/2008 Move planting date read to above simulation controls --
 !     needed for Tony's generic simulation controls.
 C-----------------------------------------------------------------------
 
-      CALL IPPLNT_Inp (LUNEXP,FILEX,LNPLT,PLME,PLDS,ROWSPC,AZIR,CROP,
-     &     MODEL,SDEPTH,SDWTPL,PLTPOP,PLANTS,SDAGE,ATEMP,PLPH,IEMRG,
-     &     YRPLT,SPRLAP,NFORC,PLTFOR,NDOF,PMTYPE,IPLTI)
-
+      if(nc_filex%yes)then
+         CALL read_nc_plt_sec (LNPLT,PLME,PLDS,ROWSPC,AZIR,CROP,
+     &        MODEL,SDEPTH,SDWTPL,PLTPOP,PLANTS,SDAGE,ATEMP,PLPH,IEMRG,
+     &        YRPLT,SPRLAP,NFORC,PLTFOR,NDOF,PMTYPE,IPLTI)
+      else
+         CALL IPPLNT_Inp (LUNEXP,FILEX,LNPLT,PLME,PLDS,ROWSPC,AZIR,CROP,
+     &        MODEL,SDEPTH,SDWTPL,PLTPOP,PLANTS,SDAGE,ATEMP,PLPH,IEMRG,
+     &        YRPLT,SPRLAP,NFORC,PLTFOR,NDOF,PMTYPE,IPLTI)
+      end if
 C-----------------------------------------------------------------------
 C     Call IPSIM
 C-----------------------------------------------------------------------
-
       IF (.NOT. SimLevel) THEN
         LNSIM = 0
         YRSIM = YRPLT
       ENDIF
 
-      CALL IPSIM (LUNEXP,LNSIM,TITSIM,NYRS,RUN,NREPSQ,ISIMI,PWDINF,
+      if(nc_filex%yes)then
+         CALL read_nc_sim_sec(LNSIM,TITSIM,NYRS,RUN,NREPSQ,ISIMI,PWDINF,
      &     PWDINL,SWPLTL,NCODE,SWPLTH,SWPLTD,YEAR,PTX,PTTN,DSOIL,THETAC,
-     &     IEPT,IOFF,IAME,DSOILN,SOILNC,YRSIM,SOILNX,NEND,RIP,NRESDL,
-     &     DRESMG,HDLAY,HLATE,HPP,HRP,FTYPEN,RSEED1,LINEXP,AIRAMT,
-     &     EFFIRR,CROP,FROP,MODEL,RNMODE,FILEX,
-     &     CONTROL, ISWITCH, UseSimCtr, FILECTL, MODELARG, YRPLT)
-      
+     &        IEPT,IOFF,IAME,DSOILN,SOILNC,YRSIM,SOILNX,NEND,RIP,NRESDL,
+     &        DRESMG,HDLAY,HLATE,HPP,HRP,FTYPEN,RSEED1,LINEXP,AIRAMT,
+     &        EFFIRR,CROP,FROP,MODEL,RNMODE,FILEX,
+     &        CONTROL, ISWITCH, UseSimCtr, FILECTL, MODELARG, YRPLT)
+      else
+         CALL IPSIM (LUNEXP,LNSIM,TITSIM,NYRS,RUN,NREPSQ,ISIMI,PWDINF,
+     &     PWDINL,SWPLTL,NCODE,SWPLTH,SWPLTD,YEAR,PTX,PTTN,DSOIL,THETAC,
+     &        IEPT,IOFF,IAME,DSOILN,SOILNC,YRSIM,SOILNX,NEND,RIP,NRESDL,
+     &        DRESMG,HDLAY,HLATE,HPP,HRP,FTYPEN,RSEED1,LINEXP,AIRAMT,
+     &        EFFIRR,CROP,FROP,MODEL,RNMODE,FILEX,
+     &        CONTROL, ISWITCH, UseSimCtr, FILECTL, MODELARG, YRPLT)
+         end if
+
+      call csminp%get('*SIMULATION CONTROL','ISWWAT',ISWWAT)
+      call csminp%get('*SIMULATION CONTROL','ISWNIT',ISWNIT)
+      call csminp%get('*SIMULATION CONTROL','ISWPHO',ISWPHO)
+      call csminp%get('*SIMULATION CONTROL','ISWPOT',ISWPOT)
+      call csminp%get('*SIMULATION CONTROL','MEWTH',MEWTH)
+      call csminp%get('*SIMULATION CONTROL','IPLTI',IPLTI)
+      call csminp%get('*SIMULATION CONTROL','IIRRI',IIRRI)
+      call csminp%get('*SIMULATION CONTROL','IFERI',IFERI)
+      call csminp%get('*SIMULATION CONTROL','IRESI',IRESI)
+      call csminp%get('*SIMULATION CONTROL','IHARI',IHARI)
+      call csminp%get('*SIMULATION CONTROL','ISWCHE',ISWCHE)
+      call csminp%get('*SIMULATION CONTROL','ISWTIL',ISWTIL)
+      call csminp%get('*SIMULATION CONTROL','IOX',IOX)
+
 C-----------------------------------------------------------------------
 C        Select crop parameter input file
 C-----------------------------------------------------------------------
 
-      IF (CROP .NE. 'FA') THEN
+      IF (CROP .NE. 'FA' ) THEN
         ! IF ((INDEX('GROSIM',MODEL(3:5)) .GT. 0) .OR.
      &  !    (INDEX('ALOCERSUBOIL',MODEL(3:5)) .GT. 0) .OR.
      &  !    (INDEX('CSPCAN',MODEL(3:5)) .GT.0) .OR. 
@@ -469,7 +589,7 @@ C-----------------------------------------------------------------------
            FILEC(1:12) = CROP//MODEL(3:8)//'.SPE'
            INQUIRE (FILE = FILEC,EXIST = FEXIST)
            IF (.NOT. FEXIST) THEN
-              CALL PATH('CRD',DSSATP,PATHCR,1,NAMEF)
+              CALL PATH('CRD',control%DSSATP,PATHCR,1,NAMEF)
             ELSE
               PATHCR = BLANK
            ENDIF
@@ -495,7 +615,7 @@ C-----------------------------------------------------------------------
             FILETMP = TRIM(PATHEX)//FILEG
             INQUIRE (FILE = FILETMP,EXIST = FEXIST)
             IF (.NOT. FEXIST) THEN
-               CALL PATH('CRD',DSSATP,PATHGE,1,NAMEF)
+               CALL PATH('CRD',control%DSSATP,PATHGE,1,NAMEF)
             ELSE 
                PATHGE = TRIM(PATHEX)
             ENDIF
@@ -518,7 +638,7 @@ C-----------------------------------------------------------------------
             FILETMP = TRIM(PATHEX)//FILEE
             INQUIRE (FILE = FILETMP,EXIST = FEXIST)
             IF (.NOT. FEXIST) THEN
-               CALL PATH ('CRD',DSSATP,PATHEC,1,NAMEF)
+               CALL PATH ('CRD',control%DSSATP,PATHEC,1,NAMEF)
             ELSE
                PATHEC = TRIM(PATHEX)
             ENDIF
@@ -533,7 +653,7 @@ C-----------------------------------------------------------------------
          FILEP(1:12) = CROP//MODEL(3:8)//'.PST'
          INQUIRE (FILE = FILEP,EXIST = FEXIST)
          IF (.NOT. FEXIST) THEN
-            CALL PATH('PSD',DSSATP,PATHPE,1,NAMEF)
+            CALL PATH('PSD',control%DSSATP,PATHPE,1,NAMEF)
           ELSE
             PATHPE = BLANK
          ENDIF
@@ -545,23 +665,27 @@ C-----------------------------------------------------------------------
 
       CALL GET_CROPD(CROP, CROPD)
 
-      REWIND(LUNEXP)
+!      REWIND(LUNEXP)
 
 !     Regen short headers now that MODEL is known.
       CALL OPHEAD (RUNINIT,99,0.0,0.0,"                ",0.0,0.0, 
      &     "      ",RUN,MODEL,TITLET,WTHSTR, RNMODE,
      &     CONTROL, ISWITCH, UseSimCtr, PATHEX)
-
 C-----------------------------------------------------------------------
 C
 C-----------------------------------------------------------------------
 !     Skip soils field and soils input for sequence mode
-      IF (INDEX('FQ',RNMODE) .LE. 0 .OR. RUN == 1) THEN
+      IF (INDEX('FQ',RNMODE) .LE. 0 .OR. RUN == 1 .or. nc_batch%yes)THEN
 
-        CALL IPFLD (LUNEXP,FILEX,LNFLD,FLDNAM,WSTA,WSTA1,SLNO,
-     &     SLTX,FLST,SLOPE,DFDRN,FLDD,SFDRN,FLOB,SLDP,
-     &     XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS,FldHist, FHDur)
-
+         if(nc_filex%yes)then
+            CALL read_nc_fld_sec(LNFLD,FLDNAM,WSTA,WSTA1,SLNO,
+     &           SLTX,FLST,SLOPE,DFDRN,FLDD,SFDRN,FLOB,SLDP,
+     &           XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS,FldHist, FHDur)
+         else
+            CALL IPFLD (LUNEXP,FILEX,LNFLD,FLDNAM,WSTA,WSTA1,SLNO,
+     &           SLTX,FLST,SLOPE,DFDRN,FLDD,SFDRN,FLOB,SLDP,
+     &           XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS,FldHist, FHDur)
+         end if
 C-----------------------------------------------------------------------
 C     Select soil profile input file
 C       1. SOIL.SOL
@@ -570,6 +694,7 @@ C       3. From C:\DSSAT45\DSSATPRO.V45  SOIL.SOL
 C       4. From C:\DSSAT45\DSSATPRO.V45  ??.SOL
 C-----------------------------------------------------------------------
 
+        if(.not.nc_soil%yes)then
         FILES_a = 'SOIL.SOL'
         FILES_b = SLNO(1:2)//'.SOL  '
 
@@ -604,7 +729,7 @@ C-----------------------------------------------------------------------
 
                  ELSE
                     PROCOD = 'SLD'
-                    CALL PATH (PROCOD,DSSATP,PATHSL,1,NAMEF)
+                    CALL PATH (PROCOD,control%DSSATP,PATHSL,1,NAMEF)
                     PATHL  = INDEX(PATHSL,BLANK)
                     FILETMP = PATHSL(1:(PATHL-1)) // FILES_a
                     INQUIRE (FILE = FILETMP,EXIST = FEXIST)
@@ -632,6 +757,7 @@ C-----------------------------------------------------------------------
               ENDIF
            ENDIF
         ENDIF
+      end if
 
       ENDIF   !Skip for sequence
 
@@ -661,6 +787,9 @@ C          M = observed data
 C          G = generated data
 C          S = interactively generated
 C-----------------------------------------------------------------------
+      call csminp%get('*SIMULATION CONTROL','MEWTH',MEWTH)
+
+      if(.not.nc_wth%yes)then
 
       IF (MEWTH .EQ. 'G') THEN
          IF (WSTA1(4:4) .EQ. BLANK) THEN
@@ -693,6 +822,207 @@ C-----------------------------------------------------------------------
          CALL ERROR (ERRKEY,22,FILEX,LINEXP)
       ENDIF
 
+      end if
+
+!-----------------------------------------------------------
+!       Write simulation control data to csm_input structure
+!-----------------------------------------------------------
+
+      if(.FALSE.)then
+      call csminp%add_sec('*SIMULATION CONTROL',ntiers=1)
+
+      call csminp%add_var('*SIMULATION CONTROL',tier=1,
+     &     char_name=(/'ISIMI ','TITSIM','MODEL ','ISWWAT','ISWNIT',
+     &                 'ISWSYM','ISWPHO','ISWPOT','ISWDIS','ISWCHE',
+     &                 'ISWTIL','ICO2  ','MEWTH ','MESIC ','MELI  ',
+     &                 'MEEVP ','MEINF ','MEPHO ','MEHYD ','MESOM ',
+     &                 'MESEV ','MESOL ','METMP ','IPLTI ','IIRRI ',
+     &                 'IFERI ','IRESI ','IHARI ','IOX   ','IDETO ',
+     &                 'IDETS ','IDETG ','IDETC ','IDETW ','IDETN ',
+     &                 'IDETP ','IDETD ','IDETL ','IDETH ','IDETR ',
+     &                 'IOFF  ','IAME  ','NCODE ','NEND  '/),
+     &     int_name=(/'LNSIM  ','NYRS   ','NREPSQ ','YRSIM  ','RSEED1 ',
+     &                'NSWITCH','FROP   ','PWDINF ','PWDINL ','NRESDL ',
+     &                'HDLAY  ','HLATE  '/),
+     &     real_name=(/'SWPLTL','SWPLTH','SWPLTD','PTX   ','PTTN  ',
+     &                 'DSOIL ','THETAC','IEPT  ','AIRAMT','EFFIRR',
+     &                 'DSOILN','SOILNC','SOILNX','RIP   ','DRESMG',
+     &                 'HPP   ','HRP   '/))
+
+      call csminp%put('*SIMULATION CONTROL','ISIMI',ISIMI)
+      call csminp%put('*SIMULATION CONTROL','TITSIM',TITSIM)
+      call csminp%put('*SIMULATION CONTROL','MODEL',MODEL)
+      call csminp%put('*SIMULATION CONTROL','ISWWAT',ISWWAT)
+      call csminp%put('*SIMULATION CONTROL','ISWNIT',ISWNIT)
+      call csminp%put('*SIMULATION CONTROL','ISWSYM',ISWSYM)
+      call csminp%put('*SIMULATION CONTROL','ISWPHO',ISWPHO)
+      call csminp%put('*SIMULATION CONTROL','ISWPOT',ISWPOT)
+      call csminp%put('*SIMULATION CONTROL','ISWDIS',ISWDIS)
+      call csminp%put('*SIMULATION CONTROL','ISWCHE',ISWCHE)
+      call csminp%put('*SIMULATION CONTROL','ISWTIL',ISWTIL)
+      call csminp%put('*SIMULATION CONTROL','ICO2',ICO2)
+      call csminp%put('*SIMULATION CONTROL','MEWTH',MEWTH)
+      call csminp%put('*SIMULATION CONTROL','MESIC',MESIC)
+      call csminp%put('*SIMULATION CONTROL','MELI',MELI)
+      call csminp%put('*SIMULATION CONTROL','MEEVP',MEEVP)
+      call csminp%put('*SIMULATION CONTROL','MEINF',MEINF)
+      call csminp%put('*SIMULATION CONTROL','MEPHO',MEPHO)
+      call csminp%put('*SIMULATION CONTROL','MEHYD',MEHYD)
+      call csminp%put('*SIMULATION CONTROL','MESOM',MESOM)
+      call csminp%put('*SIMULATION CONTROL','MESEV',MESEV)
+      call csminp%put('*SIMULATION CONTROL','MESOL',MESOL)
+      call csminp%put('*SIMULATION CONTROL','METMP',METMP)
+      call csminp%put('*SIMULATION CONTROL','IPLTI',IPLTI)
+      call csminp%put('*SIMULATION CONTROL','IIRRI',IIRRI)
+      call csminp%put('*SIMULATION CONTROL','IFERI',IFERI)
+      call csminp%put('*SIMULATION CONTROL','IRESI',IRESI)
+      call csminp%put('*SIMULATION CONTROL','IHARI',IHARI)
+      call csminp%put('*SIMULATION CONTROL','IOX',IOX)
+      call csminp%put('*SIMULATION CONTROL','IDETO',IDETO)
+      call csminp%put('*SIMULATION CONTROL','IDETS',IDETS)
+      call csminp%put('*SIMULATION CONTROL','IDETG',IDETG)
+      call csminp%put('*SIMULATION CONTROL','IDETC',IDETC)
+      call csminp%put('*SIMULATION CONTROL','IDETW',IDETW)
+      call csminp%put('*SIMULATION CONTROL','IDETN',IDETN)
+      call csminp%put('*SIMULATION CONTROL','IDETP',IDETP)
+      call csminp%put('*SIMULATION CONTROL','IDETD',IDETD)
+      call csminp%put('*SIMULATION CONTROL','IDETL',IDETL)
+      call csminp%put('*SIMULATION CONTROL','IDETH',IDETH)
+      call csminp%put('*SIMULATION CONTROL','IDETR',IDETR)
+      call csminp%put('*SIMULATION CONTROL','IOFF',IOFF)
+      call csminp%put('*SIMULATION CONTROL','IAME',IAME)
+      call csminp%put('*SIMULATION CONTROL','NCODE',NCODE)
+      call csminp%put('*SIMULATION CONTROL','NEND',NEND)
+      call csminp%put('*SIMULATION CONTROL','LNSIM',LNSIM)
+      call csminp%put('*SIMULATION CONTROL','NYRS',NYRS)
+      call csminp%put('*SIMULATION CONTROL','NREPSQ',NREPSQ)
+      call csminp%put('*SIMULATION CONTROL','YRSIM',YRSIM)
+      call csminp%put('*SIMULATION CONTROL','RSEED1',RSEED1)
+      call csminp%put('*SIMULATION CONTROL','NSWITCH',NSWITCH)
+      call csminp%put('*SIMULATION CONTROL','FROP',FROP)
+      call csminp%put('*SIMULATION CONTROL','PWDINF',PWDINF)
+      call csminp%put('*SIMULATION CONTROL','PWDINL',PWDINL)
+      call csminp%put('*SIMULATION CONTROL','NRESDL',NRESDL)
+      call csminp%put('*SIMULATION CONTROL','HDLAY',HDLAY)
+      call csminp%put('*SIMULATION CONTROL','HLATE',HLATE)
+      call csminp%put('*SIMULATION CONTROL','SWPLTL',SWPLTL)
+      call csminp%put('*SIMULATION CONTROL','SWPLTH',SWPLTH)
+      call csminp%put('*SIMULATION CONTROL','SWPLTD',SWPLTD)
+      call csminp%put('*SIMULATION CONTROL','PTX',PTX)
+      call csminp%put('*SIMULATION CONTROL','PTTN',PTTN)
+      call csminp%put('*SIMULATION CONTROL','DSOIL',DSOIL)
+      call csminp%put('*SIMULATION CONTROL','THETAC',THETAC)
+      call csminp%put('*SIMULATION CONTROL','IEPT',IEPT)
+      call csminp%put('*SIMULATION CONTROL','AIRAMT',AIRAMT)
+      call csminp%put('*SIMULATION CONTROL','EFFIRR',EFFIRR)
+      call csminp%put('*SIMULATION CONTROL','DSOILN',DSOILN)
+      call csminp%put('*SIMULATION CONTROL','SOILNC',SOILNC)
+      call csminp%put('*SIMULATION CONTROL','SOILNX',SOILNX)
+      call csminp%put('*SIMULATION CONTROL','RIP',RIP)
+      call csminp%put('*SIMULATION CONTROL','DRESMG',DRESMG)
+      call csminp%put('*SIMULATION CONTROL','HPP',HPP)
+      call csminp%put('*SIMULATION CONTROL','HRP',HRP)
+      end if
+!--------------------------------------------------
+!       Write treatment data to csm_input structure
+!--------------------------------------------------
+
+      call csminp%add_sec('*TREATMENTS',ntiers=1)
+
+      call csminp%add_var('*TREATMENTS',tier=1,
+     &     char_name=(/'TITLET','TITLER'/),
+     &     int_name=(/'TRTNO ','ROTNO ','ROTOPT','CRPNO ','LNCU  ',
+     &                'LNFLD ','LNSA  ','LNIC  ','LNPLT ','LNIR  ',
+     &                'LNFER ','LNRES ','LNCHE ','LNTIL ','LNENV ',
+     &                'LNHAR ','LNSIM '/))
+
+      call csminp%put('*TREATMENTS','TRTNO',TRTNO)
+      call csminp%put('*TREATMENTS','ROTNO',ROTNO)
+      call csminp%put('*TREATMENTS','ROTOPT',ROTOPT)
+      call csminp%put('*TREATMENTS','TITLET',TITLET)
+      call csminp%put('*TREATMENTS','CRPNO',CRPNO)
+      call csminp%put('*TREATMENTS','LNCU',LNCU)
+      call csminp%put('*TREATMENTS','LNFLD',LNFLD)
+      call csminp%put('*TREATMENTS','LNSA',LNSA)
+      call csminp%put('*TREATMENTS','LNIC',LNIC)
+      call csminp%put('*TREATMENTS','LNPLT',LNPLT)
+      call csminp%put('*TREATMENTS','LNIR',LNIR)
+      call csminp%put('*TREATMENTS','LNFER',LNFER)
+      call csminp%put('*TREATMENTS','LNRES',LNRES)
+      call csminp%put('*TREATMENTS','LNCHE',LNCHE)
+      call csminp%put('*TREATMENTS','LNTIL',LNTIL)
+      call csminp%put('*TREATMENTS','LNENV',LNENV)
+      call csminp%put('*TREATMENTS','LNHAR',LNHAR)
+      call csminp%put('*TREATMENTS','LNSIM',LNSIM)
+
+!--------------------------------------------------
+!       Write field data to csm_input structure
+!--------------------------------------------------
+
+      call csminp%add_sec('*FIELDS',ntiers=1)
+
+      call csminp%add_var('*FIELDS',tier=1,
+     &     char_name=(/'FLDNAM ','FILEW  ','DFDRN  ','FLST   ',
+     &                 'SLTX   ', 'FldHist','SLNO   ','WSTA   '/),
+     &     int_name=(/'LNFLD','FHDur'/),
+     &     real_name=(/'SLOPE  ','FLOB   ','FLDD   ','SFDRN  ',
+     &                 'XCRD   ','YCRD   ','ELEV   ','SLDP   ',
+     &                 'AREA   ','SLEN   ','FLWR   ','SLAS   '/))
+
+      call csminp%put('*FIELDS','WSTA',WSTA)
+      call csminp%put('*FIELDS','LNFLD',LNFLD)
+      call csminp%put('*FIELDS','FLDNAM',FLDNAM)
+      call csminp%put('*FIELDS','FILEW',FILEW)
+      call csminp%put('*FIELDS','SLOPE',SLOPE)
+      call csminp%put('*FIELDS','FLOB',FLOB)
+      call csminp%put('*FIELDS','DFDRN',DFDRN)
+      call csminp%put('*FIELDS','FLDD',FLDD)
+      call csminp%put('*FIELDS','SFDRN',SFDRN)
+      call csminp%put('*FIELDS','FLST',FLST)
+      call csminp%put('*FIELDS','SLTX',SLTX)
+      call csminp%put('*FIELDS','SLDP',SLDP)
+      call csminp%put('*FIELDS','SLNO',SLNO)
+      call csminp%put('*FIELDS','XCRD',XCRD)
+      call csminp%put('*FIELDS','YCRD',YCRD)
+      call csminp%put('*FIELDS','ELEV',ELEV)
+      call csminp%put('*FIELDS','AREA',AREA)
+      call csminp%put('*FIELDS','SLEN',SLEN)
+      call csminp%put('*FIELDS','FLWR',FLWR)
+      call csminp%put('*FIELDS','SLAS',SLAS)
+      call csminp%put('*FIELDS','FldHist',FldHist)
+      call csminp%put('*FIELDS','FHDur',FHDur)
+
+      call csminp%add_sec('*PLANTING DETAILS',ntiers=1)
+
+      call csminp%add_var('*PLANTING DETAILS',tier=1,
+     &     char_name=(/'PLME','PLDS'/),
+     &     int_name=(/'LNPLT ','YRPLT ','IEMRG ','PMTYPE','NFORC ',
+     &                'NDOF  '/),
+     &     real_name=(/'PLTFOR','PLANTS','PLTPOP','ROWSPC','AZIR  ',
+     &                 'SDEPTH','SDWTPL','SDAGE ','ATEMP ',
+     &                 'PLPH  ','SPRLAP'/))
+
+      call csminp%put('*PLANTING DETAILS','PLME',PLME)
+      call csminp%put('*PLANTING DETAILS','PLDS',PLDS)
+      call csminp%put('*PLANTING DETAILS','LNPLT',LNPLT)
+      call csminp%put('*PLANTING DETAILS','YRPLT',YRPLT)
+      call csminp%put('*PLANTING DETAILS','IEMRG',IEMRG)
+      call csminp%put('*PLANTING DETAILS','PLTFOR',PLTFOR)
+      call csminp%put('*PLANTING DETAILS','PMTYPE',PMTYPE)
+      call csminp%put('*PLANTING DETAILS','PLANTS',PLANTS)
+      call csminp%put('*PLANTING DETAILS','PLTPOP',PLTPOP)
+      call csminp%put('*PLANTING DETAILS','ROWSPC',ROWSPC)
+      call csminp%put('*PLANTING DETAILS','AZIR',AZIR)
+      call csminp%put('*PLANTING DETAILS','SDEPTH',SDEPTH)
+      call csminp%put('*PLANTING DETAILS','SDWTPL',SDWTPL)
+      call csminp%put('*PLANTING DETAILS','SDAGE',SDAGE)
+      call csminp%put('*PLANTING DETAILS','ATEMP',ATEMP)
+      call csminp%put('*PLANTING DETAILS','PLPH',PLPH)
+      call csminp%put('*PLANTING DETAILS','SPRLAP',SPRLAP)
+      call csminp%put('*PLANTING DETAILS','NFORC',NFORC)
+      call csminp%put('*PLANTING DETAILS','NDOF',NDOF)
+
+      if(.not.nc_wth%yes)then
 !     Check weather filename in current directory
       INQUIRE (FILE = FILEW,EXIST = FEXIST)
       IF (FEXIST) THEN
@@ -705,7 +1035,7 @@ C-----------------------------------------------------------------------
           PATHWT = TRIM(PATHEX)
 !       Check weather filename in default DSSAT directory
         ELSE
-          CALL PATH(PROCOD,DSSATP,PATHWT,1,NAMEF)
+          CALL PATH(PROCOD,control%DSSATP,PATHWT,1,NAMEF)
           FILETMP = TRIM(PATHWT) // FILEW
           INQUIRE (FILE=FILETMP, EXIST = FEXIST)
           IF (FEXIST) THEN
@@ -740,6 +1070,7 @@ C-----------------------------------------------------------------------
           ENDIF
         ENDIF
       ENDIF
+      end if
 
 C-----------------------------------------------------------------------
 C     Build output files.
@@ -758,51 +1089,305 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C     Call IPENV
 C-----------------------------------------------------------------------
-      CALL IPENV (FILEX,LNENV,LUNEXP,CO2ADJ,CO2FAC,DAYADJ,
-     &     DAYFAC,DPTADJ,DPTFAC,NEV,PRCADJ,PRCFAC,RADADJ,RADFAC,
-     &     TMADJ,TMFAC,TXADJ,TXFAC,WMDATE,WMODI,WNDADJ,WNDFAC,
-     &     WTHADJ)
+      if(nc_filex%yes)then
+         CALL read_nc_env_sec(LNENV,CO2ADJ,CO2FAC,DAYADJ,
+     &        DAYFAC,DPTADJ,DPTFAC,NEV,PRCADJ,PRCFAC,RADADJ,RADFAC,
+     &        TMADJ,TMFAC,TXADJ,TXFAC,WMDATE,WMODI,WNDADJ,WNDFAC,
+     &        WTHADJ)
+      else
+         CALL IPENV (FILEX,LNENV,LUNEXP,CO2ADJ,CO2FAC,DAYADJ,
+     &        DAYFAC,DPTADJ,DPTFAC,NEV,PRCADJ,PRCFAC,RADADJ,RADFAC,
+     &        TMADJ,TMFAC,TXADJ,TXFAC,WMDATE,WMODI,WNDADJ,WNDFAC,
+     &        WTHADJ)
+      end if
+
+      if(nev>0)then
+
+         call csminp%add_sec('*ENVIRONMENT')
+
+         call csminp%add_var('*ENVIRONMENT',
+     &     char_name=(/'DAYFAC','RADFAC','TXFAC ','TMFAC ',
+     &                 'PRCFAC','CO2FAC','DPTFAC','WNDFAC'/),
+     &     int_name=(/'LNENV ','WMDATE'/),
+     &     real_name=(/'DAYADJ','RADADJ','TXADJ ','TMADJ ',
+     &                 'PRCADJ','CO2ADJ','DPTADJ','WNDADJ'/),
+     &     nrow=nev)
+
+         do i=1,nev
+            call csminp%put('*ENVIRONMENT','LNENV',LNENV,ind=i)
+         end do
+         call csminp%put('*ENVIRONMENT','DAYFAC',DAYFAC(1:nev))
+         call csminp%put('*ENVIRONMENT','RADFAC',RADFAC(1:nev))
+         call csminp%put('*ENVIRONMENT','TXFAC',TXFAC(1:nev))
+         call csminp%put('*ENVIRONMENT','TMFAC',TMFAC(1:nev))
+         call csminp%put('*ENVIRONMENT','PRCFAC',PRCFAC(1:nev))
+         call csminp%put('*ENVIRONMENT','CO2FAC',CO2FAC(1:nev))
+         call csminp%put('*ENVIRONMENT','DPTFAC',DPTFAC(1:nev))
+         call csminp%put('*ENVIRONMENT','WNDFAC',WNDFAC(1:nev))
+         call csminp%put('*ENVIRONMENT','WMDATE',WMDATE(1:nev))
+         call csminp%put('*ENVIRONMENT','DAYADJ',DAYADJ(1:nev))
+         call csminp%put('*ENVIRONMENT','RADADJ',RADADJ(1:nev))
+         call csminp%put('*ENVIRONMENT','TXADJ',TXADJ(1:nev))
+         call csminp%put('*ENVIRONMENT','TMADJ',TMADJ(1:nev))
+         call csminp%put('*ENVIRONMENT','PRCADJ',PRCADJ(1:nev))
+         call csminp%put('*ENVIRONMENT','CO2ADJ',CO2ADJ(1:nev))
+         call csminp%put('*ENVIRONMENT','DPTADJ',DPTADJ(1:nev))
+         call csminp%put('*ENVIRONMENT','WNDADJ',WNDADJ(1:nev))
+      end if
 
 C-----------------------------------------------------------------------
 C     Call IPHAR
 C-----------------------------------------------------------------------
-      CALL IPHAR (LUNEXP,FILEX,LNHAR,HDATE,HSTG,HCOM,HSIZ,HPC,
-     &     NHAR,IHARI,YRSIM,CROP,HBPC,FREQ,CUHT)!NEW FORAGE VARIABLES (DIEGO-2/14/2017)
+      call csminp%get('*SIMULATION CONTROL','IHARI',IHARI)
+
+      if(nc_filex%yes)then
+         CALL read_nc_har_sec(LNHAR,HDATE,HSTG,HCOM,HSIZ,HPC,
+     &        NHAR,IHARI,YRSIM,CROP,HBPC,FREQ,CUHT) !NEW FORAGE VARIABLES (DIEGO-
+      else
+         CALL IPHAR (LUNEXP,FILEX,LNHAR,HDATE,HSTG,HCOM,HSIZ,HPC,
+     &        NHAR,IHARI,YRSIM,CROP,HBPC,FREQ,CUHT) !NEW FORAGE VARIABLES (DIEGO-2/14/2017)
+      end if
+      if(nhar>0)then
+         call csminp%add_sec('*HARVEST')
+
+         call csminp%add_var('*HARVEST',
+     &     char_name=(/'HCOM','HSIZ'/),
+     &     int_name=(/' HSTG','LNHAR','HDATE'/),
+     &     real_name=(/'HPC ','HBPC'/),
+     &     nrow=nhar)
+
+         do i=1,nhar
+            call csminp%put('*HARVEST','LNHAR',LNHAR,ind=i)
+         end do
+         do i=1,3
+            read(HSTG(i)(4:5),'(I2)') HSTG_int(i)
+         end do
+         call csminp%put('*HARVEST','HSTG',HSTG_int)
+         call csminp%put('*HARVEST','HCOM',HCOM)
+         call csminp%put('*HARVEST','HSIZ',HSIZ)
+         call csminp%put('*HARVEST','HDATE',HDATE)
+         call csminp%put('*HARVEST','HPC',HPC)
+         call csminp%put('*HARVEST','HBPC',HBPC)
+      end if
 
 C-----------------------------------------------------------------------
 C     Call IPIRR
 C-----------------------------------------------------------------------
-      CALL IPIRR (LUNEXP,FILEX,LNIR,YRSIM,ISWWAT,
-     &     NIRR,EFFIRX,DSOILX,THETCX,IEPTX,IOFFX,IAMEX,LNSIM,
-     &     NAPW,TOTAPW,AIRAMX,IDLAPL,IRRCOD,AMT,IIRV,IIRRI)
+      if(nc_filex%yes)then
+         CALL read_nc_irr_sec(LNIR,YRSIM,ISWWAT,
+     &        NIRR,EFFIRX,DSOILX,THETCX,IEPTX,IOFFX,IAMEX,LNSIM,
+     &        NAPW,TOTAPW,AIRAMX,IDLAPL,IRRCOD,AMT,IIRV,IIRRI)
+      else
+         CALL IPIRR (LUNEXP,FILEX,LNIR,YRSIM,ISWWAT,
+     &        NIRR,EFFIRX,DSOILX,THETCX,IEPTX,IOFFX,IAMEX,LNSIM,
+     &        NAPW,TOTAPW,AIRAMX,IDLAPL,IRRCOD,AMT,IIRV,IIRRI)
+      end if
+      if(nirr>0)then
 
+         call csminp%add_sec('*IRRIGATION',ntiers=2)
+
+         call csminp%add_var('*IRRIGATION',tier=1,
+     &     char_name=(/'IOFFX','IAMEX'/),
+     &     int_name=(/'LNIR'/),
+     &     real_name=(/'EFFIRX','DSOILX','THETCX','IEPTX ','AIRAMX',
+     &        'TOTAPW'/))
+
+         call csminp%put('*IRRIGATION','IOFFX',IOFFX)
+         call csminp%put('*IRRIGATION','IAMEX',IAMEX)
+         call csminp%put('*IRRIGATION','LNIR',LNIR)
+         call csminp%put('*IRRIGATION','TOTAPW',TOTAPW)
+         call csminp%put('*IRRIGATION','EFFIRX',EFFIRX)
+         call csminp%put('*IRRIGATION','DSOILX',DSOILX)
+         call csminp%put('*IRRIGATION','THETCX',THETCX)
+         call csminp%put('*IRRIGATION','IEPTX',IEPTX)
+         call csminp%put('*IRRIGATION','AIRAMX',AIRAMX)
+
+         call csminp%add_var('*IRRIGATION',tier=2,
+     &        int_name=(/'LNIR  ','IRRCOD','IDLAPL'/),
+     &        real_name=(/'AMT'/),
+     &        nrow = nirr)
+         do i=1,nirr
+            call csminp%put('*IRRIGATION','LNIR',LNIR,ind=i,tier=2)
+            read(irrcod(i)(3:5),'(I3)') tmp_int
+            call csminp%put('*IRRIGATION','IRRCOD',tmp_int,ind=i,
+     &        tier=2)
+         end do
+         call csminp%put('*IRRIGATION','IDLAPL',IDLAPL,
+     &        tier=2)
+         call csminp%put('*IRRIGATION','AMT',AMT,tier=2)
+      end if
 C-----------------------------------------------------------------------
 C     Call IPFERT
 C-----------------------------------------------------------------------
-      CALL IPFERT (LUNEXP,FILEX,LNFER,YRSIM,ISWNIT,ISWPHO,ISWPOT,
-     &     NFERT,FDAY,IFTYPE,FERCOD,DFERT,ANFER,APFER,AKFER,ACFER,
-     &     AOFER,FOCOD,TOTNAP,IFERI,ISWWAT,LNSIM)
+      if(nc_filex%yes)then
+         CALL read_nc_fert_sec(LNFER,YRSIM,ISWNIT,ISWPHO,ISWPOT,
+     &        NFERT,FDAY,IFTYPE,FERCOD,DFERT,ANFER,APFER,AKFER,ACFER,
+     &        AOFER,FOCOD,TOTNAP,IFERI,ISWWAT,LNSIM)
+      else
+         CALL IPFERT (LUNEXP,FILEX,LNFER,YRSIM,ISWNIT,ISWPHO,ISWPOT,
+     &        NFERT,FDAY,IFTYPE,FERCOD,DFERT,ANFER,APFER,AKFER,ACFER,
+     &        AOFER,FOCOD,TOTNAP,IFERI,ISWWAT,LNSIM)
+      end if
 
+      if(nfert>0)then
+         call csminp%add_sec('*FERTILIZERS',ntiers=2)
+
+         call csminp%add_var('*FERTILIZERS',tier=1,
+     &     int_name=(/'LNFER','NFERT'/))
+
+         call csminp%put('*FERTILIZERS','LNFER',LNFER)
+         call csminp%put('*FERTILIZERS','NFERT',NFERT)
+
+         call csminp%add_var('*FERTILIZERS',tier=2,
+     &     char_name=(/'IFTYPE','FERCOD','FOCOD '/),
+     &     int_name=(/'FDAY'/),
+     &     real_name=(/'DFERT ','ANFER ','APFER ','AKFER ','ACFER ',
+     &     'AOFER ','TOTNAP'/))
+
+         call csminp%put('*FERTILIZERS','TOTNAP',TOTNAP)
+         call csminp%put('*FERTILIZERS','IFTYPE',IFTYPE)
+         call csminp%put('*FERTILIZERS','FERCOD',FERCOD)
+         call csminp%put('*FERTILIZERS','FOCOD',FOCOD)
+         call csminp%put('*FERTILIZERS','FDAY',FDAY)
+         call csminp%put('*FERTILIZERS','DFERT',DFERT)
+         call csminp%put('*FERTILIZERS','ANFER',ANFER)
+         call csminp%put('*FERTILIZERS','APFER',APFER)
+         call csminp%put('*FERTILIZERS','AKFER',AKFER)
+         call csminp%put('*FERTILIZERS','ACFER',ACFER)
+         call csminp%put('*FERTILIZERS','AOFER',AOFER)
+
+      end if
 C-----------------------------------------------------------------------
 C     Call IPRES
 C-----------------------------------------------------------------------
-      CALL IPRES (LUNEXP,FILEX,LNRES,RESDAY,RESCOD,RESIDUE,
-     &     RINP,DEPRES,RESN,RESP,RESK,NARES,RESAMT,ISWNIT,YRSIM,
-     &     ISWPHO,ISWPOT,IRESI,ISWWAT,RMET,LNSIM)
+      if(nc_filex%yes)then
+         CALL read_nc_res_sec(LNRES,RESDAY,RESCOD,RESIDUE,
+     &        RINP,DEPRES,RESN,RESP,RESK,NARES,RESAMT,ISWNIT,YRSIM,
+     &        ISWPHO,ISWPOT,IRESI,ISWWAT,RMET,LNSIM)
+      else
+         CALL IPRES (LUNEXP,FILEX,LNRES,RESDAY,RESCOD,RESIDUE,
+     &        RINP,DEPRES,RESN,RESP,RESK,NARES,RESAMT,ISWNIT,YRSIM,
+     &        ISWPHO,ISWPOT,IRESI,ISWWAT,RMET,LNSIM)
+      end if
 
+      if(nares>0)then
+         call csminp%add_sec('*RESIDUES',ntiers=1)
+
+         call csminp%add_var('*RESIDUES',
+     &        char_name=(/'RESCOD','RMET  '/),
+     &        int_name=(/'LNRES ','RESDAY'/),
+     &        real_name=(/'RESIDUE','RESN   ','RESP   ',
+     &        'RESK   ','RINP   ','DEPRES ','RESAMT '/),
+     &        nrow = nares)
+
+         do i=1,nares
+            call csminp%put('*RESIDUES','LNRES',LNRES,ind=i)
+         end do
+         call csminp%put('*RESIDUES','RESCOD',RESCOD)
+         call csminp%put('*RESIDUES','RMET',RMET)
+         call csminp%put('*RESIDUES','RESDAY',RESDAY)
+         call csminp%put('*RESIDUES','RESIDUE',RESIDUE)
+         call csminp%put('*RESIDUES','RESAMT',RESAMT)
+         call csminp%put('*RESIDUES','RESN',RESN)
+         call csminp%put('*RESIDUES','RESP',RESP)
+         call csminp%put('*RESIDUES','RESK',RESK)
+         call csminp%put('*RESIDUES','RINP',RINP)
+         call csminp%put('*RESIDUES','DEPRES',DEPRES)
+      end if
 C-----------------------------------------------------------------------
 C     Call IPCHEM - Chemical applications
 C-----------------------------------------------------------------------
-      CALL IPCHEM (LUNEXP,FILEX,LNCHE,YRSIM,ISWWAT,NCHEM,CDATE,
-     &    CHCOD,CHAMT,CHMET,CHDEP,CHT,ISWCHE,LNSIM,CHEXTR)
+      if(nc_filex%yes)then
+         CALL read_nc_chem_sec(LNCHE,YRSIM,ISWWAT,NCHEM,CDATE,
+     &        CHCOD,CHAMT,CHMET,CHDEP,CHT,ISWCHE,LNSIM,CHEXTR)
+      else
+         CALL IPCHEM (LUNEXP,FILEX,LNCHE,YRSIM,ISWWAT,NCHEM,CDATE,
+     &        CHCOD,CHAMT,CHMET,CHDEP,CHT,ISWCHE,LNSIM,CHEXTR)
+      end if
+
+      if(nchem>0)then
+         call csminp%add_sec('*CHEMICALS',ntiers=1)
+
+         call csminp%add_var('*CHEMICALS',
+     &     char_name=(/'CHCOD ','CHMET ','CHT   ','CHEXTR'/),
+     &     int_name=(/'LNCHE','CDATE'/),
+     &     real_name=(/'CHAMT','CHDEP'/),
+     &     nrow = nchem)
+
+         do i=1,nchem
+            call csminp%put('*CHEMICALS','LNCHE',LNCHE,ind=i)
+         end do
+         call csminp%put('*CHEMICALS','CHCOD',CHCOD)
+         call csminp%put('*CHEMICALS','CHMET',CHMET)
+         call csminp%put('*CHEMICALS','CHT',CHT)
+         call csminp%put('*CHEMICALS','CHEXTR',CHEXTR)
+         call csminp%put('*CHEMICALS','CDATE',CDATE)
+         call csminp%put('*CHEMICALS','CHAMT',CHAMT)
+         call csminp%put('*CHEMICALS','CHDEP',CHDEP)
+      end if
 
 C-----------------------------------------------------------------------
 C     Call IPTILL - Tillage operations
 C-----------------------------------------------------------------------
-      CALL IPTILL (LUNEXP,FILEX,LNTIL,YRSIM,ISWTIL,NTIL,TDATE,
-     &    TIMPL,TDEP,LNSIM)
+      if(nc_filex%yes)then
+         CALL read_nc_till_sec(LNTIL,YRSIM,ISWTIL,NTIL,TDATE,
+     &        TIMPL,TDEP,LNSIM)
+      else
+         CALL IPTILL (LUNEXP,FILEX,LNTIL,YRSIM,ISWTIL,NTIL,TDATE,
+     &        TIMPL,TDEP,LNSIM)
+      end if
 
-      CLOSE(LUNEXP)
+      if(ntil>0)then
+         call csminp%add_sec('*TILLAGE',ntiers=1)
+
+         call csminp%add_var('*TILLAGE',
+     &     char_name=(/'TIMPL'/),
+     &     int_name=(/'LNTIL','TDATE'/),
+     &     real_name=(/'TDEP'/),
+     &     nrow = ntil)
+
+         do i=1,ntil
+            call csminp%put('*TILLAGE','LNTIL',LNTIL,ind=i)
+         end do
+         call csminp%put('*TILLAGE','TIMPL',TIMPL)
+         call csminp%put('*TILLAGE','TDATE',TDATE)
+         call csminp%put('*TILLAGE','TDEP',TDEP)
+      end if
+
+!--------------------------------------------------
+!       Write file path data to csm_input structure
+!--------------------------------------------------
+
+      call csminp%add_sec('*FILES',ntiers=1)
+
+      call csminp%add_var('*FILES',tier=1,
+     &     char_name=(/'FILEX ','PATHEX','FILEA ','FILET ',
+     &                 'FILEC ','PATHCR',
+     &                 'FILEE ','PATHEC','FILEG ','PATHGE',
+     &                 'FILEP ','PATHPE',
+     &                 'FILES ','PATHSL','FILEW ','PATHWT',
+     &                 'OUTO  '/),
+     &     int_name=(/'LNSIM','ISENS'/))
+
+      call csminp%put('*FILES','FILEX',FILEX)
+      call csminp%put('*FILES','PATHEX',PATHEX)
+      call csminp%put('*FILES','FILEA',FILEA)
+      call csminp%put('*FILES','FILET',FILET)
+      call csminp%put('*FILES','FILEC',FILEC)
+      call csminp%put('*FILES','PATHCR',PATHCR)
+      call csminp%put('*FILES','FILEE',FILEE)
+      call csminp%put('*FILES','PATHEC',PATHEC)
+      call csminp%put('*FILES','FILEG',FILEG)
+      call csminp%put('*FILES','PATHGE',PATHGE)
+      call csminp%put('*FILES','FILEP',FILEP)
+      call csminp%put('*FILES','PATHPE',PATHPE)
+      call csminp%put('*FILES','FILES',FILES)
+      call csminp%put('*FILES','PATHSL',PATHSL)
+      call csminp%put('*FILES','FILEW',FILEW)
+      call csminp%put('*FILES','PATHWT',PATHWT)
+      call csminp%put('*FILES','LNSIM',LNSIM)
+      call csminp%put('*FILES','OUTO',OUTO)
+
       RETURN
 
 C-----------------------------------------------------------------------
@@ -886,6 +1471,7 @@ C=======================================================================
      &     SDEPTH,SDWTPL,PLTPOP,PLANTS,SDAGE,ATEMP,PLPH,IEMRG,
      &     YRPLT,SPRLAP,NFORC,PLTFOR,NDOF,PMTYPE,IPLTI)
 
+      use dssat_netcdf
       IMPLICIT NONE
 
       CHARACTER*1   PLME,PLDS,IPLTI
@@ -905,8 +1491,8 @@ C=======================================================================
       PARAMETER (ERRKEY='IPPLNT')
                  FINDCH='*PLANT'
       LINEXP = 0
-      REWIND(LUNEXP)
       IF (LNPLT .GT. 0) THEN
+         REWIND(LUNEXP)
          CALL FIND (LUNEXP,FINDCH,LINEXP,IFIND)
          IF (IFIND .EQ. 0) CALL ERROR (ERRKEY,1,FILEX,LINEXP)
  50      CALL IGNORE (LUNEXP,LINEXP,ISECT,CHARTEST)
@@ -926,6 +1512,7 @@ C New variables for pineapple
             CALL ERROR (ERRKEY,2,FILEX,LINEXP)
          ENDIF
          IF (LN .NE. LNPLT) GO TO 50
+
          IF (IPLTI .EQ. 'R') THEN
            IF ((YRPLT .LT. 1 .OR. YRPLT .GT. 9999999)
      &       .AND. IEMRG .LT. 1) THEN
@@ -1032,13 +1619,14 @@ C=======================================================================
      &           SLTX,FLST,SLOPE,DFDRN,FLDD,SFDRN,FLOB,SLDP,
      &           XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS,FldHist, FHDUR)
 
+      use dssat_netcdf
       IMPLICIT NONE
 
       CHARACTER*1  UPCASE
       CHARACTER*4  WSTA,WSTA1,HFNDCH
       CHARACTER*5  DFDRN,FLST,SLTX, FldHist
       CHARACTER*6  ERRKEY,FINDCH
-      CHARACTER*8  FLDNAM
+      CHARACTER*8  FLDNAM,wsta_temp
       CHARACTER*10 SLNO
       CHARACTER*12 FILEX
       CHARACTER*92 CHARTEST
@@ -1103,6 +1691,7 @@ C
          ENDIF
          IF (LN .NE. LNFLD) GO TO 70
       ENDIF
+
       IF (AREA .LE. 0.0) AREA = 1.0
       IF (FLWR .LE. 0.0) FLWR = 1.0
       IF (SLEN .LE. 0.0) SLEN = SQRT(AREA*FLWR*10000.0)

@@ -34,6 +34,8 @@ C=======================================================================
 !     &        SOM1I, SOM2I, SOM3I)
 
       USE ModuleDefs
+      USE csm_io
+      USE dssat_netcdf
       IMPLICIT     NONE
 
       CHARACTER*2  PRCROP
@@ -41,10 +43,14 @@ C=======================================================================
       CHARACTER*10 PEDON,SLNO
       CHARACTER*12 FILEX
       CHARACTER*80 CHARTEST
-	CHARACTER*92 FILEX_P
+      CHARACTER*92 FILEX_P
+      character*10 initsw_char
 
       INTEGER      L,LN,LUNEXP,NLAYRI,NLAYR,LINEXP,ISECT,LNIC,
      &             YRIC,ERRNUM,IFIND,YRSIM
+      integer      i
+      real         initsw_pct
+      real         ll(NL)
       REAL         DS(NL),DLAYRI(NL),SWINIT(NL)
       REAL         DUL(NL),WRESR,WRESND,EFINOC,EFNFIX,INO3(NL),INH4(NL)
       REAL         ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID !, TOTSOM
@@ -74,7 +80,17 @@ C-GH  WRESR  = 1.0
       ICRID  = 0.0
 C-GH  ICRID  = 15.0
 C
+
       SWINIT = -99.
+      call find_cmd_arg('initsw_pct',initsw_char)
+      if(len(trim(initsw_char))>0)then
+         call csminp%get('*SOIL','LL',ll)
+         read(initsw_char,'(f10.0)') initsw_pct
+         do i=1,NL
+            if(dul(i)>0.and.ll(i)>0)
+     &           swinit(i) = (dul(i) - ll(i)) * initsw_pct/100 + ll(i)
+         end do
+      end if
       INO3   = -99.
       INH4   = -99.
 

@@ -46,6 +46,7 @@ C----------------------------------------------------------------------
      &     XLAI, KCAN, KEP, FracRts)                            !Output
 
       USE ModuleDefs
+      use csm_io
 
       IMPLICIT NONE
       SAVE
@@ -382,7 +383,6 @@ C      PARAMETER       (ERRKEY='MAIZE')
       FROP    = CONTROL % FROP
       RUN     = CONTROL % RUN
       RNMODE  = CONTROL % RNMODE
-      FILEIO  = CONTROL % FILEIO
       YRDOY   = CONTROL % YRDOY
       YRSIM   = CONTROL % YRSIM
 
@@ -452,7 +452,6 @@ C----------------------------------------------------------------------
           STGDOY(14) = YRSIM
 
           CALL GETLUN('OUTO', NOUTDO)
-          CALL GETLUN('FILEIO', LUNIO)
 
 
 ! MA/KD (19dec2013) change to read input files before we do anything
@@ -464,64 +463,47 @@ C----------------------------------------------------------------------
           !----------------------------------------------------------
           !     Read input file name (ie. DSSAT47.INP) and path
           !----------------------------------------------------------
-          CALL GETLUN('FILEIO', LUNIO)
-          OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
+          call csminp%get('*FILES','FILEC',FILES)
+          call csminp%get('*FILES','PATHC',PATHSR)
 
-          READ(LUNIO,50,IOSTAT=ERR) FILES, PATHSR; LNUM = 7
-   50     FORMAT(//////,15X,A12,1X,A80)
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
+          call csminp%get('*FILES','FILEE',FILEE)
+          call csminp%get('*FILES','PATHEC',PATHER)
 
-          READ(LUNIO,51,IOSTAT=ERR) FILEE, PATHER; LNUM = LNUM + 1
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-          READ(LUNIO,51,IOSTAT=ERR) FILEC, PATHCR; LNUM = LNUM + 1
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-   51     FORMAT(15X,A12,1X,A80)
+          call csminp%get('*FILES','FILEG',FILEC)
+          call csminp%get('*FILES','PATHGE',PATHCR)
 
           !----------------------------------------------------------
           !   Read Planting Details Section
           !----------------------------------------------------------
-          SECTION = '*PLANT'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) THEN
-              CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          ELSE
-              READ(LUNIO,60,IOSTAT=ERR) PLTPOP,ROWSPC,SDEPTH
- 60           FORMAT(25X,F5.2,13X,F5.2,7X,F5.2)
-              LNUM = LNUM + 1
-              IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-          ENDIF
+          call csminp%get('*PLANTING DETAILS','PLTPOP',PLTPOP)
+          call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC)
+          call csminp%get('*PLANTING DETAILS','SDEPTH',SDEPTH)
 
           !----------------------------------------------------------
           !          Read crop cultivar coefficients
           !----------------------------------------------------------
-          SECTION = '*CULTI'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) THEN
-              CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          ELSE
-              READ (LUNIO,1800,IOSTAT=ERR) VARNO,VRNAME,ECONO,
-     &               P1,P2,P2O,P2R,PANTH,P3,P4,P5,PHINT,G1,G2
-C-GH &               P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4,P2,PANTH
- 1800         FORMAT (A6,1X,A16,1X,A6,1X,11F6.0)
-
-C-GH &               P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
-C-GH 1800         FORMAT (A6,1X,A16,1X,A6,1X,9F6.0)
-
-c             READ (LUNIO,'(F6.2)',IOSTAT=ERR) PHINT
-c             LNUM = LNUM + 1
-c             IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
+          call csminp%get('*CULTIVARS','VARNO',VARNO)
+          call csminp%get('*CULTIVARS','VRNAME',VRNAME)
+          call csminp%get('*CULTIVARS','ECONO',ECONO)
+          call csminp%get('*CULTIVARS','P1',P1)
+          call csminp%get('*CULTIVARS','P2',P2)
+          call csminp%get('*CULTIVARS','P2O',P2O)
+          call csminp%get('*CULTIVARS','P2R',P2R)
+          call csminp%get('*CULTIVARS','PANTH',PANTH)
+          call csminp%get('*CULTIVARS','P3',P3)
+          call csminp%get('*CULTIVARS','P4',P4)
+          call csminp%get('*CULTIVARS','P5',P5)
+          call csminp%get('*CULTIVARS','PHINT',PHINT)
+          call csminp%get('*CULTIVARS','G1',G1)
+          call csminp%get('*CULTIVARS','G2',G2)
+          call csminp%get('*CULTIVARS','PBASE',PBASE)
+          call csminp%get('*CULTIVARS','PSAT',PSAT)
 
 !             Read optional sorghum cultivar coefficients if present
-              READ (LUNIO, '(2F6.2)', IOSTAT=ERR) PBASE, PSAT
               IF (ERR /= 0 .OR. PBASE <= 0. .OR. PSAT <= 0.) THEN
                 PBASE = -99.0
                 PSAT  = -99.0
               ENDIF
-
-          ENDIF
-
-          CLOSE(LUNIO)
 
 C         ***********************************************************
 C         ***********************************************************

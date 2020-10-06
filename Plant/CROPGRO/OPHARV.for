@@ -36,23 +36,22 @@ C-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use csm_io
       IMPLICIT NONE
       SAVE
 
       CHARACTER*1  RNMODE,IDETO,IPLTI, PLME
       CHARACTER*2  CROP
-      CHARACTER*6  SECTION
       CHARACTER*6, PARAMETER :: ERRKEY = 'OPHARV'
       CHARACTER*10 STNAME(20)
       CHARACTER*12 FILEA
-      CHARACTER*30 FILEIO
-	CHARACTER*80 PATHEX
+      CHARACTER*80 PATHEX
 
       INTEGER ACOUNT, DFLR, DEMRG, DFPD, DFSD, DHRV
       INTEGER DNR8,DMAT,DNR0, DNR1,DNR3,DNR5,DNR7
-      INTEGER DYNAMIC, ERRNUM, FOUND
+      INTEGER DYNAMIC
       INTEGER IFLR, IEMRG, IFPD, IFSD, IHRV, IMAT, ISENS
-      INTEGER LINC, LNUM, LUNIO, RUN, TIMDIF, TRTNUM, YIELD, YREMRG
+      INTEGER RUN, TIMDIF, TRTNUM, YIELD, YREMRG
       INTEGER YRNR1,YRNR3,YRNR5,YRNR7,MDATE,YRDOY, YRPLT,YRSIM
       INTEGER RSTAGE
       INTEGER TRT_ROT
@@ -93,8 +92,6 @@ C-----------------------------------------------------------------------
 
 !     Transfer values from constructed data types into local variables.
       DYNAMIC= CONTROL % DYNAMIC
-      FILEIO = CONTROL % FILEIO
-      LUNIO  = CONTROL % LUNIO
       RUN    = CONTROL % RUN
       RNMODE = CONTROL % RNMODE
       YRDOY  = CONTROL % YRDOY
@@ -163,33 +160,13 @@ C-----------------------------------------------------------------------
       IF (DYNAMIC .EQ. RUNINIT) THEN
 C-----------------------------------------------------------------------
 !     Read FILEIO
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+         call csminp%get('*FILES','ISENS',ISENS)
+         call csminp%get('*FILES','FILEA',FILEA)
+         call csminp%get('*FILES','PATHEX',PATHEX)
 
-      READ (LUNIO,'(55X,I5)',IOSTAT=ERRNUM) ISENS; LNUM = 1   
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      READ (LUNIO,'(3(/),15X,A12,1X,A80)',IOSTAT=ERRNUM) FILEA,
-     &     PATHEX
-      LNUM = LNUM + 4
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-  
-      SECTION = '*TREAT'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO, '(I3)',IOSTAT=ERRNUM) TRTNUM ; LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-      ENDIF
+         call csminp%get('*TREATMENTS','TRTNO',TRTNUM)
 
-!     Find and Read Planting Details Section
-      SECTION = '*PLANT'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) CALL ERROR (SECTION, 42, FILEIO,LNUM)
-      READ(LUNIO,'(35X,A1)',IOSTAT=ERRNUM) PLME ; LNUM = LNUM + 1
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-
-      CLOSE (LUNIO)
+         call csminp%get('*PLANTING DETAILS','PLME',PLME)
 
 !     Assign names to stages based on crop.
       CALL STNAMES(CROP, PLME, STNAME)
@@ -203,8 +180,8 @@ C-----------------------------------------------------------------------
       VSTAGE = -99.
       WTNCAN = -99.
       XLAI   = -99.
-      YIELD  = -99.
-      RSTAGE = -99.
+      YIELD  = -99
+      RSTAGE = -99
 
       CALL OPVIEW(CONTROL, 
      &    BIOMAS, ACOUNT, DESCRIP, IDETO, VSTAGE, 

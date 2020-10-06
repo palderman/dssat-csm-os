@@ -18,6 +18,7 @@ C=======================================================================
       USE ModuleDefs
       USE ModuleData
       USE HeaderMod
+      use dssat_mpi
       IMPLICIT NONE
       SAVE
 
@@ -37,6 +38,7 @@ C=======================================================================
 
 !-----------------------------------------------------------------------
 !     Suppress Warning.OUT if IDETL = '0' (zero)
+      if(mpi_child%use_mpi) return
       CALL GET(ISWITCH)
 !     IF (ISWITCH % IDETL == '0') RETURN
 

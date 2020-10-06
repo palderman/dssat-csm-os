@@ -130,12 +130,29 @@ set(
         "Utilities/Warning.for"
         "Utilities/CsvOuts/csvlinklist.f90"
         "Utilities/CsvOuts/csvoutput.f90"
+        "FlexibleIO/dssat_cmd_arg.f90" 
+        "FlexibleIO/MPI/dssat_mpi.f90" 
+        "FlexibleIO/MPI/dssat_variable_registry.f90" 
         "CSM_Main/CSM.for"
         "CSM_Main/LAND.for"
-        "InputModule/COMGEN.blk"
-        "InputModule/COMIBS.blk"
-        "InputModule/COMSOI.blk"
-        "InputModule/COMSWI.blk"
+        "FlexibleIO/csm_io.f90" 
+        "FlexibleIO/NetCDF/nf90_file_module.f90" 
+        "FlexibleIO/NetCDF/dssat_netcdf.f90" 
+        "FlexibleIO/NetCDF/read_nc_wth.for" 
+        "FlexibleIO/NetCDF/read_nc_plt_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_trt_sec.f90" 
+        "FlexibleIO/NetCDF/read_nc_ic_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_sim_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_fld_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_env_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_har_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_irr_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_fert_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_res_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_chem_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_till_sec.for" 
+        "FlexibleIO/NetCDF/read_nc_soil.for" 
+        "FlexibleIO/NetCDF/read_nc_gen.for" 
         "InputModule/input_sub.for"
         "InputModule/INSOIL.for"
         "InputModule/INSTGE.for"
@@ -153,8 +170,6 @@ set(
         "InputModule/IPVAR.for"
         "InputModule/OPGEN.for"
         "InputModule/OPHEAD.for"
-        "InputModule/OPTEMPXY2K.for"
-        "InputModule/optempy2k.for"
         "InputModule/PATH.for"
         "InputModule/WEATHR_Inp.for"
         "InputModule/WTHSET.for"
@@ -594,7 +609,35 @@ set(
         "Weather/WGEN.for"
         "Weather/WTHMOD.for"
 )
+
+# Add run_mpi_dssat source files
+set(
+    run_mpi_dssat_source_list
+    	"FlexibleIO/csm_io.f90" 
+    	"FlexibleIO/ordered_array.f90" 
+    	"FlexibleIO/dssat_cmd_arg.f90" 
+    	"FlexibleIO/NetCDF/nf90_file_module.f90" 
+    	"FlexibleIO/NetCDF/dssat_netcdf.f90" 
+    	"FlexibleIO/MPI/dssat_mpi.f90" 
+    	"FlexibleIO/MPI/dssat_variable_registry.f90" 
+    	"FlexibleIO/MPI/run_mpi_dssat.f90" 
+)
 ADD_EXECUTABLE(${EXECUTABLE_NAME} ${source_list})
+ADD_EXECUTABLE(run_mpi_dssat ${run_mpi_dssat_source_list})
+
+find_package(MPI REQUIRED)
+
+INCLUDE_DIRECTORIES(/usr/include include ${MPI_Fortran_INCLUDE_PATH} /usr/lib/x86_64-linux-gnu /carl-data/shared/carl/include)
+
+SET_TARGET_PROPERTIES(${EXECUTABLE_NAME} PROPERTIES LINKER_LANGUAGE Fortran)
+SET_TARGET_PROPERTIES(run_mpi_dssat PROPERTIES LINKER_LANGUAGE Fortran)
+
+LINK_DIRECTORIES(/usr/local/lib /usr/lib/x86_64-linux-gnu /carl-data/shared/carl/lib /usr/lib/x86_64-linux-gnu)
+
+#find_library(NETCDFLIB netcdf HINTS /carl-data/shared/carl/lib /usr/lib/x86_64-linux-gnu)
+
+TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} ${NETCDFC++} ${NETCDFLIB} netcdff mpi_mpifh mpi)
+TARGET_LINK_LIBRARIES(run_mpi_dssat ${NETCDFC++} ${NETCDFLIB} netcdff mpi_mpifh mpi)
 
 foreach(source IN LISTS source_list)
     get_filename_component(source_path "${source}" PATH)
@@ -617,6 +660,9 @@ install(DIRECTORY Data/ DESTINATION .
 # Resume information about flags and option used #
 ##################################################
 
+message( "   MPI Libs     ${MPI_Fortran_LIBRARIES}" )
+message( "   MPI includes ${MPI_Fortran_INCLUDE_PATH}" )
+message( "   MPI link flags ${MPI_Fortran_LINK_FLAGS}" )
 message( "-- Flags" )
 message( "   FFLAGS       ${CMAKE_Fortran_FLAGS}" )
 message( "   RELEASE      ${CMAKE_Fortran_FLAGS_RELEASE}" )

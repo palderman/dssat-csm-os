@@ -651,6 +651,7 @@ C=======================================================================
 
 C-----------------------------------------------------------------------
       USE ModuleDefs
+      use dssat_mpi
       IMPLICIT NONE
 
       CHARACTER*6 CODE, OLAB(*)
@@ -668,57 +669,62 @@ C-----------------------------------------------------------------------
       DATA FILECDE /'DATA.CDE'/
 C-----------------------------------------------------------------------
 
-      DATAX = FILECDE
-      INQUIRE (FILE = DATAX, EXIST = FEXIST)
+      if(mpi_child%use_mpi)then
+         DO I = 1, COUNT
+            DESCRIP(I) = OLAB(I)
+         ENDDO
+      else
+         DATAX = FILECDE
+         INQUIRE (FILE = DATAX, EXIST = FEXIST)
 
-      IF (.NOT. FEXIST) THEN
+         IF (.NOT. FEXIST) THEN
 !       File does not exist in data directory, check directory
 !         with executable.
-        CALL GETARG(0,PATHX)
+            CALL GETARG(0,PATHX)
 !        call path_adj(pathx)
-        call get_dir(pathx,datax)
-        datax = trim(datax)//filecde
+            call get_dir(pathx,datax)
+            datax = trim(datax)//filecde
 !        IPX = LEN_TRIM(PATHX)
 !        DATAX = PATHX(1:(IPX-12)) // FILECDE
-        INQUIRE (FILE = DATAX, EXIST = FEXIST)
-      ENDIF        
+            INQUIRE (FILE = DATAX, EXIST = FEXIST)
+         ENDIF        
 
-      IF (.NOT. FEXIST) THEN
-!       Last, check for file in C:\DSSAT45 directory
-        DATAX = trim(STDPATH) // FILECDE
-        INQUIRE (FILE = DATAX, EXIST = FEXIST)
-      ENDIF
+         IF (.NOT. FEXIST) THEN
+!     Last, check for file in C:\DSSAT45 directory
+            DATAX = trim(STDPATH) // FILECDE
+            INQUIRE (FILE = DATAX, EXIST = FEXIST)
+         ENDIF
 
-      IF (FEXIST) THEN
-        CALL GETLUN('DTACDE',LUN)
-        OPEN (LUN, FILE=DATAX, STATUS = 'OLD', IOSTAT=ERR)
-        IF (ERR /= 0) GOTO 100
-        DO I = 1, COUNT
-          DESCRIP(I) = ' '
-          REWIND (LUN)
-          LNUM = 0
-          DO WHILE (.TRUE.)
-            LNUM = LNUM + 1
-            READ(LUN,'(A6,17X,A50)',END=20,ERR=20,IOSTAT=ERR)
-     &          CODE,LONGTEXT
-            IF (CODE .EQ. OLAB(I) .AND. ERR .EQ. 0) THEN
-              DESCRIP(I) = LONGTEXT
-              EXIT
-            ENDIF
-          ENDDO 
-          !print *, i, " of ", count, olab(i), " ", descrip(i)
-   20     IF (DESCRIP(I) .EQ. ' ') THEN
-            DESCRIP(I) = OLAB(I)
-            IF (ERR < 0) EXIT
-          ENDIF
-        ENDDO
-        CLOSE(LUN)
-        RETURN
-      ELSE
+         IF (FEXIST) THEN
+            CALL GETLUN('DTACDE',LUN)
+            OPEN (LUN, FILE=DATAX, STATUS = 'OLD', IOSTAT=ERR)
+            IF (ERR /= 0) GOTO 100
+            DO I = 1, COUNT
+                DESCRIP(I) = ' '
+                REWIND (LUN)
+                LNUM = 0
+                DO WHILE (.TRUE.)
+                   LNUM = LNUM + 1
+                   READ(LUN,'(A6,17X,A50)',END=20,ERR=20,IOSTAT=ERR)
+     &                  CODE,LONGTEXT
+                   IF (CODE .EQ. OLAB(I) .AND. ERR .EQ. 0) THEN
+                      DESCRIP(I) = LONGTEXT
+                      EXIT
+                   ENDIF
+                ENDDO 
+!print *, i, " of ", count, olab(i), " ", descrip(i)
+ 20             IF (DESCRIP(I) .EQ. ' ') THEN
+                   DESCRIP(I) = OLAB(I)
+                   IF (ERR < 0) EXIT
+                ENDIF
+             ENDDO
+             CLOSE(LUN)
+             RETURN
+          ELSE
 !       Data.CDE file is missing -- stop program with message.
-        CALL ERROR(ERRKEY, 29, FILECDE, 0)
-      ENDIF
-
+             CALL ERROR(ERRKEY, 29, FILECDE, 0)
+          ENDIF
+          
 !     Data.cde file can not be found.  Just use OLAB (four character
 !       code to fill description array.
   100   DO I = 1, COUNT
@@ -733,7 +739,7 @@ C-----------------------------------------------------------------------
    13   FORMAT(' for simulated vs. measured data.')
 
         CALL INFO(3, ERRKEY, MSG)
-
+      end if
 C-----------------------------------------------------------------------
       RETURN
       END SUBROUTINE GETDESC

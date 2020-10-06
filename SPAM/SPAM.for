@@ -42,6 +42,7 @@ C=======================================================================
       USE ModuleDefs 
       USE ModuleData
       USE FloodModule
+      use dssat_mpi
 
       IMPLICIT NONE
       SAVE
@@ -141,6 +142,12 @@ C=======================================================================
       CALL PUT('SPAM', 'KCB', -99.0)
       CALL PUT('SPAM', 'KE', -99.0)
       CALL PUT('SPAM', 'KC', -99.0)
+
+      if(mpi_child%use_mpi)then
+         call seasonal_registry%set_target('cum_et',CET)
+         call seasonal_registry%set_target('cum_sl_evap',CES)
+         call seasonal_registry%set_target('cum_trans',CEP)
+      end if
 
 !***********************************************************************
 !***********************************************************************

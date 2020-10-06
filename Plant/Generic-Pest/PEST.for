@@ -40,21 +40,22 @@ C=======================================================================
      &    SDDES, WLIDOT, WRIDOT, WSIDOT, SDWT)            !Output
 
 !-----------------------------------------------------------------------
-      USE ModuleDefs     !Definitions of constructed variable types, 
+      use csm_io
+      USE ModuleDefs            !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
       IMPLICIT NONE
       SAVE
 !-----------------------------------------------------------------------
       CHARACTER*1   ISWDIS
+      character*2   CROP
       CHARACTER*5   PSTHD(6)
       CHARACTER*5   PID(MAXPEST)
       CHARACTER*5   PCPID(MAXPEST,6)
       CHARACTER*12  FILEP, FILET
-      CHARACTER*30  FILEIO
       CHARACTER*80  PATHPE, PATHEX
 
-      INTEGER DYNAMIC, LUNIO, MULTI, PCN
+      INTEGER DYNAMIC, MULTI, PCN
 
       INTEGER TRTNUM, NR2
       INTEGER YRDOY, YRPLT, DAP, DAS
@@ -132,8 +133,6 @@ C     Photosynthesis Variables
 !     Transfer values from constructed data types into local variables.
       DAS     = CONTROL % DAS
       DYNAMIC = CONTROL % DYNAMIC
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
       MULTI   = CONTROL % MULTI
       YRDOY   = CONTROL % YRDOY
 
@@ -145,11 +144,17 @@ C***********************************************************************
 C***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
 C-----------------------------------------------------------------------
-C     Call IPPEST to read data from FILEIO
+C     Call csm io module to get data originally in FILEIO
 C-----------------------------------------------------------------------
-      CALL IPPEST(
-     &    FILEIO, LUNIO,                                  !Input
-     &    FILEP, FILET, PATHEX, PATHPE, PHTHRS8, TRTNUM)  !Output
+         call csminp%get('*FILES','FILET',FILET)
+         call csminp%get('*FILES','PATHEX',PATHEX)
+         call csminp%get('*FILES','FILEP',FILEP)
+         call csminp%get('*FILES','PATHPE',PATHPE)
+         call csminp%get('*TREATMENTS','TRTNO',TRTNUM)
+         call csminp%get('*CULTIVARS','CROP',CROP)
+         IF (CROP .NE. 'FA') THEN
+            call csminp%get('*CULTIVARS','PHTHRS(8)',PHTHRS8)
+         ENDIF
 !     Note: PHTHRS8 should be imported from plant routines unless
 !       cultivar sections are standardized.  CHP 08/27/2003
 C-----------------------------------------------------------------------

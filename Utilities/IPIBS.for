@@ -2,7 +2,7 @@ C=======================================================================
 C  IPIBS, Subroutine, G. Hoogenboom
 C-----------------------------------------------------------------------
 C  Reads input variables for temporary data file for transfer of
-C  information from the INPUT module to CSM.
+C  information from the INPUT module to the CROPGRO module.
 C-----------------------------------------------------------------------
 C  REVISION       HISTORY
 C  05/01/1989 GH  Written.
@@ -45,6 +45,7 @@ C
 C-----------------------------------------------------------------------
       USE ModuleDefs 
       USE ModuleData
+      use csm_io
       IMPLICIT NONE
       SAVE
 
@@ -85,32 +86,39 @@ C     Transfer values from constructed data types into local variables.
 C-----------------------------------------------------------------------
 C    Open Temporary File
 C-----------------------------------------------------------------------
-      CALL GETLUN('FILEIO', LUNIO)
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!      CALL GETLUN('FILEIO', LUNIO)
+!      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
 C-----------------------------------------------------------------------
 C    Read FILE names and paths
 C-----------------------------------------------------------------------
-      READ (LUNIO,'(55X,I5)', IOSTAT=ERRNUM) ISENS 
-      LNUM = 1
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+      call csminp%get('*FILES','ISENS',ISENS)
+!      READ (LUNIO,'(55X,I5)', IOSTAT=ERRNUM) ISENS 
+!      LNUM = 1
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
-      READ (LUNIO,'(/,15X,A8)', IOSTAT=ERRNUM) MODEL
-      LNUM = LNUM + 2 
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+      call csminp%get('*SIMULATION CONTROL','MODEL',MODEL)
+!      READ (LUNIO,'(/,15X,A8)', IOSTAT=ERRNUM) MODEL
+!      LNUM = LNUM + 2 
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
 !     FILEX used to determine output file names when FNAME <> 'OVERVIEW'
-      READ (LUNIO,'(15X,A12)', IOSTAT=ERRNUM) FILEX
-      LNUM = LNUM + 1 
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+      call csminp%get('*FILES','FILEX',FILEX) 
+!      READ (LUNIO,'(15X,A12)', IOSTAT=ERRNUM) FILEX
+!      LNUM = LNUM + 1 
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
-      READ (LUNIO,'(15X,A12,1X,A80)', IOSTAT=ERRNUM) FILEA,PATHEX
-      LNUM = LNUM + 1 
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+      call csminp%get('*FILES','FILEA',FILEA)
+      call csminp%get('*FILES','PATHEX',PATHEX)
+!      READ (LUNIO,'(15X,A12,1X,A80)', IOSTAT=ERRNUM) FILEA,PATHEX
+!      LNUM = LNUM + 1 
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
-      READ (LUNIO,'(/,15X,A12,1X,A80)', IOSTAT=ERRNUM) FILEC, PATHCR  
-      LNUM = LNUM + 2 
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+      call csminp%get('*FILES','FILEC',FILEC)
+      call csminp%get('*FILES','PATHCR',PATHCR)
+!      READ (LUNIO,'(/,15X,A12,1X,A80)', IOSTAT=ERRNUM) FILEC, PATHCR  
+!      LNUM = LNUM + 2 
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
 !-------------------------------------------------------------------------
 !     Can by-pass this section unless in debug model
@@ -118,19 +126,29 @@ C-----------------------------------------------------------------------
 
 !       For sequenced runs, only read values for RUN 1
         IF (INDEX('QF',RNMODE) .LE. 0 .OR. RUN .EQ. 1) THEN
-          READ (LUNIO,'(5(/),15X,A8)', IOSTAT=ERRNUM) FNAME
-          LNUM = LNUM + 6 
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!          READ (LUNIO,'(5(/),15X,A8)', IOSTAT=ERRNUM) FNAME
+!          LNUM = LNUM + 6 
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
 C-----------------------------------------------------------------------
 C    Read Simulation Control
 C-----------------------------------------------------------------------
-          READ (LUNIO,'(/,31X,A1,41X,A5)',IOSTAT=ERRNUM) ISIMI  
-          READ (LUNIO,'(14X,9(5X,A1),2I6)', IOSTAT=ERRNUM) 
-     &      ISWWAT, ISWNIT, ISWSYM, ISWPHO, ISWPOT, ISWDIS, ISWCHE, 
-     &      ISWTIL, ICO2
-          LNUM = LNUM + 3 
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+          call csminp%get('*SIMULATION CONTROL','ISIMI',ISIMI)
+          call csminp%get('*SIMULATION CONTROL','ISWWAT',ISWWAT)
+          call csminp%get('*SIMULATION CONTROL','ISWNIT',ISWNIT)
+          call csminp%get('*SIMULATION CONTROL','ISWSYM',ISWSYM)
+          call csminp%get('*SIMULATION CONTROL','ISWPHO',ISWPHO)
+          call csminp%get('*SIMULATION CONTROL','ISWPOT',ISWPOT)
+          call csminp%get('*SIMULATION CONTROL','ISWDIS',ISWDIS)
+          call csminp%get('*SIMULATION CONTROL','ISWCHE',ISWCHE)
+          call csminp%get('*SIMULATION CONTROL','ISWTIL',ISWTIL)
+          call csminp%get('*SIMULATION CONTROL','ICO2',ICO2)
+!          READ (LUNIO,'(/,31X,A1,41X,A5)',IOSTAT=ERRNUM) ISIMI  
+!          READ (LUNIO,'(14X,9(5X,A1),2I6)', IOSTAT=ERRNUM) 
+!     &      ISWWAT, ISWNIT, ISWSYM, ISWPHO, ISWPOT, ISWDIS, ISWCHE, 
+!     &      ISWTIL, ICO2
+!          LNUM = LNUM + 3 
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
           ISWWAT = UPCASE(ISWWAT)
           ISWNIT = UPCASE(ISWNIT)
@@ -142,42 +160,79 @@ C-----------------------------------------------------------------------
           ISWTIL = UPCASE(ISWTIL)
           ICO2   = UPCASE(ICO2)
 
-          READ (LUNIO,200, IOSTAT=ERRNUM) MESIC, MEEVP, MEINF, MEPHO, 
-     &        MEHYD, NSWI, MESOM, MESEV, MESOL, METMP, MEGHG
-  200     FORMAT(25X,A1,11X,A1,3(5X,A1),5X,I1,5(5X,A1))
-          LNUM = LNUM + 1 
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+          call csminp%get('*SIMULATION CONTROL','MESIC',MESIC)
+          call csminp%get('*SIMULATION CONTROL','MEEVP',MEEVP)
+          call csminp%get('*SIMULATION CONTROL','MEINF',MEINF)
+          call csminp%get('*SIMULATION CONTROL','MEPHO',MEPHO)
+          call csminp%get('*SIMULATION CONTROL','MEHYD',MEHYD)
+          call csminp%get('*SIMULATION CONTROL','NSWI',NSWI)
+          call csminp%get('*SIMULATION CONTROL','MESOM',MESOM)
+          call csminp%get('*SIMULATION CONTROL','MESEV',MESEV)
+          call csminp%get('*SIMULATION CONTROL','MESOL',MESOL)
+          call csminp%get('*SIMULATION CONTROL','METMP',METMP)
+!          READ (LUNIO,200, IOSTAT=ERRNUM) MESIC, MEEVP, MEINF, MEPHO, 
+!     &        MEHYD, NSWI, MESOM, MESEV, MESOL, METMP, MEGHG
+!  200     FORMAT(25X,A1,11X,A1,3(5X,A1),5X,I1,5(5X,A1))
+!          LNUM = LNUM + 1 
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
-          READ (LUNIO,'(14X,5(5X,A1))', IOSTAT=ERRNUM)  
-     &                          IPLTI, IIRRI, IFERI, IRESI, IHARI
-          LNUM = LNUM + 1 
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+          call csminp%get('*SIMULATION CONTROL','IPLTI',IPLTI)
+          call csminp%get('*SIMULATION CONTROL','IIRRI',IIRRI)
+          call csminp%get('*SIMULATION CONTROL','IFERI',IFERI)
+          call csminp%get('*SIMULATION CONTROL','IRESI',IRESI)
+          call csminp%get('*SIMULATION CONTROL','IHARI',IHARI)
+!          READ (LUNIO,'(14X,5(5X,A1))', IOSTAT=ERRNUM)  
+!     &                          IPLTI, IIRRI, IFERI, IRESI, IHARI
+!          LNUM = LNUM + 1 
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
-          READ (LUNIO,250,IOSTAT=ERRNUM) 
-     &       IOX, IDETO, IDETS, FROP, IDETG, IDETC, IDETW,
-     &       IDETN, IDETP, IDETD, IDETL, IDETH, IDETR
-  250     FORMAT(14X,3(5X,A1),4X,I2,9(5X,A1))
-          LNUM = LNUM + 1 
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+          call csminp%get('*SIMULATION CONTROL','IPLTI',IOX)
+          call csminp%get('*SIMULATION CONTROL','IDETO',IDETO)
+          call csminp%get('*SIMULATION CONTROL','IDETS',IDETS)
+          call csminp%get('*SIMULATION CONTROL','FROP',FROP)
+          call csminp%get('*SIMULATION CONTROL','IDETG',IDETG)
+          call csminp%get('*SIMULATION CONTROL','IDETC',IDETC)
+          call csminp%get('*SIMULATION CONTROL','IDETW',IDETW)
+          call csminp%get('*SIMULATION CONTROL','IDETN',IDETN)
+          call csminp%get('*SIMULATION CONTROL','IDETP',IDETP)
+          call csminp%get('*SIMULATION CONTROL','IDETD',IDETD)
+          call csminp%get('*SIMULATION CONTROL','IDETL',IDETL)
+          call csminp%get('*SIMULATION CONTROL','IDETH',IDETH)
+          call csminp%get('*SIMULATION CONTROL','IDETR',IDETR)
+!          READ (LUNIO,250,IOSTAT=ERRNUM) 
+!     &       IOX, IDETO, IDETS, FROP, IDETG, IDETC, IDETW,
+!     &       IDETN, IDETP, IDETD, IDETL, IDETH, IDETR
+!  250     FORMAT(14X,3(5X,A1),4X,I2,9(5X,A1))
+!          LNUM = LNUM + 1 
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
           IF (FROP .LE. 0) FROP = 1
 
         ELSE        !For sequenced runs, read only selected variables
-          READ (LUNIO,'(8(/),31X,A1,17X,A1)',IOSTAT=ERRNUM)ISWSYM,ISWDIS
-          LNUM = LNUM + 9 
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+          call csminp%get('*SIMULATION CONTROL','ISWSYM',ISWSYM)
+          call csminp%get('*SIMULATION CONTROL','ISWDIS',ISWDIS)
+!          READ (LUNIO,'(8(/),31X,A1,17X,A1)',IOSTAT=ERRNUM)ISWSYM,ISWDIS
+!          LNUM = LNUM + 9 
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
           ISWSYM = UPCASE(ISWSYM)
           ISWDIS = UPCASE(ISWDIS)
 
-          READ (LUNIO,'(25X,A1,23X, A1)', IOSTAT=ERRNUM) MESIC,MEPHO
-          LNUM = LNUM + 1 
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+          call csminp%get('*SIMULATION CONTROL','MESIC',MESIC)
+          call csminp%get('*SIMULATION CONTROL','MESIC',MEPHO)
+!          READ (LUNIO,'(25X,A1,23X, A1)', IOSTAT=ERRNUM) MESIC,MEPHO
+!          LNUM = LNUM + 1 
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
-          READ (LUNIO,'(14X,5(5X,A1))', IOSTAT=ERRNUM) 
-     &      IPLTI, IIRRI, IFERI, IRESI, IHARI
-          LNUM = LNUM + 1 
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+          call csminp%get('*SIMULATION CONTROL','IPLTI',IPLTI)
+          call csminp%get('*SIMULATION CONTROL','IIRRI',IIRRI)
+          call csminp%get('*SIMULATION CONTROL','IFERI',IFERI)
+          call csminp%get('*SIMULATION CONTROL','IRESI',IRESI)
+          call csminp%get('*SIMULATION CONTROL','IHARI',IHARI)
+!          READ (LUNIO,'(14X,5(5X,A1))', IOSTAT=ERRNUM) 
+!     &      IPLTI, IIRRI, IFERI, IRESI, IHARI
+!          LNUM = LNUM + 1 
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
         ENDIF
       ELSE
         MEEVP  = ISWITCH % MEEVP
@@ -194,14 +249,15 @@ C-----------------------------------------------------------------------
 C    Read Cultivar Section
 C-----------------------------------------------------------------------
       !Read crop code from Cultivar Section
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ (LUNIO,'(3X,A2)', IOSTAT=ERRNUM) CROP ; LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-      ENDIF
+!      SECTION = '*CULTI'
+!      CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!      ELSE
+!        READ (LUNIO,'(3X,A2)', IOSTAT=ERRNUM) CROP ; LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      ENDIF
+      call csminp%get('*CULTIVARS','CROP',CROP)
 
 C-----------------------------------------------------------------------
       CLOSE (LUNIO)

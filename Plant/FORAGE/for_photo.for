@@ -30,7 +30,6 @@ C=======================================================================
       SAVE
 
       CHARACTER*3  TYPPGN, TYPPGT
-      CHARACTER*30 FILEIO
 
       INTEGER DYNAMIC
       INTEGER YRDOY, YRSIM
@@ -57,7 +56,6 @@ C=======================================================================
 !     Transfer values from constructed data types into local variables.
       DAS     = CONTROL % DAS
       DYNAMIC = CONTROL % DYNAMIC
-      FILEIO  = CONTROL % FILEIO
       YRDOY   = CONTROL % YRDOY
       YRSIM   = CONTROL % YRSIM
 
@@ -68,7 +66,6 @@ C***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
 C-----------------------------------------------------------------------
       CALL FOR_PHOTIP(
-     &  FILEIO,  
      &  CCEFF, CCMAX, CCMP, FNPGN, FNPGT, KCAN,  
      &  LMXSTD, LNREF, PARMAX, PGREF, PHTHRS10, 
      &  PHTMAX, ROWSPC, TYPPGN, TYPPGT, XPGSLW, YPGSLW)
@@ -231,19 +228,18 @@ C  Local :
 C=======================================================================
 
       SUBROUTINE FOR_PHOTIP(
-     &  FILEIO,  
      &  CCEFF, CCMAX, CCMP, FNPGN, FNPGT, KCAN,  
      &  LMXSTD, LNREF, PARMAX, PGREF, PHTHRS10, 
      &  PHTMAX, ROWSPC, TYPPGN, TYPPGT, XPGSLW, YPGSLW)
 
 !-----------------------------------------------------------------------
+      use csm_io
       IMPLICIT NONE
 
       CHARACTER*1  BLANK
       CHARACTER*3  TYPPGN, TYPPGT
       CHARACTER*6  ERRKEY, SECTION
       CHARACTER*12 FILEC
-      CHARACTER*30 FILEIO
       CHARACTER*80 PATHCR,CHAR
       CHARACTER*92 FILECC
 
@@ -260,54 +256,25 @@ C=======================================================================
       PARAMETER (ERRKEY = 'PHOTIP')
 
 !-----------------------------------------------------------------------
-!     Open and read FILEIO
-!-----------------------------------------------------------------------
-      CALL GETLUN('FILEIO', LUNIO)
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
 
-!-----------------------------------------------------------------------
-      READ(LUNIO,50) FILEC, PATHCR
-   50 FORMAT(//////,15X,A12,1X,A80)
+      call csminp%get('*FILES','FILEC',FILEC)
+      call csminp%get('*FILES','PATHCR',PATHCR)
 
 !-----------------------------------------------------------------------
 C    Read Planting Details Section
 !-----------------------------------------------------------------------
-      SECTION = '*PLANT'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(ERRKEY, 1, FILEIO, LINC)
-      ELSE
-        READ(LUNIO,'(42X,F6.0)') ROWSPC
-      ENDIF
+      call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC)
 
 C     CROPGRO uses ROWSPC as m
       ROWSPC = ROWSPC / 100.
 
-C-----------------------------------------------------------------------
-C    Read Soil Profile Section
-C-----------------------------------------------------------------------
-!      SECTION = '*SOIL '
-!      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-!      IF (FOUND .EQ. 0) THEN
-!        CALL ERROR(ERRKEY, 1, FILEIO, LINC)
-!      ELSE
-!        READ(LUNIO,'(//,36X,F6.0)') SLPF  
-!      ENDIF
-
 !-----------------------------------------------------------------------
 C    Read Cultivars Section
 !-----------------------------------------------------------------------
-      SECTION = '*CULTI'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(ERRKEY, 1, FILEIO, LINC)
-      ELSE
-        READ(LUNIO,'(60X,F6.0,6X,F6.0)') PHTHRS10, LMXSTD
-      ENDIF
+      call csminp%get('*CULTIVARS','PHTHRS(10)',PHTHRS10)
+      call csminp%get('*CULTIVARS','LFMAX',LMXSTD)
 
 C-----------------------------------------------------------------------
-      CLOSE (LUNIO)
 
 C-----------------------------------------------------------------------
       LINC = 0

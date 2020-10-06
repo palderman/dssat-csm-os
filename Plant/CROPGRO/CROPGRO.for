@@ -54,7 +54,7 @@ C=======================================================================
      &    ISWWAT, ISWDIS, ISWPHO, MEPHO, RNMODE
       CHARACTER*2 CROP
       CHARACTER*6 ECONO
-      CHARACTER*30 FILEIO
+      
       CHARACTER*92 FILECC, FILEGC
 
       INTEGER DAS, DYNAMIC, RUN
@@ -177,7 +177,6 @@ C=======================================================================
 !     Transfer values from constructed data types into local variables.
       CROP    = CONTROL % CROP
       DYNAMIC = CONTROL % DYNAMIC
-      FILEIO  = CONTROL % FILEIO
       YRDOY   = CONTROL % YRDOY
       DAS     = CONTROL % DAS
       RUN     = CONTROL % RUN
@@ -265,7 +264,7 @@ C=======================================================================
       IF (CROP .NE. 'FA') THEN
         CALL DEMAND(RUNINIT, CONTROL,
      &  AGRLF, AGRRT, AGRSH2, AGRSTM, CROP, DRPP, DXR57,  !Input
-     &  FILECC, FILEGC, FILEIO, FNINSH, FRACDN, LAGSD,    !Input
+     &  FILECC, FILEGC,  FNINSH, FRACDN, LAGSD,    !Input
      &  LNGPEG, NDLEAF, NSTRES, PAR, PCNL, PCNRT, PCNST,  !Input
      &  PGAVL, PUNCSD, PUNCTR, PLTPOP, RPROAV, RTWT,      !Input
      &  SDDES, SDNO, SDVAR, SHELN, SHVAR, STMWT, SWFAC,   !Input
@@ -282,7 +281,7 @@ C=======================================================================
 C    Call plant COMPosition INitialization (for data input)
 C-----------------------------------------------------------------------
         CALL INCOMP(RUNINIT, 
-     &    FILECC, FILEIO, FRLF, FRRT, FRSTM,              !Input
+     &    FILECC,  FRLF, FRRT, FRSTM,              !Input
      &    AGRLF, AGRNOD, AGRRT, AGRSD1, AGRSD2, AGRSH1,   !Output
      &    AGRSH2, AGRSTM, AGRVG, AGRVG2, SDPROR)          !Output
 
@@ -296,7 +295,7 @@ C-----------------------------------------------------------------------
         IF (ISWSYM .EQ. 'Y') THEN
           CALL NFIX(RUNINIT,
      &      AGRNOD, CNODMN, CTONOD, DLAYR, DXR57,         !Input
-     &      FILECC, FILEIO, NLAYR, NR7, PLTPOP,           !Input
+     &      FILECC,  NLAYR, NR7, PLTPOP,           !Input
      &      SAT, ST, SW, TURFAC,                          !Input
      &      CNOD, DWNOD, DWNODA, NDTH, NFIXN,             !Output
      &      NODGR, WTNFX, SENNOD)                         !Output
@@ -305,7 +304,7 @@ C-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
         CALL PODS(RUNINIT, 
      &    AGRSD1, AGRSH1, DLAYR, DRPP, DUL, FILECC,       !Input
-     &    FILEGC,FILEIO, FNINL, FNINSD, FNINSH, GDMSD,    !Input
+     &    FILEGC, FNINL, FNINSD, FNINSH, GDMSD,    !Input
      &    GRRAT1, ISWWAT, LL, NAVL, NDSET, NLAYR, NRUSSH, !Input
      &    NSTRES, PGAVL, PHTHRS, PHTIM, PNTIM, PUNCSD,    !Input
      &    PUNCTR, RNITP, SDDES, SDGR, SHELWT, SW, SWFAC,  !Input
@@ -490,7 +489,7 @@ C     Initialize pest coupling point and damage variables
 !-----------------------------------------------------------------------
       CALL DEMAND(SEASINIT, CONTROL,
      &  AGRLF, AGRRT, AGRSH2, AGRSTM, CROP, DRPP, DXR57,  !Input
-     &  FILECC, FILEGC, FILEIO, FNINSH, FRACDN, LAGSD,    !Input
+     &  FILECC, FILEGC,  FNINSH, FRACDN, LAGSD,    !Input
      &  LNGPEG, NDLEAF, NSTRES, PAR, PCNL, PCNRT, PCNST,  !Input
      &  PGAVL, PUNCSD, PUNCTR, PLTPOP, RPROAV, RTWT,      !Input
      &  SDDES, SDNO, SDVAR, SHELN, SHVAR, STMWT, SWFAC,   !Input
@@ -510,7 +509,7 @@ C     Initialize pest coupling point and damage variables
 !-----------------------------------------------------------------------
       IF (CROP .NE. 'FA') THEN
         CALL INCOMP(SEASINIT, 
-     &    FILECC, FILEIO, FRLF, FRRT, FRSTM,              !Input
+     &    FILECC,  FRLF, FRRT, FRSTM,              !Input
      &    AGRLF, AGRNOD, AGRRT, AGRSD1, AGRSD2, AGRSH1,   !Output
      &    AGRSH2, AGRSTM, AGRVG, AGRVG2, SDPROR)          !Output
       ENDIF
@@ -571,7 +570,7 @@ C     Initialize pest coupling point and damage variables
 !-----------------------------------------------------------------------
       CALL NFIX(SEASINIT,
      &    AGRNOD, CNODMN, CTONOD, DLAYR, DXR57,           !Input
-     &    FILECC, FILEIO, NLAYR, NR7, PLTPOP,             !Input
+     &    FILECC,  NLAYR, NR7, PLTPOP,             !Input
      &    SAT, ST, SW, TURFAC,                            !Input
      &    CNOD, DWNOD, DWNODA, NDTH, NFIXN,               !Output
      &    NODGR, WTNFX, SENNOD)                           !Output
@@ -579,7 +578,7 @@ C     Initialize pest coupling point and damage variables
 !-----------------------------------------------------------------------
       CALL PODS(SEASINIT, 
      &    AGRSD1, AGRSH1, DLAYR, DRPP, DUL, FILECC,       !Input
-     &    FILEGC,FILEIO, FNINL, FNINSD, FNINSH, GDMSD,    !Input
+     &    FILEGC, FNINL, FNINSD, FNINSH, GDMSD,    !Input
      &    GRRAT1, ISWWAT, LL, NAVL, NDSET, NLAYR, NRUSSH, !Input
      &    NSTRES, PGAVL, PHTHRS, PHTIM, PNTIM, PUNCSD,    !Input
      &    PUNCTR, RNITP, SDDES, SDGR, SHELWT, SW, SWFAC,  !Input
@@ -783,7 +782,7 @@ C-----------------------------------------------------------------------
 !       DYNAMIC = EMERG (not INTEGR) here
         CALL DEMAND(EMERG, CONTROL, 
      &  AGRLF, AGRRT, AGRSH2, AGRSTM, CROP, DRPP, DXR57,  !Input
-     &  FILECC, FILEGC, FILEIO, FNINSH, FRACDN, LAGSD,    !Input
+     &  FILECC, FILEGC,  FNINSH, FRACDN, LAGSD,    !Input
      &  LNGPEG, NDLEAF, NSTRES, PAR, PCNL, PCNRT, PCNST,  !Input
      &  PGAVL, PUNCSD, PUNCTR, PLTPOP, RPROAV, RTWT,      !Input
      &  SDDES, SDNO, SDVAR, SHELN, SHVAR, STMWT, SWFAC,   !Input
@@ -799,7 +798,7 @@ C-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
         CALL PODS(EMERG, 
      &    AGRSD1, AGRSH1, DLAYR, DRPP, DUL, FILECC,       !Input
-     &    FILEGC,FILEIO, FNINL, FNINSD, FNINSH, GDMSD,    !Input
+     &    FILEGC, FNINL, FNINSD, FNINSH, GDMSD,    !Input
      &    GRRAT1, ISWWAT, LL, NAVL, NDSET, NLAYR, NRUSSH, !Input
      &    NSTRES, PGAVL, PHTHRS, PHTIM, PNTIM, PUNCSD,    !Input
      &    PUNCTR, RNITP, SDDES, SDGR, SHELWT, SW, SWFAC,  !Input
@@ -911,7 +910,7 @@ C    Call Subroutine to calculate Nitrogen and Carbon Demand for new growth
 C-----------------------------------------------------------------------
       CALL DEMAND(INTEGR, CONTROL, 
      &  AGRLF, AGRRT, AGRSH2, AGRSTM, CROP, DRPP, DXR57,  !Input
-     &  FILECC, FILEGC, FILEIO, FNINSH, FRACDN, LAGSD,    !Input
+     &  FILECC, FILEGC,  FNINSH, FRACDN, LAGSD,    !Input
      &  LNGPEG, NDLEAF, NSTRES, PAR, PCNL, PCNRT, PCNST,  !Input
      &  PGAVL, PUNCSD, PUNCTR, PLTPOP, RPROAV, RTWT,      !Input
      &  SDDES, SDNO, SDVAR, SHELN, SHVAR, STMWT, SWFAC,   !Input
@@ -1037,7 +1036,7 @@ C-----------------------------------------------------------------------
         IF (VSTAGE .GT. TTFIX) THEN
           CALL NFIX(INTEGR, 
      &    AGRNOD, CNODMN, CTONOD, DLAYR, DXR57,           !Input
-     &    FILECC, FILEIO, NLAYR, NR7, PLTPOP,             !Input
+     &    FILECC,  NLAYR, NR7, PLTPOP,             !Input
      &    SAT, ST, SW, TURFAC,                            !Input
      &    CNOD, DWNOD, DWNODA, NDTH, NFIXN,               !Output
      &    NODGR, WTNFX, SENNOD)                           !Output
@@ -1066,7 +1065,7 @@ C     Call routine to compute actual seed and shell growth
 C-----------------------------------------------------------------------
       CALL PODS(INTEGR, 
      &    AGRSD1, AGRSH1, DLAYR, DRPP, DUL, FILECC,       !Input
-     &    FILEGC,FILEIO, FNINL, FNINSD, FNINSH, GDMSD,    !Input
+     &    FILEGC, FNINL, FNINSD, FNINSH, GDMSD,    !Input
      &    GRRAT1, ISWWAT, LL, NAVL, NDSET, NLAYR, NRUSSH, !Input
      &    NSTRES, PGAVL, PHTHRS, PHTIM, PNTIM, PUNCSD,    !Input
      &    PUNCTR, RNITP, SDDES, SDGR, SHELWT, SW, SWFAC,  !Input
@@ -1263,7 +1262,7 @@ C-----------------------------------------------------------------------
 
         CALL PODS(DYNAMIC, 
      &    AGRSD1, AGRSH1, DLAYR, DRPP, DUL, FILECC,       !Input
-     &    FILEGC,FILEIO, FNINL, FNINSD, FNINSH, GDMSD,    !Input
+     &    FILEGC, FNINL, FNINSD, FNINSH, GDMSD,    !Input
      &    GRRAT1, ISWWAT, LL, NAVL, NDSET, NLAYR, NRUSSH, !Input
      &    NSTRES, PGAVL, PHTHRS, PHTIM, PNTIM, PUNCSD,    !Input
      &    PUNCTR, RNITP, SDDES, SDGR, SHELWT, SW, SWFAC,  !Input

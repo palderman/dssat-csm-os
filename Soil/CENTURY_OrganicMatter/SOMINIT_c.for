@@ -44,6 +44,7 @@
       USE ModuleDefs     !Definitions of constructed variable types, 
                          !which contain control information, soil
                          !parameters, hourly weather data.
+      use csm_io
       IMPLICIT  NONE
       SAVE
 !     ------------------------------------------------------------------
@@ -53,7 +54,6 @@
       CHARACTER*6   SECTION
       CHARACTER*6,  PARAMETER :: ERRKEY  = 'SOMINI'
       CHARACTER*17  SOILLAYERTYPE(NL)
-      CHARACTER*30  FILEIO
       CHARACTER*78 MSG(NL+4)
 
       INTEGER ERRNUM, FOUND, L, MULTI,
@@ -96,8 +96,6 @@
       TYPE (SwitchType)  ISWITCH
 
 !     Transfer values from constructed data types into local variables.
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
       MULTI   = CONTROL % MULTI
       ISWPHO  = ISWITCH % ISWPHO
 
@@ -120,19 +118,9 @@
 !***********************************************************************
 !     Open FILEIO to get path to soils directory
 !         and user input SOM1, SOM2 and SOM3 initial fractions
-      OPEN (UNIT = LUNIO, FILE = FILEIO, STATUS='OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM /= 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
 
 !     Find INITIAL CONDITIONS Section for the previous crop (PCR).
-      REWIND(LUNIO)
-      SECTION = '*INITI'
-      CALL FIND (LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-      IF (FOUND == 0) CALL ERROR (SECTION, 42, FILEIO, LNUM)
-      READ (LUNIO, '(3X, A2)', IOSTAT = ERRNUM) PCR
-      LNUM = LNUM + 1
-      IF (ERRNUM /= 0) CALL ERROR (ERRKEY, ERRNUM, FILEIO, LNUM)
-
-      CLOSE(LUNIO)
+      call csminp%get('*INITIAL CONDITIONS','PRCROP',PCR)
 
 !     ------------------------------------------------------------------
 !     Initialize SOM fractions
@@ -699,6 +687,7 @@
      &    SOM1FRAC, SOM2FRAC, SOM3FRAC) 
 
       Use ModuleDefs
+      use csm_io
       SAVE
 
       TYPE (ControlType), INTENT(IN) :: CONTROL
@@ -715,7 +704,6 @@
       CHARACTER*6,  PARAMETER :: ERRKEY  = 'SOMINI'
       CHARACTER (len=12) TEXTURE(NL), TEX(12), NAMEF
       CHARACTER*14 Method(NL)
-      CHARACTER*30  FILEIO
       CHARACTER*50 PrevMgmtDesc
       CHARACTER*78 MSG(NL+3)
       CHARACTER*80 PATHSD
@@ -772,33 +760,10 @@
 !     2.  FIELD HISTORY
 !     ************************************************************
 !     Open FILEIO to get field history and duration
-      LUNIO  = CONTROL % LUNIO
-      FILEIO = CONTROL % FILEIO
-      OPEN (UNIT = LUNIO, FILE = FILEIO, STATUS='OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM /= 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
 
 !     Read previous management look-up code from FIELDS section
-      REWIND(LUNIO)
-      SECTION = '*FIELD'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0)  THEN
-        FldHist = 'ERROR'
-        FHDUR = -99
-      ELSE
-        READ(LUNIO,'(/,A)', IOSTAT=ERRNUM) CHAR
-        IF (ERRNUM == 0) THEN
-          READ(CHAR,'(81X,A5)', IOSTAT=ERRNUM) FldHist
-          IF (ERRNUM /= 0) FldHist = 'ERROR'
-          READ(CHAR,'(86X,F6.0)', IOSTAT=ERRNUM) FHDur_real
-          IF (ERRNUM /= 0) FHDur = -99
-          IF (FHDur_real < 0) FldHist = 'ERROR'
-        ELSE
-          FldHist = 'ERROR'
-          FHDur = -99
-        ENDIF
-      ENDIF
-
-      CLOSE(LUNIO)
+      call csminp%get('*FIELDS','FldHist',FldHist)
+      call csminp%get('*FIELDS','FHDur',FHDUR)
 
 !     ------------------------------------------------------------------
 !     Read SOM3 values for this field history

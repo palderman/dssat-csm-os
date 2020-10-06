@@ -14,6 +14,7 @@
 
       USE ModuleDefs 
       USE ModuleData
+      use csm_io
       IMPLICIT NONE
       SAVE
 
@@ -68,16 +69,9 @@
         PLIGSH_File = -99.
         PLIGSD_File = -99.
 
-        LUNIO   = CONTROL % LUNIO
-        FILEIO  = CONTROL % FILEIO
-!       Get name of species file from FILEIO
-        CALL GETLUN('FILEIO', LUNIO)
-        OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)  
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-        READ(LUNIO,50,IOSTAT=ERR) FILES, PATHSR; LNUM = 7
-   50   FORMAT(//////,15X,A12,1X,A80)
-        IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-        CLOSE (LUNIO)
+
+        call csminp%get('*FILES','FILEC',FILES)
+        call csminp%get('*FILES','PATHCR',PATHSR)
 
 !       -----------------------------------------------------------------
 !       Get lignin fractions from species file

@@ -21,7 +21,8 @@ C=======================================================================
      &    TILLVALS, TILLNO)                               !Output
 
 C-----------------------------------------------------------------------
-      USE ModuleDefs     !Definitions of constructed variable types, 
+      use csm_io
+      USE ModuleDefs            !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
       IMPLICIT NONE
@@ -29,20 +30,18 @@ C-----------------------------------------------------------------------
 
       CHARACTER*1 ISWTIL, RNMODE, BLANK
       PARAMETER (BLANK=' ')
-      CHARACTER*6 SECTION
       CHARACTER*7,  PARAMETER :: ERRKEY = 'TILLAGE'
       CHARACTER*12 FILETL
       CHARACTER*12 NAMEF
-      CHARACTER*30 FILEIO
       CHARACTER*78 MSG(NAPPL)
       CHARACTER*80 PATHSD
       CHARACTER*90 CHAR
       CHARACTER*92 TILFILE
 
-      INTEGER DYNAMIC, ERRNUM, FOUND, I, IDATE, J, L, PFLAG
+      INTEGER DYNAMIC, ERRNUM, I, IDATE, J, L, PFLAG
       INTEGER MULTI, NTIL, YR, YRDIF, YRDOY, YRSIM, RUN, NLAYR
       INTEGER, DIMENSION(NAPPL) :: TILLDATE, NLYRS
-      INTEGER LUNIO, LUNTIL, LNUM, ISECT, TILLNO, NTil_today
+      INTEGER LUNTIL, LNUM, ISECT, TILLNO, NTil_today
 
       REAL FACTOR, TILDEP, TILMIX, TILRESINC
       REAL, DIMENSION(NAPPL) :: CNP, RINP, MIXT, HPAN, TDEP, SSDT
@@ -70,8 +69,6 @@ C    Input and Initialization
 C***********************************************************************
       IF (DYNAMIC .EQ. INIT) THEN
 C-----------------------------------------------------------------------
-      FILEIO  = CONTROL % FILEIO
-      LUNIO   = CONTROL % LUNIO
       MULTI   = CONTROL % MULTI
       YRSIM   = CONTROL % YRSIM
       YRDIF   = CONTROL % YRDIF
@@ -86,27 +83,23 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C     Read FILEIO
 C-----------------------------------------------------------------------
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-
 C-----------------------------------------------------------------------
 C     Read Tillage Section
 C-----------------------------------------------------------------------
-      SECTION = '*TILLA'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      NTIL  = 0
-      DO I = 1,NAPPL
-        READ(LUNIO,'(3X,I7,1X,A90)',ERR=30,END=30) TILLDATE(I), CHAR
-        LNUM = LNUM + 1
+      if(csminp%find('*TILLAGE')<=0)then
+         ntil = 0
+      else
+         call csminp%get('*TILLAGE','TDATE',TILLDATE)
+         call csminp%get('*TILLAGE','TIMPL',TILOP)
+         call csminp%get('*TILLAGE','TDEP',TDEP)
 
-        READ(CHAR,'(A5,1X,F5.0)',IOSTAT=ERRNUM) TILOP(I), TDEP(I) 
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY, ERRNUM, FILEIO, LNUM)
-        NTIL  = NTIL  + 1
-      ENDDO
-   30 CONTINUE
+         ntil = 0
+         do i=1,size(tilldate)
+            if(tilldate(i)<0) exit
+            ntil = ntil + 1
+         end do
 
-      CLOSE (LUNIO)
+      end if
 
 C-----------------------------------------------------------------------
 C     Adjust for crop rotations

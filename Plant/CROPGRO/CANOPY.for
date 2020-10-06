@@ -27,6 +27,7 @@ C-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -60,10 +61,12 @@ C-----------------------------------------------------------------------
 !     Read in values from input file, which were previously input
 !       in Subroutine IPCROP.
 !-----------------------------------------------------------------------
+      if(.not.nc_gen%yes)then ! 
       CALL GETLUN('FILEC', LUNCRP)      
       OPEN (LUNCRP,FILE = FILECC, STATUS = 'OLD',IOSTAT=ERR)
       IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,0)
       LNUM = 0
+      end if ! NetCDF I/O
 !-----------------------------------------------------------------------
 !    Find and Read Photosynthesis Section
 !-----------------------------------------------------------------------
@@ -89,6 +92,15 @@ C-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 C     ***** READ CANOPY HEIGHT & WIDTH PARAMETERS ******************
 C-----------------------------------------------------------------------
+      if(nc_gen%yes)then   ! NetCDF I/O
+         call nc_gen%read_spe('XVSHT',XVSHT)
+         call nc_gen%read_spe('YVSHT',YVSHT)
+         call nc_gen%read_spe('YVSWH',YVSWH)
+         call nc_gen%read_spe('XHWTEM',XHWTEM)
+         call nc_gen%read_spe('YHWTEM',YHWTEM)
+         call nc_gen%read_spe('XHWPAR',XHWPAR)
+         call nc_gen%read_spe('YHWPAR',YHWPAR)
+      else ! SPE file
       SECTION = '!*CANO'
       CALL FIND(LUNCRP, SECTION, LINC, FOUND); LNUM = LNUM + LINC
       IF (FOUND .EQ. 0) THEN
@@ -124,10 +136,14 @@ C-----------------------------------------------------------------------
       ENDIF
 
       CLOSE (LUNCRP)
-
+      end if !NetCDF I/O
 C-----------------------------------------------------------------------
 C    Read Ecotype Parameter File
 C-----------------------------------------------------------------------
+      if(nc_gen%yes)then   ! NetCDF I/O
+         call nc_gen%read_eco('RWDTH',RWIDTH)
+         call nc_gen%read_eco('RHGHT',RHGHT)
+      else ! SPE file
       CALL GETLUN('FILEE', LUNECO)
       OPEN (LUNECO,FILE = FILEGC,STATUS = 'OLD',IOSTAT=ERR)
       IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEGC,0)
@@ -153,6 +169,7 @@ C-----------------------------------------------------------------------
       ENDDO
 
       CLOSE (LUNECO)
+      end if ! NetCDF I/O
 
       CANHT = 0.0
       CANWH = 0.0

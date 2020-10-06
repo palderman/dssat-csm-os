@@ -57,6 +57,8 @@ C=======================================================================
          WATAVL = 0.0
       ENDIF
 
+      if(snow.lt.0.001) snow = 0
+
 !***********************************************************************
 !***********************************************************************
 !     END OF DYNAMIC IF CONSTRUCT
@@ -99,6 +101,7 @@ C  08/12/2003 CHP Added I/O error checking
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use csm_io
       IMPLICIT NONE
 
       REAL, DIMENSION(NL), INTENT(IN) :: DLAYR, LL, SAT
@@ -139,23 +142,25 @@ C  08/12/2003 CHP Added I/O error checking
 C     Find and Read Initial Conditions Section
       IF (INDEX('FQ',RNMODE) .LE. 0 .OR. RUN == 1) THEN
 
-        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-        LNUM = 0
+!        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!        LNUM = 0
 
-        SECTION = '*INITI'
-        CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-        IF (FOUND .EQ. 0) THEN
-          CALL ERROR(SECTION, 42, FILEIO, LNUM)
-        ELSE
-          READ(LUNIO,'(40X,F6.0)',IOSTAT=ERRNUM) ICWD ; LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-          WTDEP = ICWD
+!        SECTION = '*INITI'
+!        CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
+!        IF (FOUND .EQ. 0) THEN
+!          CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!        ELSE
+!          READ(LUNIO,'(40X,F6.0)',IOSTAT=ERRNUM) ICWD ; LNUM = LNUM + 1
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+         call csminp%get('*INITIAL CONDITIONS','ICWD',ICWD)
+         WTDEP = ICWD
 
+          call csminp%get('*INITIAL CONDITIONS','SWINIT',SW)
           DO L = 1, NLAYR
-            READ(LUNIO,'(9X,F5.3)',IOSTAT=ERRNUM) SW(L)
-            LNUM = LNUM + 1
-            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!            READ(LUNIO,'(9X,F5.3)',IOSTAT=ERRNUM) SW(L)
+!            LNUM = LNUM + 1
+!            IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
 
             IF (SW(L) .LT. LL(L)) THEN
               SW(L) = LL(L)
@@ -165,10 +170,10 @@ C     Find and Read Initial Conditions Section
             ENDIF
           ENDDO
 
-        ENDIF
+!        ENDIF
       ENDIF
 
-      CLOSE (LUNIO)
+!      CLOSE (LUNIO)
 
 !***********************************************************************
 !***********************************************************************
@@ -176,30 +181,33 @@ C     Find and Read Initial Conditions Section
 !***********************************************************************
       ELSEIF (DYNAMIC .EQ. SEASINIT) THEN
 !-----------------------------------------------------------------------
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-      SECTION = '*INITI'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND .EQ. 0) THEN
-        CALL ERROR(SECTION, 42, FILEIO, LNUM)
-      ELSE
-        READ(LUNIO,'(40X,F6.0)', IOSTAT=ERRNUM) ICWD ; LNUM = LNUM + 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
+!      IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
+!      SECTION = '*INITI'
+!      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
+!      IF (FOUND .EQ. 0) THEN
+!        CALL ERROR(SECTION, 42, FILEIO, LNUM)
+!     ELSE
+         if(csminp%find('*INITIAL CONDITIONS')>0)then
+         call csminp%get('*INITIAL CONDITIONS','ICWD',ICWD)
+          call csminp%get('*INITIAL CONDITIONS','SWINIT',SW)
+!        READ(LUNIO,'(40X,F6.0)', IOSTAT=ERRNUM) ICWD ; LNUM = LNUM + 1
+!        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
         WTDEP = ICWD
 
-        DO L = 1, NLAYR
-          READ(LUNIO,'(9X,F5.3)',IOSTAT=ERRNUM) SW(L)
-          LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-        ENDDO
-      ENDIF
+!        DO L = 1, NLAYR
+!          READ(LUNIO,'(9X,F5.3)',IOSTAT=ERRNUM) SW(L)
+!          LNUM = LNUM + 1
+!          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+!        ENDDO
+!      ENDIF
 
-      CLOSE (LUNIO)
-
+!      CLOSE (LUNIO)
+      end if
 !     Limit initial water content to wilting point
-      DO L = 2, NLAYR
-        IF (SW(L) .LT. LL(L)) SW(L) = LL(L)
-      ENDDO
+        DO L = 2, NLAYR
+           IF (SW(L) .LT. LL(L)) SW(L) = LL(L)
+        ENDDO
 
 !     Limit top soil layer to air dry water content
       SWEF = 0.9-0.00038*(DLAYR(1)-30.)**2

@@ -32,6 +32,8 @@ C=======================================================================
 !-----------------------------------------------------------------------
       USE ModuleDefs
       USE ModuleData
+      use csm_io
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
@@ -105,21 +107,11 @@ C     The components are copied into local variables for use here.
       IF (DYNAMIC == RUNINIT) THEN
 !-----------------------------------------------------------------------
       IF (INDEX('FQ',RNMODE) <= 0 .OR. RUN. EQ. 1) THEN
-        OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-        IF (ERR /= 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-        READ (LUNIO,'(11(/),15X,A12,1X,A80)',IOSTAT=ERR) FILEW, PATHWT
-        IF (ERR /= 0) CALL ERROR(ERRKEY,ERR,FILEIO,12)
 
-        REWIND (LUNIO)
-        SECTION = '*SIMUL'
-        CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-        IF (FOUND == 0) CALL ERROR(SECTION, 42, FILEIO,LNUM)
-        READ(LUNIO,'(41X,I5)',IOSTAT=ERR) RSEED1
-        IF (ERR /= 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM+1)
-        READ (LUNIO,'(/,19X,A1)',IOSTAT=ERR) MEWTH
-        IF (ERR /= 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM+3)
-
-        CLOSE (LUNIO)
+            call csminp%get('*FILES','FILEW',FILEW)
+            call csminp%get('*FILES','PATHWT',PATHWT)
+            call csminp%get('*SIMULATION CONTROL','RSEED1',RSEED1)
+            call csminp%get('*SIMULATION CONTROL','MEWTH',MEWTH)
 
         CALL GETLUN('FILEW', LUNWTH)
 
@@ -141,12 +133,55 @@ C     The components are copied into local variables for use here.
 !     Don't re-initialize for sequence and seasonal runs
       IF (INDEX('FQ',RNMODE) > 0 .AND. RUN > 1) RETURN
 
-      OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR /= 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-      READ (LUNIO,'(11(/),15X,A12,1X,A80)',IOSTAT=ERR) FILEW, PATHWT
-      IF (ERR /= 0) CALL ERROR(ERRKEY,ERR,FILEIO,12)
-      CLOSE (LUNIO)
+      call csminp%get('*FILES','FILEW',FILEW)
+      call csminp%get('*FILES','PATHWT',PATHWT)
 
+      if(nc_wth%yes) then
+
+        CALL PUT('WEATHER','WSTA',FILEW(1:8))
+
+
+        INSI  = 'KSAS'
+        XLAT  = -99.
+        XLONG = -99.
+        XELEV = -99.
+        TAV   = -99.
+        TAMP  = -99.
+        REFHT = -99.
+        WINDHT= -99.
+        CCO2  = -99.
+        call csminp%get('*FIELDS','YCRD',XLAT)
+        call csminp%get('*FIELDS','XCRD',XLONG)
+        call read_nc_wth_sta(XELEV,TAV,TAMP,REFHT,WINDHT)
+        CCO2  = -99. 
+        NRecords = 0
+
+        CALL YR_DOY(YRSIM,YR,ISIM)
+        IF (YRDOY == YRSIM) THEN
+           YRDOY_WY = INCYD(YRSIM,-1)
+        ENDIF
+
+        IF (REFHT <= 0.) REFHT = 1.5
+        IF (WINDHT <= 0.) WINDHT = 2.0
+        IF (TAV  .LE. 0.0) THEN       
+!       IF (TAV  .LT. 0.0) THEN       
+          TAV = 20.0
+          WRITE(MSG(1), 100)
+          WRITE(MSG(2), 120) TAV
+          WRITE(MSG(3), 130)
+         CALL WARNING (3, ERRKEY, MSG)
+        ENDIF
+        IF (TAMP .LE. 0.0) THEN
+!       IF (TAMP .LT. 0.0) THEN
+          TAMP = 5.0
+          WRITE(MSG(1), 110)
+          WRITE(MSG(2), 120) TAMP
+          WRITE(MSG(3), 130)
+
+          CALL WARNING (3, ERRKEY, MSG)
+        ENDIF
+
+      else
       WYEAR = (ICHAR(FILEW(5:5)) - 48)*10 + (ICHAR(FILEW(6:6)) - 48)
       NYEAR = (ICHAR(FILEW(7:7)) - 48)*10 + (ICHAR(FILEW(8:8)) - 48)
       IF (LastWeatherDay > FirstWeatherDay) THEN
@@ -371,6 +406,8 @@ C       Substitute default values if REFHT or WINDHT are missing.
         ENDIF
       ENDIF
 
+      end if
+
       YRDOYWY = INCYD(YRSIM,-1)
       IF (MULTI > 1) THEN
         YRDOY_WY = YRDOYWY
@@ -380,14 +417,21 @@ C       Substitute default values if REFHT or WINDHT are missing.
 
       IF (NRecords == 0) THEN
 !       Use YRDOY_WY here (different argument than next call)
-        CALL IpWRec(CONTROL, MaxRecords,
+         if(nc_wth%yes)then
+            CALL read_nc_wth(CONTROL, MaxRecords, YRDOYWY,       !Input
+     &           FirstWeatherDay, LastWeatherDay, DCO2_A, PAR_A, !Output
+     &           RAIN_A, RHUM_A, SRAD_A, TDEW_A, TMAX_A,         !Output
+     &           TMIN_A, VAPR_A, WINDSP_A, YRDOY_A, NRecords)    !Output
+         else
+            CALL IpWRec(CONTROL, MaxRecords,
      &    COL, ICOUNT, FILEWW, HEADER, LINWTH,            !Input
-     &    LUNWTH, YRDOY_WY,                               !Input
+     &    LUNWTH, YRDOY_WY,mewth,                         !Input
      &    ErrCode, FirstWeatherDay, LastWeatherDay,       !Output
      &    LineNumber, LongFile, NRecords, DCO2_A, PAR_A,  !Output
      &    RAIN_A, RHUM_A, SRAD_A, TDEW_A, TMAX_A,         !Output
-     &    TMIN_A, VAPR_A, WINDSP_A, YRDOY_A, YREND)       !Output
-        IF (ErrCode > 0) RETURN 
+     &    TMIN_A, VAPR_A, WINDSP_A, YRDOY_A, YREND) !Output
+         end if
+            IF (ErrCode > 0) RETURN
       ENDIF
 
 !     Set weather values for initialization to the day before start of simulation
@@ -458,6 +502,7 @@ C       Substitute default values if REFHT or WINDHT are missing.
       ELSEIF (DYNAMIC == RATE) THEN
 !-----------------------------------------------------------------------
       IF (YRDOY > LastWeatherDay) THEN
+        if(.not.nc_wth%yes)then
 !       StartReadDate = YRDOY
         YRSIMMY = INCYD(YRDOY,-1)
         CALL YR_DOY(YRDOY, YEAR, DOY)
@@ -525,14 +570,15 @@ C         Read in weather file header.
 
 !       Read in another batch of data
 !       Use YRDOYWY here (different argument than previous call)
-        CALL IpWRec(CONTROL, MaxRecords, 
+            CALL IpWRec(CONTROL, MaxRecords, 
      &    COL, ICOUNT, FILEWW, HEADER, LINWTH,            !Input
-     &    LUNWTH, YRDOYWY,                                !Input
+     &    LUNWTH, YRDOYWY,mewth,                          !Input
      &    ErrCode, FirstWeatherDay, LastWeatherDay,       !Output
      &    LineNumber, LongFile, NRecords, DCO2_A, PAR_A,  !Output
      &    RAIN_A, RHUM_A, SRAD_A, TDEW_A, TMAX_A,         !Output
      &    TMIN_A, VAPR_A, WINDSP_A, YRDOY_A, YREND)       !Output
-        IF (ErrCode > 0) RETURN 
+         IF (ErrCode > 0) RETURN 
+      end if
       ENDIF
 
       YRDOYWY = INCYD(YRDOY,-1)
@@ -684,7 +730,7 @@ C         Read in weather file header.
 
       SUBROUTINE IpWRec(CONTROL, MaxRecords,
      &    COL, ICOUNT, FILEWW, HEADER, LINWTH,            !Input
-     &    LUNWTH, YRDOYWY,                                !Input
+     &    LUNWTH, YRDOYWY,mewth,                          !Input
      &    ErrCode, FirstWeatherDay, LastWeatherDay,       !Output
      &    LineNumber, LongFile, NRecords, DCO2_A, PAR_A,  !Output
      &    RAIN_A, RHUM_A, SRAD_A, TDEW_A, TMAX_A,         !Output
@@ -692,13 +738,14 @@ C         Read in weather file header.
 
 !-----------------------------------------------------------------------
       USE ModuleDefs
+      use dssat_netcdf
       IMPLICIT NONE
       SAVE
 
       INTEGER MaxRecords
 
       TYPE (ControlType) CONTROL
-      CHARACTER*1  RNMODE
+      CHARACTER*1  RNMODE,mewth
       CHARACTER*6, PARAMETER :: ERRKEY = "IPWTH "
       CHARACTER*78 MSG(2)
       CHARACTER*120 LINE  
@@ -706,7 +753,7 @@ C         Read in weather file header.
 
       INTEGER CENTURY, ERR, ErrCode, FOUND, LINWTH, LUNWTH, MULTI, RUN  
       INTEGER YRDOY, YRDOYW, YRDOYWY, YRDOY_start, YREND, YRSIM
-      INTEGER YRDOYW_SAVE
+      INTEGER YRDOYW_SAVE,incyd
 
       REAL PAR, RAIN, SRAD, TDEW, TMAX, TMIN, WINDSP, RHUM, VAPR, DCO2
 
@@ -725,6 +772,7 @@ C         Read in weather file header.
       CHARACTER*15  HEADER(MAXCOL)
 !     COL keeps beginning and ending column for each header
       INTEGER COL(MAXCOL,2), ICOUNT, C1, C2, I
+      real time(MaxRecords)
 
       MULTI  = CONTROL % MULTI
       RNMODE = CONTROL % RNMODE
@@ -754,7 +802,7 @@ C         Read in weather file header.
 
       CENTURY = INT(YRSIM / 100000.)
 
-      DO WHILE (.TRUE.)   !.NOT. EOF(LUNWTH)
+        DO WHILE (.TRUE.)   !.NOT. EOF(LUNWTH)
 !       Read array of weather records for this calendar year 
 !       starting with simulation start date and ending at end 
 !       of file or at MaxRecords # of records

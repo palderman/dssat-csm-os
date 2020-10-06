@@ -40,7 +40,6 @@ C-----------------------------------------------------------------------
 
       CHARACTER*1  IDETL, IDETN
       CHARACTER*13 PNBAL
-      CHARACTER*30 FILEIO
 
       INTEGER DYNAMIC, ERRNUM, YRDOY
       INTEGER YRSIM, RUN, LUNPNC
@@ -66,7 +65,6 @@ C-----------------------------------------------------------------------
       IF (IDETL .EQ. 'N' .OR. IDETN .EQ. 'N') RETURN
 
       DYNAMIC = CONTROL % DYNAMIC
-      FILEIO  = CONTROL % FILEIO
       RUN     = CONTROL % RUN
       YRDOY   = CONTROL % YRDOY
       YRSIM   = CONTROL % YRSIM
@@ -84,7 +82,6 @@ C-----------------------------------------------------------------------
         WRITE(LUNPNC,'("*PLANT N BALANCE")')
       ENDIF
 
-!      CALL HEADER(RUNINIT, FILEIO, LUNPNC, RUN)
       CALL HEADER(RUNINIT, LUNPNC, RUN)
 !     ------------------------------------------------------------------
 !       Sum the N accumulated in all plant components.
