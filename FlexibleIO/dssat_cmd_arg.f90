@@ -13,23 +13,64 @@ contains
     implicit none
 
     logical is_present
+    integer len_tmp
     character(len=*) string
-    character(len=10000) tmp
+    character(len=:),allocatable :: tmp
 
+    call get_command(length=len_tmp)
+
+    allocate(character(len=len_tmp)::tmp)
+    
     call get_command(tmp)
 
     is_present = index(tmp,string)>0
 
   end function cmd_arg_present
+  
+  subroutine find_cmd_arg_alloc(string,arg)
 
+    implicit none
+
+    integer          :: pos1,pos2
+    integer          :: len_tmp
+
+    character(len=*) :: string
+    character(len=:),allocatable :: tmp,arg
+
+    call get_command(length=len_tmp)
+
+    allocate(character(len=len_tmp)::tmp)
+
+    call get_command(tmp)
+    pos1 = index(tmp,string)
+    if(pos1>0)then
+       pos1 = index(tmp(pos1:),'=') + pos1
+       pos2 = pos1 + index(tmp(pos1:),' ') - 2
+       if(pos2 < pos1) pos2 = len(tmp)
+       len_tmp = pos2 - pos1 + 1
+       allocate(character(len=len_tmp)::arg)
+       arg = tmp(pos1:pos2)
+       return
+    else
+       allocate(character(len=1)::arg)
+       arg = ' '
+    end if
+
+  end subroutine find_cmd_arg_alloc
+  
   subroutine find_cmd_arg(string,arg)
 
       implicit none
 
       integer          :: pos1,pos2
+      integer          :: len_tmp
 
       character(len=*) :: string,arg
-      character(len=10000) :: tmp
+      character(len=:),allocatable :: tmp
+
+      call get_command(length=len_tmp)
+
+      allocate(character(len=len_tmp)::tmp)
 
       call get_command(tmp)
       pos1 = index(tmp,string)
@@ -51,9 +92,14 @@ contains
 
       character(len=*)   :: string
       real               :: arg
-      character(len=1000) :: tmp
       character(len=:),allocatable :: afmt
       integer            :: tlen
+      integer            :: len_tmp
+      character(len=:),allocatable :: tmp
+
+      call get_command(length=len_tmp)
+
+      allocate(character(len=len_tmp)::tmp)
 
       call find_cmd_arg(string,tmp)
 
@@ -76,9 +122,14 @@ contains
 
       character(len=*)   :: string
       integer            :: arg
-      character(len=1000) :: tmp
       character(len=:),allocatable :: afmt
       integer            :: tlen
+      integer            :: len_tmp
+      character(len=:),allocatable :: tmp
+
+      call get_command(length=len_tmp)
+
+      allocate(character(len=len_tmp)::tmp)
 
       call find_cmd_arg(string,tmp)
 
@@ -98,8 +149,7 @@ contains
 
       implicit none
 
-      character(len=*)   :: string
-      character(len=*)   :: arg
+      character(len=*)   :: string,arg
 
       call find_cmd_arg(string,arg)
 

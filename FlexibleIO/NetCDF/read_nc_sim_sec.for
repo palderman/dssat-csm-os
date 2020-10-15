@@ -384,7 +384,18 @@ C
             IDETN = UPCASE(IDETN)
             IDETP = UPCASE(IDETP)
             IDETD = UPCASE(IDETD)    
-            FMOPT = UPCASE(FMOPT)   ! VSH
+            FMOPT = UPCASE(FMOPT) ! VSH
+!           FMOPT = 'A': ASCII format output
+!           FMOPT = 'C': CSV format output
+!           By default, use ASCII outputs
+            IF (INDEX('CA',FMOPT) < 1) FMOPT = 'A'
+
+!           IDETL = VBOSE.
+!             0  Only Summary.OUT
+!             N  Minimal output
+!             Y  Normal output
+!             D  Detailed output
+!             A  All outputs
             IF (IDETL .EQ. ' ') THEN
                IDETL = 'N'
             ENDIF
@@ -398,6 +409,7 @@ C
             ENDIF
             IDETR = UPCASE(IDETR)
 
+            IDETL = '0'
 !           Verbose output switch
             IF (IDETL == '0') THEN
 !             VBOSE = zero, suppress all output except Summary and Evaluate
@@ -734,7 +746,58 @@ C-----------------------------------------------------------------------
         MODEL = CONTROL % MODEL 
 !       MESIC = CONTROL % MESIC     
         FROP  = CONTROL % FROP
-        
+
+        call csminp%put('*SIMULATION CONTROL','NYRS',NYRS)
+        call csminp%put('*SIMULATION CONTROL','ISIMI',ISIMI)
+        call csminp%put('*SIMULATION CONTROL','YRSIM',YRSIM)
+        call csminp%put('*SIMULATION CONTROL','MODEL',MODEL)
+        call csminp%put('*SIMULATION CONTROL','ISWWAT',ISWWAT)
+        call csminp%put('*SIMULATION CONTROL','ISWNIT',ISWNIT)
+        call csminp%put('*SIMULATION CONTROL','ISWSYM',ISWSYM)
+        call csminp%put('*SIMULATION CONTROL','ISWPHO',ISWPHO)
+        call csminp%put('*SIMULATION CONTROL','ISWPOT',ISWPOT)
+        call csminp%put('*SIMULATION CONTROL','ISWDIS',ISWDIS)
+        call csminp%put('*SIMULATION CONTROL','ISWCHE',ISWCHE)
+        call csminp%put('*SIMULATION CONTROL','ISWTIL',ISWTIL)
+        call csminp%put('*SIMULATION CONTROL','ICO2',ICO2)
+        call csminp%put('*SIMULATION CONTROL','MEWTH',MEWTH)
+!        call csminp%put('*SIMULATION CONTROL','MESIC',MESIC)
+        call csminp%put('*SIMULATION CONTROL','MELI',MELI)
+        call csminp%put('*SIMULATION CONTROL','MEEVP',MEEVP)
+        call csminp%put('*SIMULATION CONTROL','MEINF',MEINF)
+        call csminp%put('*SIMULATION CONTROL','MEPHO',MEPHO)
+        call csminp%put('*SIMULATION CONTROL','MEHYD',MEHYD)
+        call csminp%put('*SIMULATION CONTROL','MESOM',MESOM)
+        call csminp%put('*SIMULATION CONTROL','MESEV',MESEV)
+        call csminp%put('*SIMULATION CONTROL','MESOL',MESOL)
+        call csminp%put('*SIMULATION CONTROL','METMP',METMP)
+        call csminp%put('*SIMULATION CONTROL','NSWITCH',NSWITCH)
+        call csminp%put('*SIMULATION CONTROL','IPLTI',IPLTI)
+        call csminp%put('*SIMULATION CONTROL','IIRRI',IIRRI)
+        call csminp%put('*SIMULATION CONTROL','IFERI',IFERI)
+        call csminp%put('*SIMULATION CONTROL','IRESI',IRESI)
+        call csminp%put('*SIMULATION CONTROL','IHARI',IHARI)
+        call csminp%put('*SIMULATION CONTROL','IOX',IOX)
+        call csminp%put('*SIMULATION CONTROL','IDETO',IDETO)
+        call csminp%put('*SIMULATION CONTROL','IDETS',IDETS)
+        call csminp%put('*SIMULATION CONTROL','FROP',FROP)
+        call csminp%put('*SIMULATION CONTROL','IDETG',IDETG)
+        call csminp%put('*SIMULATION CONTROL','IDETC',IDETC)
+        call csminp%put('*SIMULATION CONTROL','IDETW',IDETW)
+        call csminp%put('*SIMULATION CONTROL','IDETN',IDETN)
+        call csminp%put('*SIMULATION CONTROL','IDETP',IDETP)
+        call csminp%put('*SIMULATION CONTROL','IDETD',IDETD)
+        call csminp%put('*SIMULATION CONTROL','IDETL',IDETL)
+        call csminp%put('*SIMULATION CONTROL','IDETH',IDETH)
+        call csminp%put('*SIMULATION CONTROL','IDETR',IDETR)
+        call csminp%put('*SIMULATION CONTROL','RIP',RIP)
+        call csminp%put('*SIMULATION CONTROL','NRESDL',NRESDL)
+        call csminp%put('*SIMULATION CONTROL','DRESMG',DRESMG)
+        call csminp%put('*SIMULATION CONTROL','HDLAY',HDLAY)
+        call csminp%put('*SIMULATION CONTROL','HLATE',HLATE)
+        call csminp%put('*SIMULATION CONTROL','HPP',HPP)
+        call csminp%put('*SIMULATION CONTROL','HRP',HRP)
+
       ENDIF
 
       CALL PUT(CONTROL)  

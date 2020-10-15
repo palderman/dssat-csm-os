@@ -57,6 +57,8 @@
       integer,dimension(3) :: start,count
       integer dimid, t_size
 
+      real round_real
+
       MULTI  = CONTROL % MULTI
       RNMODE = CONTROL % RNMODE
       RUN    = CONTROL % RUN
@@ -109,6 +111,24 @@
             NRecords = NRecords + 1
          end if
       end do
+
+      if(cmd_arg_present('--mimic_inp'))then
+         do i=1,NRecords
+            
+            SRAD_A(i) = round_real(SRAD_A(i),6,1)
+            TMAX_A(i) = round_real(TMAX_A(i),6,1)
+            TMIN_A(i) = round_real(TMIN_A(i),6,1)
+            RAIN_A(i) = round_real(RAIN_A(i),6,1)
+            TDEW_A(i) = round_real(TDEW_A(i),6,1)
+            WINDSP_A(i) = round_real(WINDSP_A(i),6,0)
+            PAR_A(i) = round_real(PAR_A(i),6,1)
+            RHUM_A(i) = round_real(RHUM_A(i),6,1)
+            VAPR_A(i) = round_real(VAPR_A(i),6,2)
+            DCO2_A(i) = round_real(DCO2_A(i),6,1)
+
+         end do
+      end if
+      
       FirstWeatherDay = YRDOY_A(1)
       LastWeatherDay = YRDOY_A(NRecords)
       lastrec = 0

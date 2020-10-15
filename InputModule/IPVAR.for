@@ -24,6 +24,7 @@ C  02/25/2012 JZW add the PHINT data reading from *.cul for RICER
 C  08/09/2012 GH  Updated for cassava
 !  04/16/2013 CHP/KAD Added SALUS model
 !  05/09/2013 CHP/FR/JZW Added N-wheat module
+!  01/21/2020 JG moved some CUL parameters to ECO file
 C-----------------------------------------------------------------------
 C  INPUT  : FILEG,NSENS,VARNO,VARTY,VRNAME,PATHGE,ECONO
 C
@@ -105,6 +106,32 @@ C=======================================================================
       REAL  ADLAI,ADTIL,ADPHO,STEMN,MXNUP,MXNCR,WFNU
       REAL  PNUPR,EXNO3,MNNO3,EXNH4,MNNH4,INGWT,INGNC,FREAR
       REAL  MNNCR,GPPSS,GPPES,MXGWT,MNRTN,NOMOB,RTDP1,RTDP2
+
+      !---SAMUCA's cultivar parameters (MV, jan-2020)
+      real    maxgl_r
+      real    n_lf_when_stk_emerg_r
+      real    n_lf_it_form_r
+      real    maxdgl_r
+      real    amax
+      real    eff
+      real    chustk
+      real    chupeak
+      real    chudec
+      real    chumat
+      real    popmat
+      real    poppeak
+      real    tillochron
+      real    phyllochron
+      real    sla
+      real    mla
+      real    plastochron
+      real    init_leaf_area
+      real    max_ini_la
+      real    max_it_dw
+      real    mid_tt_it_growth
+      real    end_tt_it_growth
+      real    mid_tt_lf_growth
+      real    end_tt_lf_growth
 
       PARAMETER (LUNVAR = 19)
       PARAMETER (ERRKEY = 'IPVAR ')
@@ -368,9 +395,35 @@ C-LPM  Add CIAT cassava model
 !     CASSAVA: cassava **
       CASE ('CSYCA')
           READ (C360,821,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO, 
-     &      PPS1, B01ND, B12ND, BR1FX, BR2FX, BR3FX, BR4FX, 
+     &      B01ND, B12ND, B23ND, BR1FX, BR2FX, BR3FX, BR4FX, 
      &      LAXS, SLASS, LLIFA, LPEFR, LNSLP, NODWT, NODLT 
 
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &       real_name=(/'B01ND','B12ND','B23ND',
+     &                   'BR1FX','BR2FX','BR3FX','BR4FX',
+     &                   'LAXS ','SLASS','LLIFA','LPEFR','LNSLP',
+     &                   'NODWT','NODLT'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','B01ND',B01ND)
+        call csminp%put('*CULTIVARS','B12ND',B12ND)
+        call csminp%put('*CULTIVARS','B23ND',B23ND)
+        call csminp%put('*CULTIVARS','BR1FX',BR1FX)
+        call csminp%put('*CULTIVARS','BR2FX',BR2FX)
+        call csminp%put('*CULTIVARS','BR3FX',BR3FX)
+        call csminp%put('*CULTIVARS','BR4FX',BR4FX)
+        call csminp%put('*CULTIVARS','LAXS',LAXS)
+        call csminp%put('*CULTIVARS','SLASS',SLASS)
+        call csminp%put('*CULTIVARS','LLIFA',LLIFA)
+        call csminp%put('*CULTIVARS','LPEFR',LPEFR)
+        call csminp%put('*CULTIVARS','LNSLP',LNSLP)
+        call csminp%put('*CULTIVARS','NODWT',NODWT)
+        call csminp%put('*CULTIVARS','NODLT',NODLT)
+        
 !     Ceres-wheat: wheat, barley **
       CASE ('CSCER')
 !       READ (C360, 800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
@@ -401,14 +454,31 @@ C-LPM  Add CIAT cassava model
 
 !     APSIM-NWheat wheat  **
 !     Tef model based on APSIM-NWheat created by KEP **
+!     JG moved CUL parameters to ECO file 01/21/2020
       CASE ('WHAPS','TFAPS')
         READ (C360,850,IOSTAT=ERRNUM)
      &            VARTY,VRNAME,ECONO,VSEN,PPSEN,P2,P5,PHINT,GRNO,MXFIL,
-     &            STMMX,SLAP1,SLAP2,TC1P1,TC1P2,DTNP1,PLGP1,PLGP2,
-     &            P2AF,P3AF,P4AF,P5AF,P6AF,
-     &            ADLAI,ADTIL,ADPHO,STEMN,MXNUP,MXNCR,WFNU,
-     &            PNUPR,EXNO3,MNNO3,EXNH4,MNNH4,INGWT,INGNC,FREAR,
-     &            MNNCR,GPPSS,GPPES,MXGWT,MNRTN,NOMOB,RTDP1,RTDP2
+     &            STMMX,SLAP1
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &       real_name=(/'VSEN ','PPSEN','P2   ','P5   ','PHINT',
+     &                   'GRNO ','MXFIL','STMMX','SLAP1'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','VSEN',VSEN)
+        call csminp%put('*CULTIVARS','PPSEN',PPSEN)
+        call csminp%put('*CULTIVARS','P2',P2)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVARS','GRNO',GRNO)
+        call csminp%put('*CULTIVARS','MXFIL',MXFIL)
+        call csminp%put('*CULTIVARS','STMMX',STMMX)
+        call csminp%put('*CULTIVARS','SLAP1',SLAP1)
+
 
 !     Ceres Maize: maize, sweet corn **
       CASE ('MZCER','SWCER')
@@ -438,6 +508,25 @@ C-LPM  Add CIAT cassava model
         READ (C360,'(A6,1X,A16,7X,A6,9F6.0)',IOSTAT=ERRNUM)         
      &        VARTY,VRNAME,ECONO,P1,P2,P5,G2,G3,PHYL1,PHYL2,FRSUG,DRCER
 !WDB** end changes
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   '/),
+     &       real_name=(/'P1   ','P2   ','P5   ','G2   ','G3   ',
+     &                   'PHYL1','PHYL2','FRSUG','DRCER'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P2',P2)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','G2',G2)
+        call csminp%put('*CULTIVARS','G3',G3)
+        call csminp%put('*CULTIVARS','PHYL1',PHYL1)
+        call csminp%put('*CULTIVARS','PHYL2',PHYL2)
+        call csminp%put('*CULTIVARS','FRSUG',FRSUG)
+        call csminp%put('*CULTIVARS','DRCER',DRCER)
 
 !     Ixim maize **
       CASE ('MZIXM')
@@ -613,14 +702,14 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
 !     &            PLAINTXT
 !        ECONO = '      '
 
-        call csminp%add_sec('*CULTIVARS')
+!        call csminp%add_sec('*CULTIVARS')
 
-        call csminp%add_var('*CULTIVARS',
-     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/))
+!        call csminp%add_var('*CULTIVARS',
+!     &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
+!        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+!        call csminp%put('*CULTIVARS','ECONO',ECONO)
+!        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
 
 !     CaneGro: South African Sugarcane model **
       CASE ('SCCAN') 
@@ -741,6 +830,96 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
         call csminp%put('*CULTIVARS','RLF30C',RLF30C)
         call csminp%put('*CULTIVARS','R30C2',R30C2)
 
+!MV   SAMuCA: Agronomic Modular Simulator for Sugarcane
+!     Simulador Agronomico Modular de Cana-de-Acucar
+      CASE ('SCSAM') 
+        READ (C360,1070,IOSTAT=ERRNUM) VARTY, VRNAME, ECONO,
+     &      maxgl_r       		     ,
+     &      n_lf_when_stk_emerg_r    ,
+     &      n_lf_it_form_r           ,
+     &      maxdgl_r       		     ,
+     &      amax       			     ,
+     &      eff       			     ,
+     &      chustk       		     ,
+     &      chupeak     		     ,
+     &      chudec     			     ,
+     &      chumat     			     ,
+     &      popmat     			     ,
+     &      poppeak      		     ,
+     &      tillochron      	     ,
+     &      phyllochron     	     ,
+     &      sla       			     ,
+     &      mla       			     ,
+     &      plastochron       	     ,
+     &      init_leaf_area           ,
+     &      max_ini_la       	     ,
+     &      max_it_dw                ,
+     &      mid_tt_it_growth         ,
+     &      end_tt_it_growth         ,
+     &      mid_tt_lf_growth         ,
+     &      end_tt_lf_growth
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &       char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &       real_name=(/'maxgl_r              ',
+     &                   'n_lf_when_stk_emerg_r',
+     &                   'n_lf_it_form_r       ',
+     &                   'maxdgl_r             ',
+     &                   'amax                 ',
+     &                   'eff                  ',
+     &                   'chustk               ',
+     &                   'chupeak              ',
+     &                   'chudec               ',
+     &                   'chumat               ',
+     &                   'popmat               ',
+     &                   'poppeak              ',
+     &                   'tillochron           ',
+     &                   'phyllochron          ',
+     &                   'sla                  ',
+     &                   'mla                  ',
+     &                   'plastochron          ',
+     &                   'init_leaf_area       ',
+     &                   'max_ini_la           ',
+     &                   'max_it_dw            ',
+     &                   'mid_tt_it_growth     ',
+     &                   'end_tt_it_growth     ',
+     &                   'mid_tt_lf_growth     ',
+     &                   'end_tt_lf_growth     '/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','maxgl_r',maxgl_r)
+        call csminp%put('*CULTIVARS','n_lf_when_stk_emerg_r',
+     &                    n_lf_when_stk_emerg_r)
+        call csminp%put('*CULTIVARS','n_lf_it_form_r',n_lf_it_form_r)
+        call csminp%put('*CULTIVARS','maxdgl_r',maxdgl_r)
+        call csminp%put('*CULTIVARS','amax',amax)
+        call csminp%put('*CULTIVARS','eff',eff)
+        call csminp%put('*CULTIVARS','chustk',chustk)
+        call csminp%put('*CULTIVARS','chupeak',chupeak)
+        call csminp%put('*CULTIVARS','chudec',chudec)
+        call csminp%put('*CULTIVARS','chumat',chumat)
+        call csminp%put('*CULTIVARS','popmat',popmat)
+        call csminp%put('*CULTIVARS','poppeak',poppeak)
+        call csminp%put('*CULTIVARS','tillochron',tillochron)
+        call csminp%put('*CULTIVARS','phyllochron',phyllochron)
+        call csminp%put('*CULTIVARS','sla',sla)
+        call csminp%put('*CULTIVARS','mla',mla)
+        call csminp%put('*CULTIVARS','plastochron',plastochron)
+        call csminp%put('*CULTIVARS','init_leaf_area',init_leaf_area)
+        call csminp%put('*CULTIVARS','max_ini_la',max_ini_la)
+        call csminp%put('*CULTIVARS','max_it_dw',max_it_dw)
+        call csminp%put('*CULTIVARS','mid_tt_it_growth',
+     &                     mid_tt_it_growth)
+        call csminp%put('*CULTIVARS','end_tt_it_growth',
+     &                     end_tt_it_growth)
+        call csminp%put('*CULTIVARS','mid_tt_lf_growth',
+     &                     mid_tt_lf_growth)
+        call csminp%put('*CULTIVARS','end_tt_lf_growth',
+     &                     end_tt_lf_growth)
+
 !     Taro, tanier **
       CASE ('TRARO','TNARO')
         READ (C360,800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
@@ -774,6 +953,25 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
       CASE ('PIALO')
         READ (C360,800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
      &           P1,P2,P3,P4,P5,P6,G2,G3,PHINT
+
+        call csminp%add_sec('*CULTIVARS')
+
+        call csminp%add_var('*CULTIVARS',
+     &     char_name=(/'VARNO ','VRNAME','ECONO '/),
+     &     real_name=(/'P1   ','P2   ','P3   ','P4   ','P5   ','P6   ',
+     &                 'G2   ','G3   ','PHINT'/))
+
+        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVARS','ECONO',ECONO)
+        call csminp%put('*CULTIVARS','P1',P1)
+        call csminp%put('*CULTIVARS','P2',P2)
+        call csminp%put('*CULTIVARS','P3',P3)
+        call csminp%put('*CULTIVARS','P4',P4)
+        call csminp%put('*CULTIVARS','P5',P5)
+        call csminp%put('*CULTIVARS','P6',P6)
+        call csminp%put('*CULTIVARS','G2',G2)
+        call csminp%put('*CULTIVARS','G3',G3)
+        call csminp%put('*CULTIVARS','PHINT',PHINT)
 
       END SELECT
 
@@ -810,7 +1008,6 @@ C-----------------------------------------------------------------------
      &      /,2X,'NO.',1X,'ENTRY',3X,'VARIETY',22X,'GROUP',5X,'GROUP',
      &      /,2X,'---',1X,'------',2X,20('-'),8X,'-------',2X,
      &           '--------')
-! 110 FORMAT (A6,1X,A16,1X,A6,6X,A2)
   110 FORMAT (A6,1X,A16,7X,A6)
   120 FORMAT (I4,') ',A6,2X,A16,13X,A6,6X,A2)
   300 FORMAT (/,'  More.... press < ENTER > key')
@@ -820,25 +1017,16 @@ C-----------------------------------------------------------------------
   500 FORMAT (6X,'ERROR! Variety Selection must be between 1 & ',I3,/)
   510 FORMAT (6X,'ERROR! Variety Selection must be an INTEGER value',/)
 
-! 800 FORMAT (A6,1X,A16,1X,A6,15(F6.0))
-  800 FORMAT (A6,1X,A16,7X,A6,21F6.0)                     !11/8/07
+  800 FORMAT (A6,1X,A16,7X,A6,21F6.0)      !11/8/07
 
-
-  810 FORMAT (A6,1X,A16,7X,A6,20F6.0,A)         !WHCRP, BACRP 03/16/2010
-C 820 FORMAT (A6,1X,A16,7X,A6,22F6.0,A)         !CSCAS        04/25/2013
-  820 FORMAT (A6,1X,A16,7X,A6,21F6.0,A)         !CSCAS        02/18/2014
-     
-  821 FORMAT (A6,1X,A16,7X,A6,20F6.0)         !CSYCA        01/11/2019 
-
-  830 FORMAT (A6,1X,A16,7X,A6,7F6.0,A)          !WHCER, BACER 03/16/2010
-  850 FORMAT (A6,1X,A16,7X,A6,43F6.0,A) 
-! 1050 FORMAT (A6,1X,A16,7X,A6,9F6.0,1X,I5,3F6.0)          !11/8/07
- 1055 FORMAT (A6,1X,A16,7X,A6,44F6.0)                   !02/10/2009 
-!!! 1055 FORMAT (A6,1X,A16,7X,A6,37F6.0,G8.0,4F6.1)       !02/10/2009 
- ! 1060 FORMAT (A6,1X,A16,7X,A6,44F15.0)                   !02/10/2009 
- 1060 FORMAT (A6,1X,A16,7X,A6,22F15.0)                   !02/21/2018 
-
-!1500 FORMAT (A6,1X,A16,1X,A255)
- 1500 FORMAT (A6,1X,A16,7X,A)                             !11/8/07
+  810 FORMAT (A6,1X,A16,7X,A6,20F6.0,A)    !WHCRP, BACRP 03/16/2010
+  820 FORMAT (A6,1X,A16,7X,A6,21F6.0,A)    !CSCAS        02/18/2014
+  821 FORMAT (A6,1X,A16,7X,A6,14F6.0)      !CSYCA        07/15/2019 
+  830 FORMAT (A6,1X,A16,7X,A6,7F6.0,A)     !WHCER, BACER 03/16/2010
+  850 FORMAT (A6,1X,A16,7X,A6,9F6.0,A)     !JG moved parameters to ECO, 01/09/2020
+ 1055 FORMAT (A6,1X,A16,7X,A6,44F6.0)      ! 02/10/2009 
+ 1060 FORMAT (A6,1X,A16,7X,A6,22F15.0)     ! 02/21/2018 
+ 1070 FORMAT (A6,1X,A16,7X,A6,24F15.0)     ! 01/07/2020 (SAMUCA)
+ 1500 FORMAT (A6,1X,A16,7X,A)              ! 11/8/07
 
       END SUBROUTINE IPVAR

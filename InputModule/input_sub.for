@@ -162,6 +162,7 @@ C-SUN INTEGER       LNBLNK
       CHARACTER*102 DSSATP
       CHARACTER*80 PATHSL,PATHGE
       integer pos
+      real lat,lon
 
       PARAMETER (ERRKEY = 'INPUT ')
       PARAMETER (LUNIO  = 21)
@@ -247,6 +248,12 @@ C-----------------------------------------------------------------------
 
        call csminp%get('*FILES','FILES',FILES)
        call csminp%get('*FILES','PATHSL',PATHSL)
+
+      if(nc_wth%yes)then
+         call csminp%get('*FIELDS','XCRD',lon)
+         call csminp%get('*FIELDS','YCRD',lat)
+         call nc_wth%set_lat_lon(lat,lon)
+      end if
 C-----------------------------------------------------------------------
 C     Call IPSOIL
 C-----------------------------------------------------------------------

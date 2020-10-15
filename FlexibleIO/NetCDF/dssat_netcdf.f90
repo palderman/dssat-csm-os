@@ -135,13 +135,6 @@ module dssat_netcdf
 
       real(C_FLOAT)        :: elev,tav,tamp,refht,windht
 
-      call csminp%get('*FIELDS','XCRD',lon)
-      call csminp%get('*FIELDS','YCRD',lat)
-
-      call nc_wth%open()
-
-      call nc_wth%set_lat_lon(lat,lon)
-
       call nc_wth%read('ELEV',1,ELEV)
       call nc_wth%read('TAV',1,TAV)
       call nc_wth%read('AMP',1,TAMP)

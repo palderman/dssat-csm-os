@@ -81,6 +81,7 @@ C-----------------------------------------------------------------------
 !         'RICER' - CERES-Rice
 !         'SCCAN' - CANEGRO Sugarcane
 !         'SCCSP' - CASUPRO Sugarcane
+!         'SCSAM' - SAMUCA Sugarcane
 !         'SGCER' - CERES-Sorghum
 !         'SWCER' - CERES-Sweet corn
 !         'MZIXM' - IXIM Maize
@@ -587,7 +588,18 @@ c     Added by MJ, 2007-04-04:
 c     ::::::::::::::::::::::::
 c     Total LAI must exceed or be equal to healthy LAI:
           XLAI = MAX(XLAI, XHLAI)
-
+!     -------------------------------------------------
+!     Sugarcane - SAMUCA
+      CASE('SCSAM')
+          call SAMUCA(
+     &    CONTROL, ISWITCH,                                       !Input
+     &    CO2, DAYL, EOP, EP, EO, ES, HARVFRAC, NH4, NO3, SNOW,   !Input
+     &    SOILPROP, ST, SRAD, SW, TMAX, TMIN, TRWUP, TRWU, EOS,   !Input
+     &    RWUEP1, TWILEN, YREND, YRPLT, WEATHER, IRRAMT,          !Input
+     $    CANHT, HARVRES, KCAN, KTRANS, MDATE, NSTRES,            !Output
+     &    PORMIN, RLV, RWUMX,SENESCE, STGDOY, UNH4,               !Output
+     &    UNO3, XLAI, XHLAI, EORATIO)                             !Output)
+          
 !     -------------------------------------------------
 !     Sugarcane - CASUPRO
       CASE('SCCSP')
@@ -687,9 +699,15 @@ c     Total LAI must exceed or be equal to healthy LAI:
             end do
             cum_tot_esw = cum_tot_esw + tot_esw
             cum_rz_esw = cum_rz_esw + rz_esw
-            avg_tot_esw = cum_tot_esw/dap
-            avg_rz_esw  = cum_rz_esw/dap
-            avg_sw(1:soilprop%nlayr) = cum_sw(1:soilprop%nlayr)/dap
+            if(dap .gt. 0)then
+               avg_tot_esw = cum_tot_esw/dap
+               avg_rz_esw  = cum_rz_esw/dap
+               avg_sw(1:soilprop%nlayr) = cum_sw(1:soilprop%nlayr)/dap
+            else
+               avg_tot_esw = cum_tot_esw
+               avg_rz_esw  = cum_rz_esw
+               avg_sw(1:soilprop%nlayr) = cum_sw(1:soilprop%nlayr)
+            end if
          end if
 
 !***********************************************************************

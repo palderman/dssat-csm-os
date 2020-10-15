@@ -8,16 +8,15 @@ program run_mpi_dssat
 
   implicit none
 
-  integer i,ntrt
+  integer i,ntrt,len_arg
 
   ! Variables for MPI_Spawn_Multiple
   integer n_dssat,trt_start,trt_end,n_fields,sim,nyears
   character(len=1) :: rnmode
   character(len=2) :: crop_code
   character(len=3) :: rank_buff
-  character(len=100) :: cmd
-  character(len=1000):: dssat_args
-  character(len=120) :: filex_path
+  character(len=:),allocatable:: cmd
+  character(len=:),allocatable:: dssat_args
   character(len=120) :: out_file_name
   character(len=120) :: work_dir
 
@@ -28,6 +27,8 @@ program run_mpi_dssat
   character(len=:),allocatable :: varlist
 
   type(nf90_file) nf90_output
+
+  call get_command(length=len_arg)
 
   if(cmd_arg_present('--help'))then
      print *,"Example call:"
@@ -52,14 +53,13 @@ program run_mpi_dssat
 
   call get_dssat_arg('--work_dir',work_dir)
 
-  allocate(character(len=1000)::varlist)
-  call get_dssat_arg('--varlist',varlist)
+  call find_cmd_arg_alloc('--varlist',varlist)
   mpi_parent%varlist = trim(varlist)
   deallocate(varlist)
 
-  call get_dssat_arg('--call',cmd)
+  call find_cmd_arg_alloc('--call',cmd)
 
-  call get_dssat_arg('--dssat_args',dssat_args)
+  call find_cmd_arg_alloc('--dssat_args',dssat_args)
 
   call get_dssat_arg('--rnmode',rnmode)
   if(rnmode == ' ') rnmode = 'B'
@@ -113,7 +113,7 @@ program run_mpi_dssat
   call nf90_output%write_variable('season',(/1/),(/nyears/),&
        (/(i,i=1,nyears)/))
 
-  write(*,fmt="(a)",advance="no") "   Receiving data from DSSAT worker processes..."
+  write(*,fmt="(a)",advance="no") "   Waiting for DSSAT worker processes to complete..."
   call mpi_parent%receive_registries()
   write(*,fmt="(a)") "done."
 

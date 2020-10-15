@@ -551,7 +551,7 @@ C-----------------------------------------------------------------------
      &        IEPT,IOFF,IAME,DSOILN,SOILNC,YRSIM,SOILNX,NEND,RIP,NRESDL,
      &        DRESMG,HDLAY,HLATE,HPP,HRP,FTYPEN,RSEED1,LINEXP,AIRAMT,
      &        EFFIRR,CROP,FROP,MODEL,RNMODE,FILEX,
-     &        CONTROL, ISWITCH, UseSimCtr, FILECTL, MODELARG, YRPLT)
+     &     CONTROL, ISWITCH, UseSimCtr, FILECTL, MODELARG, YRPLT)
       else
          CALL IPSIM (LUNEXP,LNSIM,TITSIM,NYRS,RUN,NREPSQ,ISIMI,PWDINF,
      &     PWDINL,SWPLTL,NCODE,SWPLTH,SWPLTD,YEAR,PTX,PTTN,DSOIL,THETAC,
@@ -559,7 +559,7 @@ C-----------------------------------------------------------------------
      &        DRESMG,HDLAY,HLATE,HPP,HRP,FTYPEN,RSEED1,LINEXP,AIRAMT,
      &        EFFIRR,CROP,FROP,MODEL,RNMODE,FILEX,
      &        CONTROL, ISWITCH, UseSimCtr, FILECTL, MODELARG, YRPLT)
-         end if
+      end if
 
       call csminp%get('*SIMULATION CONTROL','ISWWAT',ISWWAT)
       call csminp%get('*SIMULATION CONTROL','ISWNIT',ISWNIT)
@@ -824,105 +824,6 @@ C-----------------------------------------------------------------------
 
       end if
 
-!-----------------------------------------------------------
-!       Write simulation control data to csm_input structure
-!-----------------------------------------------------------
-
-      if(.FALSE.)then
-      call csminp%add_sec('*SIMULATION CONTROL',ntiers=1)
-
-      call csminp%add_var('*SIMULATION CONTROL',tier=1,
-     &     char_name=(/'ISIMI ','TITSIM','MODEL ','ISWWAT','ISWNIT',
-     &                 'ISWSYM','ISWPHO','ISWPOT','ISWDIS','ISWCHE',
-     &                 'ISWTIL','ICO2  ','MEWTH ','MESIC ','MELI  ',
-     &                 'MEEVP ','MEINF ','MEPHO ','MEHYD ','MESOM ',
-     &                 'MESEV ','MESOL ','METMP ','IPLTI ','IIRRI ',
-     &                 'IFERI ','IRESI ','IHARI ','IOX   ','IDETO ',
-     &                 'IDETS ','IDETG ','IDETC ','IDETW ','IDETN ',
-     &                 'IDETP ','IDETD ','IDETL ','IDETH ','IDETR ',
-     &                 'IOFF  ','IAME  ','NCODE ','NEND  '/),
-     &     int_name=(/'LNSIM  ','NYRS   ','NREPSQ ','YRSIM  ','RSEED1 ',
-     &                'NSWITCH','FROP   ','PWDINF ','PWDINL ','NRESDL ',
-     &                'HDLAY  ','HLATE  '/),
-     &     real_name=(/'SWPLTL','SWPLTH','SWPLTD','PTX   ','PTTN  ',
-     &                 'DSOIL ','THETAC','IEPT  ','AIRAMT','EFFIRR',
-     &                 'DSOILN','SOILNC','SOILNX','RIP   ','DRESMG',
-     &                 'HPP   ','HRP   '/))
-
-      call csminp%put('*SIMULATION CONTROL','ISIMI',ISIMI)
-      call csminp%put('*SIMULATION CONTROL','TITSIM',TITSIM)
-      call csminp%put('*SIMULATION CONTROL','MODEL',MODEL)
-      call csminp%put('*SIMULATION CONTROL','ISWWAT',ISWWAT)
-      call csminp%put('*SIMULATION CONTROL','ISWNIT',ISWNIT)
-      call csminp%put('*SIMULATION CONTROL','ISWSYM',ISWSYM)
-      call csminp%put('*SIMULATION CONTROL','ISWPHO',ISWPHO)
-      call csminp%put('*SIMULATION CONTROL','ISWPOT',ISWPOT)
-      call csminp%put('*SIMULATION CONTROL','ISWDIS',ISWDIS)
-      call csminp%put('*SIMULATION CONTROL','ISWCHE',ISWCHE)
-      call csminp%put('*SIMULATION CONTROL','ISWTIL',ISWTIL)
-      call csminp%put('*SIMULATION CONTROL','ICO2',ICO2)
-      call csminp%put('*SIMULATION CONTROL','MEWTH',MEWTH)
-      call csminp%put('*SIMULATION CONTROL','MESIC',MESIC)
-      call csminp%put('*SIMULATION CONTROL','MELI',MELI)
-      call csminp%put('*SIMULATION CONTROL','MEEVP',MEEVP)
-      call csminp%put('*SIMULATION CONTROL','MEINF',MEINF)
-      call csminp%put('*SIMULATION CONTROL','MEPHO',MEPHO)
-      call csminp%put('*SIMULATION CONTROL','MEHYD',MEHYD)
-      call csminp%put('*SIMULATION CONTROL','MESOM',MESOM)
-      call csminp%put('*SIMULATION CONTROL','MESEV',MESEV)
-      call csminp%put('*SIMULATION CONTROL','MESOL',MESOL)
-      call csminp%put('*SIMULATION CONTROL','METMP',METMP)
-      call csminp%put('*SIMULATION CONTROL','IPLTI',IPLTI)
-      call csminp%put('*SIMULATION CONTROL','IIRRI',IIRRI)
-      call csminp%put('*SIMULATION CONTROL','IFERI',IFERI)
-      call csminp%put('*SIMULATION CONTROL','IRESI',IRESI)
-      call csminp%put('*SIMULATION CONTROL','IHARI',IHARI)
-      call csminp%put('*SIMULATION CONTROL','IOX',IOX)
-      call csminp%put('*SIMULATION CONTROL','IDETO',IDETO)
-      call csminp%put('*SIMULATION CONTROL','IDETS',IDETS)
-      call csminp%put('*SIMULATION CONTROL','IDETG',IDETG)
-      call csminp%put('*SIMULATION CONTROL','IDETC',IDETC)
-      call csminp%put('*SIMULATION CONTROL','IDETW',IDETW)
-      call csminp%put('*SIMULATION CONTROL','IDETN',IDETN)
-      call csminp%put('*SIMULATION CONTROL','IDETP',IDETP)
-      call csminp%put('*SIMULATION CONTROL','IDETD',IDETD)
-      call csminp%put('*SIMULATION CONTROL','IDETL',IDETL)
-      call csminp%put('*SIMULATION CONTROL','IDETH',IDETH)
-      call csminp%put('*SIMULATION CONTROL','IDETR',IDETR)
-      call csminp%put('*SIMULATION CONTROL','IOFF',IOFF)
-      call csminp%put('*SIMULATION CONTROL','IAME',IAME)
-      call csminp%put('*SIMULATION CONTROL','NCODE',NCODE)
-      call csminp%put('*SIMULATION CONTROL','NEND',NEND)
-      call csminp%put('*SIMULATION CONTROL','LNSIM',LNSIM)
-      call csminp%put('*SIMULATION CONTROL','NYRS',NYRS)
-      call csminp%put('*SIMULATION CONTROL','NREPSQ',NREPSQ)
-      call csminp%put('*SIMULATION CONTROL','YRSIM',YRSIM)
-      call csminp%put('*SIMULATION CONTROL','RSEED1',RSEED1)
-      call csminp%put('*SIMULATION CONTROL','NSWITCH',NSWITCH)
-      call csminp%put('*SIMULATION CONTROL','FROP',FROP)
-      call csminp%put('*SIMULATION CONTROL','PWDINF',PWDINF)
-      call csminp%put('*SIMULATION CONTROL','PWDINL',PWDINL)
-      call csminp%put('*SIMULATION CONTROL','NRESDL',NRESDL)
-      call csminp%put('*SIMULATION CONTROL','HDLAY',HDLAY)
-      call csminp%put('*SIMULATION CONTROL','HLATE',HLATE)
-      call csminp%put('*SIMULATION CONTROL','SWPLTL',SWPLTL)
-      call csminp%put('*SIMULATION CONTROL','SWPLTH',SWPLTH)
-      call csminp%put('*SIMULATION CONTROL','SWPLTD',SWPLTD)
-      call csminp%put('*SIMULATION CONTROL','PTX',PTX)
-      call csminp%put('*SIMULATION CONTROL','PTTN',PTTN)
-      call csminp%put('*SIMULATION CONTROL','DSOIL',DSOIL)
-      call csminp%put('*SIMULATION CONTROL','THETAC',THETAC)
-      call csminp%put('*SIMULATION CONTROL','IEPT',IEPT)
-      call csminp%put('*SIMULATION CONTROL','AIRAMT',AIRAMT)
-      call csminp%put('*SIMULATION CONTROL','EFFIRR',EFFIRR)
-      call csminp%put('*SIMULATION CONTROL','DSOILN',DSOILN)
-      call csminp%put('*SIMULATION CONTROL','SOILNC',SOILNC)
-      call csminp%put('*SIMULATION CONTROL','SOILNX',SOILNX)
-      call csminp%put('*SIMULATION CONTROL','RIP',RIP)
-      call csminp%put('*SIMULATION CONTROL','DRESMG',DRESMG)
-      call csminp%put('*SIMULATION CONTROL','HPP',HPP)
-      call csminp%put('*SIMULATION CONTROL','HRP',HRP)
-      end if
 !--------------------------------------------------
 !       Write treatment data to csm_input structure
 !--------------------------------------------------
