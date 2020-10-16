@@ -479,7 +479,6 @@ C-LPM  Add CIAT cassava model
         call csminp%put('*CULTIVARS','STMMX',STMMX)
         call csminp%put('*CULTIVARS','SLAP1',SLAP1)
 
-
 !     Ceres Maize: maize, sweet corn **
       CASE ('MZCER','SWCER')
         READ (C360,'(A6,1X,A16,7X,A6,6F6.0)',IOSTAT=ERRNUM)
@@ -774,6 +773,7 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      &          PI1,PI2,DTPI,LSFAC,empty,LI1,TELOM,TB(2),TO1(2),
      &          TO2(2),TM(2),Ph1P,Ph1R,Ph2,Ph3,Ph4,StkHrNO,RTNFAC,
      &          MinGr,empty,RES30C,RLF30C,R30C2,empty,empty
+
 
         call csminp%add_sec('*CULTIVARS')
 

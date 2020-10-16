@@ -269,7 +269,10 @@ C     The components are copied into local variables for use here.
           CALL IGNORE2 (LUNWTH, LINWTH, ISECT, LINE)
           SELECT CASE(ISECT)
           CASE(0); CALL ERROR (ERRKEY,10,FILEW,LINWTH) !End of file 
-          CASE(1); CALL ERROR (ERRKEY,10,FILEW,LINWTH) !Data record 
+          CASE(1)
+            IF(FirstWeatherDate .EQ. -99) THEN
+              CALL ERROR (ERRKEY,10,FILEW,LINWTH) !Data record 
+            ENDIF
           CASE(2); CYCLE                               !End of section 
           CASE(3); EXIT                                !Header line 
           END SELECT
@@ -358,7 +361,7 @@ C       Substitute default values if REFHT or WINDHT are missing.
           WRITE(MSG(3), 130)
   100     FORMAT
      &   ('Value of TAV, average annual soil temperature, is missing.')
-  120     FORMAT('A default value of', F5.1, '튏 is being used for ',
+  120     FORMAT('A default value of', F5.1, '째C is being used for ',
      &            'this simulation,')
   130     FORMAT('which may produce inaccurate results.')
           CALL WARNING (3, ERRKEY, MSG)
@@ -437,7 +440,7 @@ C       Substitute default values if REFHT or WINDHT are missing.
          else
             CALL IpWRec(CONTROL, MaxRecords,
      &    COL, ICOUNT, FILEWW, HEADER, LINWTH,            !Input
-     &    LUNWTH, YRDOY_WY,mewth,                         !Input
+     &    LUNWTH, YRDOY_WY,                                !Input
      &    ErrCode, FirstWeatherDay, LastWeatherDay,       !Output
      &    LineNumber, LongFile, NRecords, DCO2_A,         !Output
      &    OZON7_A, PAR_A,                                 !Output
@@ -587,7 +590,7 @@ C         Read in weather file header.
 !       Use YRDOYWY here (different argument than previous call)
             CALL IpWRec(CONTROL, MaxRecords, 
      &    COL, ICOUNT, FILEWW, HEADER, LINWTH,            !Input
-     &    LUNWTH, YRDOYWY,mewth,                          !Input
+     &    LUNWTH, YRDOYWY,                                !Input
      &    ErrCode, FirstWeatherDay, LastWeatherDay,       !Output
      &    LineNumber, LongFile, NRecords, DCO2_A,         !Output
      &    OZON7_A, PAR_A,                                 !Output
@@ -747,7 +750,7 @@ C         Read in weather file header.
 
       SUBROUTINE IpWRec(CONTROL, MaxRecords,
      &    COL, ICOUNT, FILEWW, HEADER, LINWTH,            !Input
-     &    LUNWTH, YRDOYWY,mewth,                          !Input
+     &    LUNWTH, YRDOYWY,                                !Input
      &    ErrCode, FirstWeatherDay, LastWeatherDay,       !Output
      &    LineNumber, LongFile, NRecords, DCO2_A,         !Output
      &    OZON7_A, PAR_A,                                 !Output
@@ -763,7 +766,7 @@ C         Read in weather file header.
       INTEGER MaxRecords
 
       TYPE (ControlType) CONTROL
-      CHARACTER*1  RNMODE,mewth
+      CHARACTER*1  RNMODE
       CHARACTER*6, PARAMETER :: ERRKEY = "IPWTH "
       CHARACTER*78 MSG(2)
       CHARACTER*120 LINE  
@@ -848,7 +851,13 @@ C         Read in weather file header.
 
 !         CHP 1/2/2008
 !         Require date in col 1-5 regardless of header
-          READ (LINE,'(I5)',IOSTAT=ERR) YRDOYW
+! FO - 06/09/2020 - Update to handle Y4K dates.
+          IF(FirstWeatherDate .GT. 0) THEN
+            READ (LINE,'(I7)',IOSTAT=ERR) YRDOYW
+          ELSE
+            READ (LINE,'(I5)',IOSTAT=ERR) YRDOYW
+          ENDIF
+          
           IF (ERR /= 0) THEN
             ErrCode = 59
             CALL WeatherError(CONTROL, ErrCode, FILEWW, 
@@ -1318,14 +1327,14 @@ c                   available.
 ! SECTION Section name in input file 
 ! SRAD    Solar radiation (MJ/m2-d)
 ! TAMP    Amplitude of temperature function used to calculate soil 
-!           temperatures (캜)
+!           temperatures (째C)
 ! TAV     Average annual soil temperature, used with TAMP to calculate soil 
-!           temperature. (캜)
-! TDEW    Dewpoint temperature (캜)
+!           temperature. (째C)
+! TDEW    Dewpoint temperature (째C)
 ! TIMDIF  Integer function which calculates the number of days between two 
 !           Julian dates (da)
-! TMAX    Maximum daily temperature (캜)
-! TMIN    Minimum daily temperature (캜)
+! TMAX    Maximum daily temperature (째C)
+! TMIN    Minimum daily temperature (째C)
 ! WINDHT  Reference height for wind speed (m)
 ! WINDSP  Wind speed (km/d)
 ! WYEAR   Weather year; current year for weather data 

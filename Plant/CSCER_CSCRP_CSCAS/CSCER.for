@@ -185,6 +185,7 @@
       PARAMETER     (LNUMX = 100) ! Maximum number of leaves       #
       INTEGER       SUMNUM        ! Number of variables passed     #
       PARAMETER     (SUMNUM = 37) ! Number of variables passed     #
+      CHARACTER*6   ERRKEY
 
       INTEGER       A1DATM        ! Apex 1cm date,measured         #
       INTEGER       ADAP          ! Anthesis,days after planting   d
@@ -1402,6 +1403,7 @@
       PARAMETER     (INTEGR = 4)
       PARAMETER     (OUTPUT = 5)
       PARAMETER     (SEASEND = 6)
+      PARAMETER     (ERRKEY = 'CSCER ')
 
       ! Condition at end of phase
       DATA BASTGNAM/'Max Prim  ','End Veg   ','End Ear Gr',
@@ -1794,22 +1796,31 @@
 !       IF(IPLTI.EQ.'A')THEN
         IF(IPLTI.EQ.'A' .OR. IPLTI.EQ.'F')THEN
           call csminp%get('*SIMULATION CONTROL','PWDINF',pwdinf)
-          PWDINF = CSYEARDOY(pwdinf)
-          CALL CSYR_DOY(PWDINF,PWYEARF,PWDOYF)
+C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY          
+          !PWDINF = CSYEARDOY(pwdinf)
+          CALL Y4K_DOY(pwdinf,'csminp',0,ERRKEY,3)
+!          CALL CSYR_DOY(PWDINF,PWYEARF,PWDOYF)
+          CALL YR_DOY(PWDINF,PWYEARF,PWDOYF)
           call csminp%get('*SIMULATION CONTROL','PWDINL',pwdinl)
-          PWDINL = CSYEARDOY(pwdinl)
-          CALL CSYR_DOY(PWDINL,PWYEARL,PWDOYL)
+          !PWDINL = CSYEARDOY(pwdinl)
+          CALL Y4K_DOY(pwdinl,'csminp',0,ERRKEY,3)
+!          CALL CSYR_DOY(PWDINL,PWYEARL,PWDOYL)
+          CALL YR_DOY(PWDINL,PWYEARL,PWDOYL)
           call csminp%get('*SIMULATION CONTROL','SWPLTL',swpltl)
           call csminp%get('*SIMULATION CONTROL','SWPLTH',swplth)
           call csminp%get('*SIMULATION CONTROL','SWPLTD',swpltd)
           call csminp%get('*SIMULATION CONTROL','PTX',ptx)
           call csminp%get('*SIMULATION CONTROL','PTTN',pttn)
           call csminp%get('*SIMULATION CONTROL','HDLAY',hfirst)
-          HFIRST = CSYEARDOY(hfirst)
-          CALL CSYR_DOY(HFIRST,HYEARF,HDOYF)
+          !HFIRST = CSYEARDOY(hfirst)
+          CALL Y4K_DOY(hfirst,'csminp',0,ERRKEY,3)
+!          CALL CSYR_DOY(HFIRST,HYEARF,HDOYF)
+          CALL YR_DOY(HFIRST,HYEARF,HDOYF)
           call csminp%get('*SIMULATION CONTROL','HLATE',hlast)
-          HLAST = CSYEARDOY(hlast)
-          CALL CSYR_DOY(HLAST,HYEARL,HDOYL)
+          !HLAST = CSYEARDOY(hlast)
+          CALL Y4K_DOY(hlast,'csminp',0,ERRKEY,3)
+!          CALL CSYR_DOY(HLAST,HYEARL,HDOYL)
+          CALL YR_DOY(HLAST,HYEARL,HDOYL)
           !IF (DYNAMIC.EQ.SEASINIT) THEN
           ! IF (PWDINF.GT.0 .AND. PWDINF.LT.YEARDOY) THEN
           !   WRITE (fnumwrk,*) ' '
@@ -1826,9 +1837,11 @@
           ! WRITE (fnumwrk,*) 'HFIRST,HLAST AS USED  : ',hfirst,hlast
           !ENDIF
         ELSE
+
           call csminp%get('*PLANTING DETAILS','YRPLT',pdate)
           call csminp%get('*PLANTING DETAILS','IEMRG',emdatm)
-          CALL CSYR_DOY(PDATE,PLYEAR,PLDAY)
+!          CALL CSYR_DOY(PDATE,PLYEAR,PLDAY)
+          CALL YR_DOY(PDATE,PLYEAR,PLDAY)
           PLYEARREAD = PLYEAR
           
           ! CHP 2/13/2009 - increment yr for seasonal and sequence runs
@@ -1961,24 +1974,28 @@
         CALL LTRIM (ENAME)
         call csminp%get('*EXP.DETAILS','EXPER',excode)
         CALL UCASE (EXCODE)
+
         call csminp%get('*SIMULATION CONTROL','IHARI',ihari)
         if(csminp%find('*HARVEST')>0)then
            call csminp%get('*HARVEST','HDATE',yrharf)
            call csminp%get('*HARVEST','HPC',hpc)
            call csminp%get('*HARVEST','HBPC',hbpc)
-           YEARHARF = CSYEARDOY(yrharf)
-           CALL CSYR_DOY(YRHARF,HYEAR,HDAY)
-           PLTOHARYR = HYEAR - PLYEARREAD
-! Upgrade harvest date for seasonal and sequential runs
-           yearharf = (plyear+pltoharyr)*1000 +hday
         else
            yearharf = -99
            hpc = -99
            hbpc = -99
         end if
-
-           IF (hpc .LT. 0.0) hpc = 100.0 ! Harvest %
-           IF (hbpc .LT. 0.0) hbpc = 0.0
+        !YEARHARF = CSYEARDOY(yrharf)
+C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY        
+        CALL Y4K_DOY(yrharf,FILEIO,0,ERRKEY,3)
+!        CALL CSYR_DOY(YRHARF,HYEAR,HDAY)
+        CALL YR_DOY(YRHARF,HYEAR,HDAY)
+        PLTOHARYR = HYEAR - PLYEARREAD
+        ! Upgrade harvest date for seasonal and sequential runs
+        yearharf = (plyear+pltoharyr)*1000 +hday
+        
+        IF (hpc .LT. 0.0) hpc = 100.0   ! Harvest %
+        IF (hbpc .LT. 0.0) hbpc = 0.0
         ! If running CSM use harvfrac so as to handle automatic mngement
         IF (FILEIOT .NE. 'DS4') THEN
           hpc = harvfrac(1)*100.0   ! Harvest %
@@ -1986,6 +2003,7 @@
         ENDIF
 
         ! Read fertilizer info (for calculation of N appln during cycle)
+
         call csminp%get('*SIMULATION CONTROL','IFERI',iferi)
         if(csminp%find('*FERTILIZERS')>0)then
            call csminp%get('*FERTILIZERS','FDAY',fday)
@@ -1993,7 +2011,9 @@
            NFERT = 0
            DO I = 1, 200
               IF (anfer(I).LE.0.0) EXIT
-              FDAY(I) = CSYEARDOY(fday(i))
+C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY          
+              !FDAY(I) = CSYEARDOY(fday(i))
+              CALL Y4K_DOY(fday(i),'csminp',0,ERRKEY,3)
               NFERT = NFERT + 1
            ENDDO
         else
@@ -2625,6 +2645,7 @@
         LAFST = 1.6       ! Stage at which incremment in lf size changes
         RSCLX = 0.2       ! Reserves concentration in leaves,maximum   
         
+
 !        WRITE(fnumwrk,*) ' '
 !        WRITE(fnumwrk,'(A18)')' RUN OVERVIEW     '
 !        WRITE(fnumwrk,*)' MODEL   ',MODEL
@@ -2654,7 +2675,6 @@
 !          CALL CSYR_DOY(PWDINL,TVI1,TVI2)
 !          WRITE(fnumwrk,'(A14,I7)') '   LATEST     ',TVI2
 !        ENDIF
-
         ! The following are to allow examination of the functioning of 
         ! different parts of the module, and comparison with CSCRP     
         
@@ -3695,7 +3715,10 @@
           AVGSW = 0.0
           IF(YEARPLTP.GT.0 .AND. YEARPLTP.LT.9000000)THEN
             IF(YEARDOY.EQ.YEARPLTP)THEN
-              YEARPLT = CSYEARDOY(YEARPLTP)
+C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY              
+              !YEARPLT = CSYEARDOY(YEARPLTP)
+              CALL Y4K_DOY(YEARPLTP,FILEIO,0,ERRKEY,3)
+              YEARPLT = YEARPLTP
               PLTPOP = PLTPOPP
               TNUM = 1.0
             ENDIF
@@ -4347,6 +4370,13 @@
               RTWTGRS = 0.0
               ! Determine potential new concentration
               ! NB. Chaff is simply a part of stem;hence not separate here
+
+!----------------------------------------------------------------
+! palderman commit of 2019-07-29 in private repo e5c680514bce4af85d9f463c11a3e5ad522252f8
+!              IF (LFWT+GROLF+STWT+GROST.GT.0.0) TVR1 = ! Conc
+!     &          (RSWT+GRORS-SENRS)/
+!     &          ((LFWT+GROLF-SENLFG-SENLFGRS)
+!     &          +(STWT+GROST)+(RSWT+GRORS))
               IF (((LFWT+GROLF-SENLFG-SENLFGRS) ! Prevent divide by zero
      &              +(STWT+GROST)+(RSWT+GRORS)) .GT. 0.0)THEN
                   TVR1 = ! Conc
@@ -4356,6 +4386,8 @@
               ELSE
                   TVR1 = 0.0
               END IF
+!----------------------------------------------------------------
+
               IF(TVR1.LT.0.0.AND.TVR1.GT.-1.0E-07) TVR1 = 0.0
               IF (TVR1.GT.RSPCX/100.0) THEN   ! If potential>max        
                 TVR2 = RSWT+GRORS-SENRS       ! What rswt could be
@@ -5160,8 +5192,8 @@
      &       LFWT*(1.0-LSHFR)*RSCLX*CUMDU/(Pd(1)+pd(2)+pd(3)+pd(4)))
             LSHRSWT = AMIN1(RSWT-LLRSWT,
      &       LFWT*LSHFR*RSCLX*CUMDU/(Pd(1)+pd(2)+pd(3)+pd(4)))
-!           IF (STWT+CHWT.GT.0.0) THEN
-            IF (STWT .GT. 1.E-6 .AND. CHWT .GT. 1.E-6) THEN
+            IF (STWT.GT.0.0) THEN
+!-GH        IF (STWT+CHWT.GT.0.0) THEN
               STRSWT = (RSWT-LLRSWT-LSHRSWT)*(STWT-CHWT)/STWT
               CHRSWT = (RSWT-LLRSWT-LSHRSWT)*CHWT/STWT
             ELSE
@@ -6203,6 +6235,7 @@
           ! Adjustment of kernel growth rate
           ! Originally set temperature response here
           IF (ISTAGE.EQ.5.AND.ISTAGEP.EQ.4) THEN
+
 !            WRITE(fnumwrk,*)'Start of linear kernel growth    '
 !            WRITE(fnumwrk,*)' Original kernel growth rate (G2) ',g2
 !           chp handle zero divide
@@ -6211,10 +6244,10 @@
             ELSE
               G2 = (G2KWT) / (PD(5)*(6.0-XSTAGE))
             ENDIF
+
 !            WRITE(fnumwrk,*)' Adjusted kernel growth rate (G2) ',g2
 !            WRITE(fnumwrk,*)' (Adjustment because growing at lag rate',
 !     &      ' for overlap into linear filling period)'
-
           ENDIF
 
           ! Stored variables (For use next day or step)
@@ -6958,20 +6991,24 @@
               CNCHAR2(1:1) = CNCHAR(1:1)
             ENDIF
             
-            CALL CSYR_DOY (STGDOY(7),PLYEAR,PLDAY)
+!            CALL CSYR_DOY (STGDOY(7),PLYEAR,PLDAY)
+            CALL YR_DOY (STGDOY(7),PLYEAR,PLDAY)
             IF (ADAT.GT.0) THEN
-              CALL CSYR_DOY (ADAT,AYEAR,ADAY)
+!              CALL CSYR_DOY (ADAT,AYEAR,ADAY)
+              CALL YR_DOY (ADAT,AYEAR,ADAY)
             ELSE
               AYEAR = -99
               ADAY = -99
             ENDIF
             IF (STGDOY(5).GT.0) THEN
-              CALL CSYR_DOY (STGDOY(5),MYEAR,MDAY)
+!              CALL CSYR_DOY (STGDOY(5),MYEAR,MDAY)
+              CALL YR_DOY (STGDOY(5),MYEAR,MDAY)
             ELSE
               MYEAR = -99
               MDAY = -99
             ENDIF
-            CALL CSYR_DOY (STGDOY(11),HAYEAR,HADAY)
+!            CALL CSYR_DOY (STGDOY(11),HAYEAR,HADAY)
+            CALL YR_DOY (STGDOY(11),HAYEAR,HADAY)
             
 !-----------------------------------------------------------------------
             
@@ -7801,7 +7838,8 @@
               WRITE(*,9588)
               WRITE(*,9600)
               DO L = 7, 9
-                CALL CSYR_DOY(STGDOY(L),YEAR,DOY)
+!                CALL CSYR_DOY(STGDOY(L),YEAR,DOY)
+                CALL YR_DOY(STGDOY(L),YEAR,DOY)
                 CALL Calendar(year,doy,dom,month)
                 CNCTMP = 0.0
                 IF (CWADSTG(L).GT..0) CNCTMP = CNADSTG(L)/CWADSTG(L)*100
@@ -7813,7 +7851,8 @@
      &           NINT(CNADSTG(L)),CNCTMP,1.0-WFPAV(L),1.0-NFPAV(L)
               ENDDO
               DO L = 1, 6
-                CALL CSYR_DOY(STGDOY(L),YEAR,DOY)
+!                CALL CSYR_DOY(STGDOY(L),YEAR,DOY)
+                CALL YR_DOY(STGDOY(L),YEAR,DOY)
                 CALL Calendar(year,doy,dom,month)
                 CNCTMP = 0.0
                 IF (CWADSTG(L).GT..0) CNCTMP = CNADSTG(L)/CWADSTG(L)*100
@@ -8148,7 +8187,8 @@
               WRITE(fnumtmp,9588)
               WRITE(fnumtmp,9600)
               DO L = 7, 9
-                 CALL CSYR_DOY(STGDOY(L),YEAR,DOY)
+!                 CALL CSYR_DOY(STGDOY(L),YEAR,DOY)
+                 CALL YR_DOY(STGDOY(L),YEAR,DOY)
                  CALL Calendar(year,doy,dom,month)
                  CNCTMP = 0.0
                  IF (CWADSTG(L).GT.0.0) 
@@ -8161,7 +8201,8 @@
      &            NINT(CNADSTG(L)),CNCTMP,1.0-WFPAV(L),1.0-NFPAV(L)
               ENDDO
               DO L = 1, 6
-                CALL CSYR_DOY(STGDOY(L),YEAR,DOY)
+!                CALL CSYR_DOY(STGDOY(L),YEAR,DOY)
+                CALL YR_DOY(STGDOY(L),YEAR,DOY)
                 CALL Calendar(year,doy,dom,month)
                 CNCTMP = 0.0
                 IF (CWADSTG(L).GT.0.0)CNCTMP = CNADSTG(L)/CWADSTG(L)*100
@@ -9219,8 +9260,8 @@
      &'-Nitrogen--|--Phosphorus-|',/,
      &25X,'Span   Max   Min   Rad  [day]   Rain  Trans  Photo',9X,'Pho',
      &'to         Photo',/,
-     &25X,'days    ?C    ?C MJ/m2     hr     mm     mm  synth Growth  ',
-     &'synth Growth  synth Growth',/,110('-'))
+     &25X,'days    øC    øC MJ/m2     hr     mm     mm  synth Growth ',
+     &' synth Growth  synth Growth',/,110('-'))
 
  9588       FORMAT(
      &      /,' ...... DATE ......  GROWTH STAGE BIOMASS   LEAF  

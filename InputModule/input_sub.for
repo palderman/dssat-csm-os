@@ -327,7 +327,7 @@ C-----------------------------------------------------------------------
             if(.not.nc_filex%yes)then
             CALL IPSLAN (FILEX, FILEX_P,LNSA, BD, DS, EXK, EXTP, OC,
      &            PEDON, PH, PHKCL, SLNO, SMHB, SMKE, SMPX, TOTN, 
-     &              SASC, NLAYR)
+     &            SASC, NLAYR,YRSIM)
             end if
          ENDIF
 !      ENDIF
@@ -358,8 +358,6 @@ C-----------------------------------------------------------------------
                IF ((ISWNIT .EQ. 'Y') .OR. (ISWWAT .NE.'N')) THEN
                   NSENS = 0
                   CALL IPSOIL_Inp(RNMODE,FILES,PATHSL,NSENS,ISWITCH)
-!                  CALL IPSOIL_Inp(RNMODE,FILES,PATHSL,NSENS,ISWITCH,
-!     &             PEDON)
                   if(nc_filex%yes)then
                      CALL read_nc_ic_sec(
      &               FILEX,FILEX_P,LNIC,NLAYR,DUL,YRIC,PRCROP,WRESR,
@@ -369,10 +367,11 @@ C-----------------------------------------------------------------------
                      CALL IPSLIN (FILEX,FILEX_P,LNIC,NLAYR,DUL,YRIC,
      &                 PRCROP,WRESR,WRESND,EFINOC,EFNFIX,PEDON,SLNO,DS,
      &                 SWINIT,INH4,INO3,ISWITCH,
+
      &                 ICWD,ICRES,ICREN,ICREP,ICRIP,ICRID,YRSIM)
                     CALL IPSLAN (FILEX, FILEX_P,LNSA, BD, DS, EXK, EXTP, 
      &               OC, PEDON, PH, PHKCL, SLNO, SMHB, SMKE, SMPX, TOTN, 
-     &                   SASC, NLAYR)
+     &               SASC, NLAYR,YRSIM)
                   end if
                   NSENS = 1
                ENDIF

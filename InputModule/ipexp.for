@@ -390,7 +390,7 @@ C-----------------------------------------------------------------------
  2750    CONTINUE
          NLOOP = NLOOP + 1
          LINE(1) = ' '
-         IF (NLOOP .GT. 25) CALL ERROR(ERRKEY,3,FILEX,LINEXP)
+         IF (NLOOP .GT. 25) CALL ERROR(ERRKEY,4,FILEX,LINEXP)
          IF (RNMODE .EQ. 'I') THEN
            WRITE (*,2900) TRTN
 C
@@ -413,7 +413,7 @@ C-GH        TRTN   = 1
           ELSEIF (TRT .GT. 0.) THEN
             TRTN = NINT(TRT)
           ELSE
-            CALL ERROR (ERRKEY,3,FILEX,LINEXP)
+            CALL ERROR (ERRKEY,4,FILEX,LINEXP)
          ENDIF
        ELSEIF (INDEX ('Q',RNMODE) .GT. 0) THEN
          !READ (TRNARG(1:6),'(I6)') TRTN
@@ -472,6 +472,15 @@ C     IF (I .LT. TRTN) GO TO 50
       CALL OPHEAD (RUNINIT,99,0.0,0.0,"                ",0.0,0.0, 
      &     "      ",RUN,"        ",TITLET,WTHSTR, RNMODE,
      &     CONTROL, ISWITCH, UseSimCtr, PATHEX)
+     
+C-----------------------------------------------------------------------
+C     Call MAKEFILEW to read FILEX and 
+C-----------------------------------------------------------------------
+      if(.not.nc_filex%yes)then
+      CALL MAKEFILEW(LUNEXP,DSSATP,PATHEX,FILEX,
+     &        SimLevel,LNSIM,LNPLT,LNFLD)
+      end if
+      
 C-----------------------------------------------------------------------
 C
 C-----------------------------------------------------------------------
@@ -501,6 +510,7 @@ C-----------------------------------------------------------------------
          call nc_filex%read('CR',LNCU,CROP)
          call nc_filex%read('INGENO',LNCU,VARNO)
       else
+         REWIND (LUNEXP)
          CALL IPCUL (LUNEXP,FILEX,LNCU,CROP,VARNO)
          IF (CROP   .EQ. '  ') CALL ERROR (ERRKEY,10,FILEX,LINEXP)
          IF (VARNO  .EQ. '  ') CALL ERROR (ERRKEY,11,FILEX,LINEXP)
@@ -540,11 +550,12 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C     Call IPSIM
 C-----------------------------------------------------------------------
-      IF (.NOT. SimLevel) THEN
-        LNSIM = 0
-        YRSIM = YRPLT
-      ENDIF
-
+      !FO - Removed from ipexp and added into IPSIM
+      !IF (.NOT. SimLevel) THEN
+      !  LNSIM = 0
+      !  YRSIM = YRPLT
+      !ENDIF
+      
       if(nc_filex%yes)then
          CALL read_nc_sim_sec(LNSIM,TITSIM,NYRS,RUN,NREPSQ,ISIMI,PWDINF,
      &     PWDINL,SWPLTL,NCODE,SWPLTH,SWPLTD,YEAR,PTX,PTTN,DSOIL,THETAC,
@@ -553,12 +564,12 @@ C-----------------------------------------------------------------------
      &        EFFIRR,CROP,FROP,MODEL,RNMODE,FILEX,
      &     CONTROL, ISWITCH, UseSimCtr, FILECTL, MODELARG, YRPLT)
       else
-         CALL IPSIM (LUNEXP,LNSIM,TITSIM,NYRS,RUN,NREPSQ,ISIMI,PWDINF,
-     &     PWDINL,SWPLTL,NCODE,SWPLTH,SWPLTD,YEAR,PTX,PTTN,DSOIL,THETAC,
-     &        IEPT,IOFF,IAME,DSOILN,SOILNC,YRSIM,SOILNX,NEND,RIP,NRESDL,
-     &        DRESMG,HDLAY,HLATE,HPP,HRP,FTYPEN,RSEED1,LINEXP,AIRAMT,
-     &        EFFIRR,CROP,FROP,MODEL,RNMODE,FILEX,
-     &        CONTROL, ISWITCH, UseSimCtr, FILECTL, MODELARG, YRPLT)
+      CALL IPSIM (LUNEXP,LNSIM,SimLevel,TITSIM,NYRS,RUN,NREPSQ,ISIMI,
+     &     PWDINF,PWDINL,SWPLTL,NCODE,SWPLTH,SWPLTD,YEAR,PTX,PTTN,
+     &     DSOIL,THETAC,IEPT,IOFF,IAME,DSOILN,SOILNC,YRSIM,SOILNX,
+     &     NEND,RIP,NRESDL,DRESMG,HDLAY,HLATE,HPP,HRP,FTYPEN,RSEED1,
+     &     LINEXP,AIRAMT,EFFIRR,CROP,FROP,MODEL,RNMODE,FILEX,
+     &     CONTROL,ISWITCH,UseSimCtr,FILECTL,MODELARG,YRPLT)
       end if
 
       call csminp%get('*SIMULATION CONTROL','ISWWAT',ISWWAT)
@@ -996,10 +1007,10 @@ C-----------------------------------------------------------------------
      &        TMADJ,TMFAC,TXADJ,TXFAC,WMDATE,WMODI,WNDADJ,WNDFAC,
      &        WTHADJ)
       else
-         CALL IPENV (FILEX,LNENV,LUNEXP,CO2ADJ,CO2FAC,DAYADJ,
-     &        DAYFAC,DPTADJ,DPTFAC,NEV,PRCADJ,PRCFAC,RADADJ,RADFAC,
-     &        TMADJ,TMFAC,TXADJ,TXFAC,WMDATE,WMODI,WNDADJ,WNDFAC,
-     &        WTHADJ)
+      CALL IPENV (FILEX,LNENV,LUNEXP,CO2ADJ,CO2FAC,DAYADJ,
+     &     DAYFAC,DPTADJ,DPTFAC,NEV,PRCADJ,PRCFAC,RADADJ,RADFAC,
+     &     TMADJ,TMFAC,TXADJ,TXFAC,WMDATE,WMODI,WNDADJ,WNDFAC,
+     &     WTHADJ,YRSIM)
       end if
 
       if(nev>0)then
@@ -1350,6 +1361,7 @@ C  01/01/1990 JWJ Written
 C  05/28/1993 PWW Header revision and minor changes            
 C  02/21/2006 GH  Update 
 C  04/26/2013 GH  Update planting method for cassava
+C  05/07/2020 FO  Added new Y4K subroutine call to convert YRDOY
 C-----------------------------------------------------------------------
 C  INPUT  : LUNEXP,FILEX,LNPLT
 C
@@ -1406,9 +1418,16 @@ C
      &      PLPH,SPRLAP,NFORC,PLTFOR,NDOF,PMTYPE
 C New variables for pineapple
             IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEX,LINEXP)
-            CALL Y2K_DOY(YRPLT)
-            CALL Y2K_DOY(IEMRG)
-            CALL YR_DOY (YRPLT,YR,IPLT)
+            
+C 05/07/2020 FO Add new Y4K subroutine call to convert YRDOY
+            !CALL Y2K_DOY(YRPLT)
+            !CALL Y2K_DOY(IEMRG)
+            IF(LN .EQ. LNPLT) THEN
+              CALL Y4K_DOY(YRPLT,FILEX,LINEXP,ERRKEY,10)
+              CALL Y4K_DOY(IEMRG,FILEX,LINEXP,ERRKEY,15)
+              CALL YR_DOY (YRPLT,YR,IPLT)
+            ENDIF
+            
           ELSE
             CALL ERROR (ERRKEY,2,FILEX,LINEXP)
          ENDIF

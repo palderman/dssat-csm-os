@@ -221,6 +221,7 @@ C-----------------------------------------------------------------------
 !     &      FERMET(I), FERDEP(I), ANFER(I), APFER(I), AKFER(I)
 !          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY, ERRNUM, FILEIO, LNUM)
 
+
 !          READ(FERTYPE_CDE(I),'(2X,I3)') FERTYP(I)
 !         The number of fertilizer applications to be done in this run.
 !          NFERT = NFERT + 1
