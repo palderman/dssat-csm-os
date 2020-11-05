@@ -47,6 +47,8 @@ program run_mpi_dssat
 
   call get_dssat_arg('--n_dssat',n_dssat)
 
+  if(ntrt < n_dssat) n_dssat = ntrt
+
   call nc_filex%set_file_from_cmd_arg('--nc_filex')
 
   call get_dssat_arg('--nc_out',out_file_name)
@@ -69,7 +71,8 @@ program run_mpi_dssat
   call nc_filex%open()
   call nc_filex%read('CR',trt_start,crop_code)
 
-  write(*,fmt="(a)",advance="no") "   Spawning DSSAT worker processes..."
+  write(rank_buff,'(i3)') n_dssat
+  write(*,fmt="(a)",advance="no") "   Spawning "//trim(adjustl(rank_buff))//" DSSAT worker processes..."
   call mpi_parent%spawn_dssat_children(n_dssat,trt_start,trt_end,rnmode,&
        crop_code,cmd,dssat_args,work_dir)
   write(*,fmt="(a)") "done."

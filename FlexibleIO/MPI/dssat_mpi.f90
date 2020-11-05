@@ -9,8 +9,6 @@ module dssat_mpi
      integer rank
      integer,dimension(:),allocatable :: trtno
      character(len=:),allocatable :: varlist
-   contains
-     procedure,nopass :: close => close_mpi_connection
   end type mpi_connection_template
 
   type,extends(mpi_connection_template) :: mpi_parent_type
@@ -29,6 +27,7 @@ module dssat_mpi
      procedure :: receive_variable => receive_registered_variable
      procedure :: receive_registries
      procedure :: print_registries => print_mpi_parent_registries
+     procedure :: close => close_mpi_parent_connection
   end type mpi_parent_type
 
   type,extends(mpi_connection_template) :: mpi_child_type
@@ -42,6 +41,7 @@ module dssat_mpi
      procedure :: connect => connect_to_parent
      procedure :: send_registry => send_registry_from_child
      procedure :: send_variable => send_registered_variable_from_child
+     procedure :: close => close_mpi_child_connection
   end type mpi_child_type
 
   type(mpi_parent_type) :: mpi_parent
@@ -96,12 +96,14 @@ contains
     allocate(self%children(n_children),&
          self%trtno_range(2,n_children),&
          self%cmds(n_children),&
-         self%args(n_children,1),&
+         self%args(n_children,2),&
          self%np(n_children),&
          self%info(n_children),&
          self%errors(n_children))
 
     self%cmds = cmd
+
+    self%args(:,2) = ' '
 
     do while(.true.)
        i = index(dssat_args,',')
@@ -373,7 +375,7 @@ contains
 
   end subroutine print_mpi_parent_registries
 
-  subroutine close_mpi_connection()
+  subroutine close_mpi_parent_connection(self)
 
     use mpi
 
@@ -381,8 +383,28 @@ contains
 
     integer ierr
 
+    class(mpi_parent_type) self
+
+!    call MPI_Barrier(self%inter_comm,ierr)
+
     call MPI_Finalize(ierr)
 
-  end subroutine close_mpi_connection
+  end subroutine close_mpi_parent_connection
+
+  subroutine close_mpi_child_connection(self)
+
+    use mpi
+
+    implicit none
+
+    integer ierr
+
+    class(mpi_child_type) self
+
+!    call MPI_Barrier(self%parent,ierr)
+
+    call MPI_Finalize(ierr)
+
+  end subroutine close_mpi_child_connection
 
 end module dssat_mpi

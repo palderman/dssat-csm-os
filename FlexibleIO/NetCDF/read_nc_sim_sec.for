@@ -48,6 +48,7 @@ C=======================================================================
       USE CsvOutput
       use csm_io
       use dssat_netcdf
+      use dssat_mpi
       IMPLICIT NONE
       SAVE
 
@@ -409,11 +410,11 @@ C
             ENDIF
             IDETR = UPCASE(IDETR)
 
-            IDETL = '0'
+!            IDETL = '0'
 !           Verbose output switch
             IF (IDETL == '0') THEN
 !             VBOSE = zero, suppress all output except Summary and Evaluate
-              IDETS = 'Y'
+              if(.not.mpi_child%use_mpi) IDETS = 'Y'
               IDETG = 'N' 
               IDETC = 'N' 
               IDETW = 'N' 
@@ -422,7 +423,7 @@ C
               IDETD = 'N' 
               IDETH = 'N' 
               IDETR = 'N' 
-              IDETO = 'E'
+              if(.not.mpi_child%use_mpi) IDETO = 'E'
 !             Seasonal and spatial runs do not get evaluate file when IDETL=0
               IF (INDEX('SN',RNMODE) > 0) IDETO = 'N'
             ELSEIF (IDETL == 'A') THEN
