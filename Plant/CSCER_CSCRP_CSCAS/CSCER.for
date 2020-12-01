@@ -1395,6 +1395,28 @@
       real sw_tot_avg
       real sw_rz_avg
       real gnpct
+      ! Begin PDA for Baird Thesis
+      real cum_biomass_fhs  
+      logical single_graze
+      logical daily_graze
+      logical begin_grazing
+      logical terminate_grazing
+      real target_graze_rate ! kg/ha/day
+      real graze_rate_today ! kg/ha/day 
+      real grazeable_biomass !kg/ha
+      real graze_leaf ! g/plant/day
+      real graze_leaf_area ! cm2/plant/day
+      real graze_leaf_N ! g/plant/day
+      real graze_stem ! g/plant/day
+      real graze_stem_N ! g/plant/day
+      real graze_chaff ! g/plant/day
+      real graze_grain ! g/plant/day
+      real graze_grain_N ! g/plant/day
+      real graze_res ! g/plant/day
+      real graze_res_N ! g/plant/day
+      real graze_dead ! g/plant/day
+      real graze_dead_N ! g/plant/day
+      ! End PDA for Baird Thesis
 
       PARAMETER     (BLANK = ' ')
       PARAMETER     (RUNINIT = 1)
@@ -1441,6 +1463,8 @@
             call seasonal_registry%set_target('PDAT',YEARPLT)
             call seasonal_registry%set_target('ADAT',ADAT)
             call seasonal_registry%set_target('MDAT',stgdoy(5))
+            call seasonal_registry%set_target(
+     &                       'cum_biomass_fhs',cum_biomass_fhs) ! PDA for Baird Thesis
          end if
 
         FROPADJ = FROP
@@ -1782,6 +1806,31 @@
         sw_rz_cum = 0.0
         sw_tot_avg = 0.0
         sw_rz_avg = 0.0
+        ! Begin PDA for Baird Thesis
+        cum_biomass_fhs = 0.0
+        daily_graze = cmd_arg_present('--daily_graze')
+        single_graze = cmd_arg_present('--single_graze')
+        call get_dssat_arg('--grazing_rate',target_graze_rate)
+        if(target_graze_rate <= 0)
+     &      target_graze_rate = ! kg/ha
+     &          2 * 10 / 2.20462 * ! 2 lbs ADG * 10 lbs forage per lb gain / (lbs/kg)
+     &          (0.75 * 2.47105) * ! stockers per acre * acres per hectare
+     &          2 ! double forage intake to account for trampling
+        begin_grazing = .false.
+        terminate_grazing = .false.
+        graze_leaf = 0 ! g/plant/day
+        graze_leaf_area = 0 ! cm2/plant/day
+        graze_leaf_N = 0 ! g/plant/day
+        graze_stem = 0 ! g/plant/day
+        graze_stem_N = 0 ! g/plant/day
+        graze_chaff = 0 ! g/plant/day
+        graze_grain = 0 ! g/plant/day
+        graze_grain_N = 0 ! g/plant/day
+        graze_res = 0 ! g/plant/day
+        graze_res_N = 0 ! g/plant/day
+        graze_dead = 0 ! g/plant/day
+        graze_dead_N = 0 ! g/plant/day
+        ! End PDA for Baird Thesis
 
         IF (RUN.EQ.1.AND.RUNI.LE.1) THEN
           CFGDFILE = ' '
@@ -5160,6 +5209,128 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 
         ENDIF
 
+        ! Begin PDA for Baird Thesis
+        grazeable_biomass = (LFWT + GROLF - SENLFG - SENLFGRS
+     &          + STWT + GROST - SENSTG - GROGRST
+     &          + GRWT + GROGR - GROGRADJ
+     &          + RSWT + GRORS + GRORSGR + GROGRADJ + SENLFGRS
+     &          - SENRS - RTWTGRS
+     &          + DEADWT + SENLFG + SENSTG)*pltpop*10
+        if(.not. begin_grazing)then
+            if(daily_graze)then
+                begin_grazing = grazeable_biomass > 2717.
+                ! 2717. is equivalent to 1 english ton per acre
+            else if(single_graze .and. rstage > 2)then ! rstage of 2 equates to FHS
+                begin_grazing = .true.
+            end if
+        else
+            if(.not. terminate_grazing .and.
+     &         daily_graze .and. rstage > 2 ) then ! rstage of 2 equates to FHS
+                terminate_grazing = .true.
+            end if
+        end if
+        if (begin_grazing .and. .not. terminate_grazing)then
+            ! assume minimum tops biomass of 276 kg/ha
+            ! possibly assume minimum leaf biomass of 170 kg/ha in future?
+            if(grazeable_biomass - 276 >= target_graze_rate .and.
+     &         daily_graze)then
+                graze_rate_today = target_graze_rate
+            else if(grazeable_biomass > 276)then
+                graze_rate_today = grazeable_biomass - 276
+            else
+                graze_rate_today = 0
+            end if
+            if(single_graze) terminate_grazing = .true.
+        else
+            graze_rate_today = 0
+        end if
+        if(graze_rate_today > 0)then
+            ! assume grazing of all plant components in proportion to mass
+            graze_leaf = graze_rate_today/10/pltpop*
+     &              (LFWT + GROLF - SENLFG - SENLFGRS)/
+     &              (grazeable_biomass/10/pltpop)
+            if( (LFWT + GROLF - SENLFG - SENLFGRS) /= 0) then
+                graze_leaf_area = graze_leaf*
+     &                  (PLA + PLAGT(1) + PLAGT(2))/
+     &                  (LFWT + GROLF - SENLFG - SENLFGRS) ! cm2/plant/day
+                graze_leaf_N = graze_leaf*
+     &                  (LEAFN + DLEAFN + SEEDNT - GRAINNGL
+     &                       - SENNLFG - SENNLFGRS)/
+     &                  (LFWT + GROLF - SENLFG - SENLFGRS) ! g/plant/day
+            else
+                graze_leaf_area = (PLA + PLAGT(1) + PLAGT(2))
+                graze_leaf_N = LEAFN + DLEAFN + SEEDNT - GRAINNGL
+     &                       - SENNLFG - SENNLFGRS
+            end if
+            graze_stem = graze_rate_today/10/pltpop*
+     &              (STWT + GROST - SENSTG - GROGRST)/
+     &              (grazeable_biomass/10/pltpop)
+            if( (STWT + GROST - SENSTG - GROGRST) /= 0) then
+                graze_chaff = graze_stem*
+     &                  (CHWT + GROST*CHFR)/
+     &                  (STWT + GROST - SENSTG - GROGRST)
+                graze_stem_N = graze_stem*             ! g/plant/day
+     &                  (STEMN + DSTEMN - GRAINNGS - SENNSTG - SENNSTGRS)/
+     &                  (STWT + GROST - SENSTG - GROGRST)
+            else
+                graze_stem_N =                         ! g/plant/day
+     &                  (STEMN + DSTEMN - GRAINNGS - SENNSTG - SENNSTGRS)
+                graze_chaff = (CHWT + GROST*CHFR)
+            end if
+            graze_grain = graze_rate_today/10/pltpop*
+     &              (GRWT + GROGR - GROGRADJ)/
+     &              (grazeable_biomass/10/pltpop)
+            if ( (GRWT + GROGR - GROGRADJ) /= 0 ) then
+                graze_grain_N = graze_grain* ! g/plant/day
+     &                  (GRAINN + GRAINNG + GRAINNGL + GRAINNGS + GRAINNGR
+     &                      + RSNUSEG)/
+     &                  (GRWT + GROGR - GROGRADJ)
+            else
+                graze_grain_N =              ! g/plant/day
+     &                  GRAINN + GRAINNG + GRAINNGL + GRAINNGS + GRAINNGR
+     &                      + RSNUSEG
+            end if
+            graze_res = graze_rate_today/10/pltpop*
+     &              (RSWT + GRORS + GRORSGR + GROGRADJ + SENLFGRS - 
+     &                   SENRS - RTWTGRS)/
+     &              (grazeable_biomass/10/pltpop)
+            if( (RSWT + GRORS + GRORSGR + GROGRADJ + SENLFGRS - 
+     &                   SENRS - RTWTGRS) /= 0) then
+                graze_res_N = graze_res*               ! g/plant/day
+     &                  (RSN - RSNUSEG - RSNUSER - RSNUSET
+     &                      + SENNLFGRS + SENNSTGRS)/
+     &                  (RSWT + GRORS + GRORSGR + GROGRADJ + SENLFGRS
+     &                       - SENRS - RTWTGRS)
+            else
+                graze_res_N = graze_res*rsn/rswt ! g/plant/day
+            end if
+            graze_dead = graze_rate_today/10/pltpop*
+     &              (DEADWT + SENLFG + SENSTG)/
+     &              (grazeable_biomass/10/pltpop)
+            if( (DEADWT + SENLFG + SENSTG) /= 0 )then
+                graze_dead_N = graze_dead*       ! g/plant/day
+     &                  (DEADN + SENNLFG + SENNSTG)/
+     &                  (DEADWT + SENLFG + SENSTG)
+            else
+                graze_dead_N =                   ! g/plant/day
+     &                  (DEADN + SENNLFG + SENNSTG)
+            end if
+        else
+            graze_leaf = 0
+            graze_leaf_area = 0
+            graze_leaf_N = 0
+            graze_stem = 0
+            graze_stem_N = 0
+            graze_chaff = 0
+            graze_grain = 0
+            graze_grain_N = 0
+            graze_res = 0
+            graze_res_N = 0
+            graze_dead = 0
+            graze_dead_N = 0
+        end if
+        ! End PDA for Baird Thesis
+
       ELSEIF (DYNAMIC.EQ.INTEGR) THEN
 
         IF (YEARDOY.GE.YEARPLT) THEN
@@ -6307,6 +6478,10 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           end if
 
         ENDIF
+
+        ! Begin PDA for Baird Thesis
+        cum_biomass_fhs = cum_biomass_fhs + graze_rate_today
+        ! End PDA for Baird Thesis
 
       ELSEIF (DYNAMIC.EQ.OUTPUT .OR. 
      &        DYNAMIC.EQ.SEASEND .AND. SEASENDOUT.NE.'Y') THEN
