@@ -98,9 +98,9 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 )
 
 # Links to a single-threaded, static run-time library 
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                 Fortran "/libs:static" # Intel 
-                )
+#SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+#                 Fortran "/libs:static" # Intel 
+#                )
                 
 # Tells the linker to search for unresolved references in a multithreaded run-time library
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
@@ -130,17 +130,17 @@ IF (APPLE)
                         )
         set(CMAKE_Fortran_LINK_EXECUTABLE "ld ${CMAKE_EXE_LINKER_FLAGS} <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
     ENDIF()
-ELSE ()
-        SET_COMPILE_FLAG(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}"
-                         Fortran "/FORCE"               # MSVC
-                                 "-static"              # GNU
-                        )
-        SET_COMPILE_FLAG(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}"
-                         Fortran "-static-libgcc"       # GNU
-                        )
-        SET_COMPILE_FLAG(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}"
-                         Fortran "-static-libgfortran"  # GNU
-                        )
+#ELSE ()
+#        SET_COMPILE_FLAG(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}"
+#                         Fortran "/FORCE"               # MSVC
+#                                 "-static"              # GNU
+#                        )
+#        SET_COMPILE_FLAG(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}"
+#                         Fortran "-static-libgcc"       # GNU
+#                        )
+#        SET_COMPILE_FLAG(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}"
+#                         Fortran "-static-libgfortran"  # GNU
+#                        )
 ENDIF(APPLE)
 ###################
 ### DEBUG FLAGS ###
