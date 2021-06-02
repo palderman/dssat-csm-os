@@ -1,5 +1,8 @@
-# dssat-csm-os
-DSSAT Cropping System Model
+# Parallel gridded dssat-csm-os
+
+Parallel gridded version of the DSSAT Cropping System Model
+
+[![DOI](https://zenodo.org/badge/222549847.svg)](https://zenodo.org/badge/latestdoi/222549847)
 
 The Decision Support System for Agrotechnology Transfer (DSSAT) Version is a software 
 application program that comprises crop simulation models for over 42 crops (as of Version 4.7).
