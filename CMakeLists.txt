@@ -652,9 +652,9 @@ INCLUDE_DIRECTORIES(/usr/include include ${MPI_Fortran_INCLUDE_PATH} /usr/lib/x8
 SET_TARGET_PROPERTIES(${EXECUTABLE_NAME} PROPERTIES LINKER_LANGUAGE Fortran)
 SET_TARGET_PROPERTIES(run_mpi_dssat PROPERTIES LINKER_LANGUAGE Fortran)
 
-LINK_DIRECTORIES(/usr/local/lib /usr/lib/x86_64-linux-gnu /carl-data/shared/carl/lib /usr/lib/x86_64-linux-gnu)
+LINK_DIRECTORIES(/usr/local/lib /usr/lib/x86_64-linux-gnu /carl-data/shared/carl/lib /usr/lib/x86_64-linux-gnu ${MPI_Fortran_LIBRARIES})
 
-#find_library(NETCDFLIB netcdf HINTS /carl-data/shared/carl/lib /usr/lib/x86_64-linux-gnu)
+find_library(NETCDFLIB netcdf HINTS /carl-data/shared/carl/lib /usr/lib/x86_64-linux-gnu)
 
 TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} ${NETCDFC++} ${NETCDFLIB} netcdff mpi_mpifh mpi)
 TARGET_LINK_LIBRARIES(run_mpi_dssat ${NETCDFC++} ${NETCDFLIB} netcdff mpi_mpifh mpi)
