@@ -95,7 +95,7 @@ C-----------------------------------------------------------------------
 
          ntil = 0
          do i=1,size(tilldate)
-            if(tilldate(i)<0) exit
+            if(tilldate(i)<=0) exit
             ntil = ntil + 1
          end do
 
