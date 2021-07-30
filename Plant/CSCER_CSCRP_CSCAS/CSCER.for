@@ -1416,6 +1416,7 @@
       real graze_res_N ! g/plant/day
       real graze_dead ! g/plant/day
       real graze_dead_N ! g/plant/day
+      real calc_swpsd
       ! End PDA for Baird Thesis
 
       PARAMETER     (BLANK = ' ')
@@ -4138,6 +4139,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
               ! LAH Changed after query by Hong via GH
               ! SDEPTH*(SWP(2)-SWP(0))))
               SWPSD = SWP(0) + (SDEPTH/DLAYR(1))*(SWP(2)-SWP(0))
+              !SWPSD = calc_swpsd(SW(1), SDEPTH, SAT(1), DUL(1), LL(1), DLAYR(1))
             ENDIF
             WFGE = AMAX1(0.0,AMIN1(1.0,(SWPSD/WFGEU)))
           ELSE
@@ -9899,4 +9901,69 @@ c     ENDDO
 
       END  ! CSLAYERS
 
+           
+      function calc_swpsd(Th_t, d_p, Th_u, Th_m, Th_l, d_l) result(SWPSD)
+      
+         implicit none
+         
+         real Th_t, d_p, Th_u, Th_m, Th_l, d_l, Th_p
+         
+         real d_u, Th_c, d_m, Th_d
+         
+         real Th_r, SWPSD
+         
+         Th_r = Th_l/2.
+         
+         if(Th_t >= (Th_u+Th_m)/2)then
+    
+            d_u = 2*(Th_u - Th_t)/(Th_u - Th_m)
+    
+            if(d_p >= d_u)then
+               Th_p = Th_u
+            else
+               Th_p = d_p*(Th_u-Th_m)/d_u + Th_m
+            end if
+            
+         else if(Th_t >= Th_m)then
+    
+            Th_c = 2*(Th_t - Th_m)/d_l + Th_m
+    
+            Th_p = d_p*(Th_c - Th_m)/d_l + Th_m
+    
+         else if(Th_t >= (Th_m+Th_r)/2)then
+    
+            d_m = 2*(Th_m - Th_t)/(Th_m - Th_r)
+    
+            if(d_p >= d_m)then
+               Th_p = Th_m
+            else
+               Th_p = d_p * (Th_m - Th_r)/d_m + Th_r
+            end if
+    
+         else if(Th_t > Th_r)then
+    
+            Th_d = 2 * (Th_t - Th_r)/d_l + Th_r
+    
+            Th_p = d_p * (Th_d - Th_r)/d_l + Th_r
+    
+         else
+    
+            Th_p = Th_r
+    
+         end if
+         
+         if(Th_p > Th_l .and. Th_p < Th_m)then
+         
+            SWPSD = (Th_p - Th_l)/(Th_m - Th_l)
+         
+         else if(Th_p >= Th_m) then
 
+            SWPSD = 1.
+            
+         else if(Th_p <= Th_l) then
+         
+            SWPSD = 0.
+
+         end if
+
+      end function
