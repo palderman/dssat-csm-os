@@ -504,6 +504,24 @@ C-------------------------------------------------------------------------------
       ENDIF
 
 C-------------------------------------------------------------------------------
+C    Curve type CDV - used for reducing rates of processes as dormancy advances
+C	Multiply rates by this factor to reduce them on long days, 
+C	Short day effect depends on value of X2
+C	XM is the maximum reduction factor at full dormancy (daylength=X1)
+C	Less reduction as daylength gets shorter
+C    Process at maximum rate at or below XB
+C-------------------------------------------------------------------------------
+
+      IF(CTYPE .EQ. 'CDV' .OR. CTYPE .EQ. 'cdv') THEN
+        CURV = X2
+        IF(X .GT. XB .AND. X .LT. X1)
+     &	  CURV = X2-((X2-XM)*((XB-X)/(XB-X1))**2)
+        IF(X .GE. X1)CURV = XM
+        CURV = MAX(CURV,XM)
+        CURV = MIN(CURV,X2)
+      ENDIF
+
+C-------------------------------------------------------------------------------
 C	Curve type EXK - generic exponential function with "k"
 C	XB sets the amplitude of the curve (max Y value)
 C	X1/XM sets the amount of curvature (k) and shape of the curve (+ or -)
