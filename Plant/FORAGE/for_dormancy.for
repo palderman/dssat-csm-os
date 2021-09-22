@@ -210,6 +210,11 @@ C-----------------------------------------------------------------------
       READ(CHAR,'(4F6.0,3X,A3)',IOSTAT=ERR) (FNPGD(II),II=1,4), TYPPGD
       IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LINC)
 
+      CALL IGNORE(LUNCRP,LINC,ISECT,CHAR)
+
+      READ(CHAR,'(4F6.0,3X,A3)',IOSTAT=ERR) (FNWMD(II),II=1,4), TYPWMD
+      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILECC,LINC)
+
 !        ENDIF
 !-----------------------------------------------------------------------
 !     Find and read Temperature threshold for cold hardening in 
@@ -347,13 +352,29 @@ C***********************************************************************
 
 !            FNPGD(4) = RDRMG * FNPGD(4)
         PPGFAC=CURV(TYPPGD,FNPGD(1),FNPGD(2),FNPGD(3),FNPGD(4),DAYL)
-        PPGFAC= PPGFAC/RDRMG
-        PPGFAC=MIN (PPGFAC,1.0)
+        if(RDRMG .gt. 0.)then
+           PPGFAC = PPGFAC/RDRMG
+           PPGFAC = MIN(PPGFAC, 1.0)
+        else
+           PPGFAC = 1.0
+        end if
 
 !            FNPMD(4) = RDRMM * FNPMD(4)
         PPMFAC=CURV(TYPPMD,FNPMD(1),FNPMD(2),FNPMD(3),FNPMD(4),DAYL)
-        PPMFAC=PPMFAC/RDRMM
-        PPMFAC=MIN (PPMFAC,1.0)
+        if(RDRMM .gt. 0.)then
+           PPMFAC = PPMFAC/RDRMM
+           PPMFAC = MIN (PPMFAC,1.0)
+        else
+           PPMFAC = 1.0
+        end if
+
+        WSMFAC=CURV(TYPPMD,FNWMD(1),FNWMD(2),FNWMD(3),FNWMD(4),)
+        if(RDRWS .gt. 0.)then
+           WSMFAC = WSMFAC/RDRWS
+           WSMFAC = MIN (WSMFAC,1.0)
+        else
+           WSMFAC = 1.0
+        end if
 
         IF (PPTFAC .GT. 0.0 .OR. PPGFAC .LT. 1.0
      &    .OR. PPMFAC .LT. 1.0) THEN
