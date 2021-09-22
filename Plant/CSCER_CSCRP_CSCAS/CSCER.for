@@ -1461,6 +1461,7 @@
             call seasonal_registry%set_target('CWAM',CWAD)
             call seasonal_registry%set_target('LAIX',LAIX)
             call seasonal_registry%set_target('PDAT',YEARPLT)
+            call seasonal_registry%set_target('EDAT',stgdoy(9))
             call seasonal_registry%set_target('ADAT',ADAT)
             call seasonal_registry%set_target('MDAT',stgdoy(5))
             call seasonal_registry%set_target(
