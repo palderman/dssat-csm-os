@@ -347,13 +347,21 @@ C***********************************************************************
 
 !            FNPGD(4) = RDRMG * FNPGD(4)
         PPGFAC=CURV(TYPPGD,FNPGD(1),FNPGD(2),FNPGD(3),FNPGD(4),DAYL)
-        PPGFAC= PPGFAC/RDRMG
-        PPGFAC=MIN (PPGFAC,1.0)
+        if(RDRMG .gt. 0.)then
+           PPGFAC = PPGFAC/RDRMG
+           PPGFAC = MIN(PPGFAC, 1.0)
+        else
+           PPGFAC = 1.0
+        end if
 
 !            FNPMD(4) = RDRMM * FNPMD(4)
         PPMFAC=CURV(TYPPMD,FNPMD(1),FNPMD(2),FNPMD(3),FNPMD(4),DAYL)
-        PPMFAC=PPMFAC/RDRMM
-        PPMFAC=MIN (PPMFAC,1.0)
+        if(RDRMM .gt. 0.)then
+           PPMFAC = PPMFAC/RDRMM
+           PPMFAC = MIN (PPMFAC,1.0)
+        else
+           PPMFAC = 1.0
+        end if
 
         IF (PPTFAC .GT. 0.0 .OR. PPGFAC .LT. 1.0
      &    .OR. PPMFAC .LT. 1.0) THEN
