@@ -138,6 +138,7 @@ C-----------------------------------------------------------------------
 !     Base soil values modified by soil organic matter
       REAL dBD_SOM, dDLAYR_SOM, dDUL_SOM, dLL_SOM, dSOM, dOC
       REAL, DIMENSION(NL) :: BD_SOM, DLAYR_SOM, DS_SOM, DUL_SOM, LL_SOM
+      real, dimension(NL) :: SAT_SOM
       REAL, DIMENSION(NL) :: SomLit, SomLit_INIT, SOM_PCT, SOM_PCT_init
       REAL, DIMENSION(NL) :: OC_INIT, TOTN_INIT, TotOrgN_init
       REAL, DIMENSION(0:NL) :: SomLitC, KECHGE
@@ -998,6 +999,7 @@ C  tillage and rainfall kinetic energy
 
       BD_SOM   = BD
       DUL_SOM  = DUL
+      SAT_SOM  = SAT
       DS_SOM   = DS
       LL_SOM   = LL
       DLAYR_SOM= DLAYR
@@ -1048,6 +1050,7 @@ C  tillage and rainfall kinetic energy
 
       BD_SOM   = BD
       DUL_SOM  = DUL
+      SAT_SOM  = SAT
       DS_SOM   = DS
       LL_SOM   = LL
       DLAYR_SOM= DLAYR
@@ -1141,6 +1144,7 @@ C  tillage and rainfall kinetic energy
             DLAYR_SOM(L)= DLAYR_INIT(L)
             DS_SOM(L)   = DS_INIT(L)
             DUL_SOM(L)  = DUL_INIT(L)
+            SAT_SOM(L)  = SAT_INIT(L)
             LL_SOM(L)   = LL_INIT(L)
 
           ELSE
@@ -1209,6 +1213,9 @@ C  tillage and rainfall kinetic energy
               dDUL_SOM = 0.002208 * dOC - 0.1434 * dBD_SOM 
             ENDIF
             DUL_SOM(L) = DUL_INIT(L) + dDUL_SOM
+
+!           Scale SAT with DUL
+            SAT_SOM(L) = DUL_SOM(L)*SAT_INIT(L)/DUL_INIT(L)
 
 !           Lower limit
             dLL_SOM = 0.002228 * dOC + 0.02671 * dBD_SOM
@@ -1417,6 +1424,7 @@ c** wdb orig          SUMKEL = SUMKE * EXP(-0.15*MCUMDEP)
         DLAYR  = DLAYR_SOM
       ENDIF
 
+      SAT = SAT_SOM
       DUL = DUL_SOM
       LL  = LL_SOM
 
