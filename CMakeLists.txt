@@ -4,7 +4,7 @@
 # Define the project and the dependencies that it has
 ##########################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    message(FATAL_ERROR "DSSAT in-source builds are not permitted. \nMake a separate folder"
@@ -22,7 +22,7 @@ PROJECT(DSSAT-CSM Fortran)
 SET(MAJOR 4)
 SET(MINOR 8)
 SET(MODEL 0)
-SET(BUILD 16)
+SET(BUILD 17)
 
 # Get the current working branch
 execute_process(
@@ -519,7 +519,7 @@ set(
         "Plant/SAMUCA-Sugarcane/SC_Det_outputs.f90"
         "Plant/SAMUCA-Sugarcane/SC_find_inp_sam.for"
         "Plant/SAMUCA-Sugarcane/SC_functions.f90"
-		"Plant/SAMUCA-Sugarcane/SC_OPHARV_SAM.f90"
+		    "Plant/SAMUCA-Sugarcane/SC_OPHARV_SAM.f90"
         "Plant/SAMUCA-Sugarcane/SC_OUTPUT_SAM.for"
         "Plant/SAMUCA-Sugarcane/SC_PGS.f90"
         "Plant/SAMUCA-Sugarcane/SC_radiat.f90"
