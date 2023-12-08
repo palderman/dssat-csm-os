@@ -221,11 +221,37 @@ C=======================================================================
       REAL FCD, TK4, RNL, RN, G, WINDSP, WIND2m, Cn, Cd, KCMAX, RHMIN
       REAL WND, CHT
       REAL REFET, SKC, KCBMIN, KCBMAX, KCB, KE, KC
+      ! Adjusted air/dewpoint temperatures to be used for ET calculations:
+      REAL TMAX_ADJ, TMIN_ADJ, TDEW_ADJ, DELTA_T_ADJ, Ko_ADJ
 !-----------------------------------------------------------------------
 
 !     ASCE Standardized Reference Evapotranspiration
+      
+!     Following Annex D-28, check for non-reference weather conditions
+!     using the criterion described in Eq. 6-1 of Annex 6 of the FAO-56
+!     document:
+      DELTA_T_ADJ = TMIN - TDEW
+!     If non-reference conditions are present (i.e. DELTA_T_ADJ > 2),
+!     adjust TMAX, TMIN and TDEW
+      IF(DELTA_T_ADJ .GT. 2.0)THEN
+         ! FAO-56, Annex 6, step 3
+         ! Ko_ADJ is a "conservative" factor when not comparing with
+         ! a reference station, assumed to be 2.0
+         Ko_ADJ = 2.0
+         ! FAO-56, Annex 6, Eq. 6-3
+         TMAX_ADJ = TMAX - (DELTA_T_ADJ - Ko_ADJ)/2.
+         ! FAO-56, Annex 6, Eq. 6-4
+         TMIN_ADJ = TMIN - (DELTA_T_ADJ - Ko_ADJ)/2.
+         ! FAO-56, Annex 6, Eq. 6-5
+         TDEW_ADJ = TDEW - (DELTA_T_ADJ - Ko_ADJ)/2.
+      ELSE
+         TMAX_ADJ = TMAX
+         TMIN_ADJ = TMIN
+         TDEW_ADJ = TDEW
+      ENDIF
+
 !     Average temperature, ASCE (2005) Eq. 2
-      TAVG = (TMAX + TMIN) / 2.0 !deg C
+      TAVG = (TMAX_ADJ + TMIN_ADJ) / 2.0 !deg C
 
 !     Atmospheric pressure, ASCE (2005) Eq. 3
       PATM = 101.3 * ((293.0 - 0.0065 * XELEV)/293.0) ** 5.26 !kPa
@@ -238,8 +264,8 @@ C=======================================================================
       UDELTA = 2503.0*EXP(17.27*TAVG/(TAVG+237.3))/(TAVG+237.3)**2.0
 
 !     Saturation vapor pressure, ASCE (2005) Eqs. 6 and 7
-      EMAX = 0.6108*EXP((17.27*TMAX)/(TMAX+237.3)) !kPa
-      EMIN = 0.6108*EXP((17.27*TMIN)/(TMIN+237.3)) !kPa
+      EMAX = 0.6108*EXP((17.27*TMAX_ADJ)/(TMAX_ADJ+237.3)) !kPa
+      EMIN = 0.6108*EXP((17.27*TMIN_ADJ)/(TMIN_ADJ+237.3)) !kPa
       ES = (EMAX + EMIN) / 2.0                     !kPa
 
 !     Actual vapor pressure, ASCE (2005) Table 3
@@ -247,14 +273,14 @@ C=======================================================================
         EA = VAPR !kPa
       ELSEIF (.NOT.NOTDEW) THEN
 !       ASCE (2005) Eq. 8
-        EA = 0.6108*EXP((17.27*TDEW)/(TDEW+237.3)) !kPa
+        EA = 0.6108*EXP((17.27*TDEW_ADJ)/(TDEW_ADJ+237.3)) !kPa
       ELSEIF (RHUM.GT.1.E-6) THEN
 !       RHUM is relative humidity at TMIN (or max rel. hum) (%)
 !       ASCE (2005) Eq. 12
         EA = EMIN * RHUM / 100. !kPa
       ELSE
 !       ASCE (2005) Appendix E, assume TDEW=TMIN-2.0
-        EA = 0.6108*EXP((17.27*(TMIN-2.0))/((TMIN-2.0)+237.3)) !kPa
+        EA = 0.6108*EXP((17.27*(TMIN_ADJ-2.0))/((TMIN_ADJ-2.0)+237.3)) !kPa
       ENDIF
 
 !     RHmin, ASCE (2005) Eq. 13, RHmin limits from FAO-56 Eq. 70
@@ -288,7 +314,7 @@ C=======================================================================
         RATIO = 1.0
       END IF
       FCD = 1.35*RATIO-0.35 !Eq 18
-      TK4 = ((TMAX+273.16)**4.0+(TMIN+273.16)**4.0)/2.0 !Eq. 17
+      TK4 = ((TMAX_ADJ+273.16)**4.0+(TMIN_ADJ+273.16)**4.0)/2.0 !Eq. 17
       RNL = 4.901E-9*FCD*(0.34-0.14*SQRT(EA))*TK4 !MJ/m2/d Eq. 17
 
 !     Net radiation, ASCE (2005) Eq. 15
