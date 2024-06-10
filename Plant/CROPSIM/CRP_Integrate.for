@@ -1019,7 +1019,7 @@
             IF (LFWT.GT.1.0E-5) LANC = LEAFN / LFWT
             IF (STWT.GT.1.0E-5) SANC = STEMN / STWT
             ! Originally included retained dead matter and reserves
-            IF (((LFWT+STWT+RSWT)*PLTPOP*10.0).GT.0.0)
+            IF (((LFWT+STWT)*PLTPOP*10.0).GT.0.0)
      &       VANC = VNAD/((LFWT+STWT)*PLTPOP*10.0)
             IF (LANC.LT.0.0) THEN 
               WRITE(Message(1),'(A27,F4.1)')
