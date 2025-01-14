@@ -88,7 +88,7 @@ ENDIF(FCNAME STREQUAL "pgf90")
 ##########################################################################################
 
 # Define the executable name and OSDefinitions file
-SET(EXECUTABLE_NAME dscsm0${MAJOR}${MINOR})
+SET(EXECUTABLE_NAME dscsm0${MAJOR}${MINOR}_annex6)
 configure_file(
     "${PROJECT_SOURCE_DIR}/Utilities/CSMVersion.for.in"
     "${PROJECT_SOURCE_DIR}/Utilities/CSMVersion.for"
