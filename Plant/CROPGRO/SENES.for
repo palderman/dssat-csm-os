@@ -26,6 +26,7 @@ C-----------------------------------------------------------------------
       USE ModuleData
       use dssat_netcdf
       IMPLICIT NONE
+      EXTERNAL GETLUN, FIND, ERROR, IGNORE, TABEX
       SAVE
 
       CHARACTER*6  ERRKEY, SECTION

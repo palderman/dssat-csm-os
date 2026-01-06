@@ -47,6 +47,7 @@ C-----------------------------------------------------------------------
       USE ModuleData
       use csm_io
       IMPLICIT NONE
+      EXTERNAL ERROR, FIND, GETLUN, UPCASE
       SAVE
 
       CHARACTER*1  IDETC, IDETD, IDETG, IDETH, IDETL, IDETN, IDETO

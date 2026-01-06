@@ -10,6 +10,7 @@ C  01/01/1989     Written.
 C  12/31/1996 GH  Deleted phenology statements.
 C  09/15/1998 CHP Modified for modular format.
 C  05/10/1999 GH  Incorporaed in CROPGRO
+!  06/15/2022 CHP Added CropStatus
 C-----------------------------------------------------------------------
 C  Called by  : CROPGRO
 C  Calls      : None
@@ -18,14 +19,15 @@ C========================================================================
      &    FREEZ2, IDETO, NOUTDO, NRUSLF, SLDOT,           !Input
      &    TMIN, WTLF, YRDOY,  YRPLT,                      !Input
      &    MDATE,                                          !Input/Output
-     &    WLFDOT)                                         !Output
+     &    WLFDOT, CropStatus)                             !Output
 C-----------------------------------------------------------------------
       IMPLICIT NONE
+      EXTERNAL TIMDIF, WARNING
       SAVE
 C-----------------------------------------------------------------------
       CHARACTER*1  IDETO
       CHARACTER*78 MESSAGE(10)
-      INTEGER MDATE, YRDOY, DAP, NOUTDO, YRPLT, TIMDIF
+      INTEGER MDATE, YRDOY, DAP, NOUTDO, YRPLT, TIMDIF, CropStatus
       REAL  WLFDOT, WTLF, SLDOT, NRUSLF, TMIN, FREEZ2
 
 C-----------------------------------------------------------------------
@@ -35,6 +37,7 @@ C-----------------------------------------------------------------------
       IF (TMIN .LT. FREEZ2) THEN
         IF (MDATE .LT. 0) THEN
           MDATE = YRDOY
+          CropStatus = 32 !cold stress
         ENDIF
       ENDIF
 
@@ -43,7 +46,7 @@ C-----------------------------------------------------------------------
       CALL WARNING(1, 'FREEZE', MESSAGE)
   100 FORMAT('Freeze occurred at ',I4,' days after planting.')
   110 FORMAT('  (DAY : ',I7,' )')
-      WRITE (*,'(/,2X,A78,/,2X,A78)') MESSAGE(1), MESSAGE(2)
+!     WRITE (*,'(/,2X,A78,/,2X,A78)') MESSAGE(1), MESSAGE(2)
       IF (IDETO .EQ. 'Y')  THEN
         WRITE (NOUTDO,'(/,5X,A78,/,5X,A78)') MESSAGE(1), MESSAGE(2)
       ENDIF

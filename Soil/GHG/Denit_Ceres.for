@@ -13,13 +13,13 @@ C           SOILNI, YR_DOY, FLOOD_CHEM, OXLAYER
 C=======================================================================
 
       SUBROUTINE Denit_Ceres (CONTROL, ISWNIT,  
-     &    DUL, FLOOD, KG2PPM, LITC, NLAYR, NO3, SAT,  !Input
+     &    DUL, KG2PPM, LITC, NLAYR, NO3, SAT,         !Input
      &    SSOMC, SNO3, ST, SW,                        !Input
      &    DLTSNO3,                                    !I/O
      &    CNOX, TNOXD, N2O_data)                      !Output
 
 !-----------------------------------------------------------------------
-      USE N2O_mod 
+      USE GHG_mod 
       USE ModuleData
       IMPLICIT  NONE
       SAVE
@@ -28,7 +28,7 @@ C=======================================================================
 
       INTEGER DYNAMIC, L, NLAYR
 
-      REAL CW, FLOOD, XMIN
+      REAL CW, XMIN
       REAL TFDENIT, WFDENIT
       REAL ST(NL), SNO3_AVAIL
       REAL, DIMENSION(0:NL) :: LITC, SSOMC
@@ -65,9 +65,8 @@ C=======================================================================
 
       NDAYS_WET = 0.0
 
-!!   temp chp
-!      write(4000,'(a,/,a)') "Ceres",
-!     &   "  yrdoy Lyr Wet    wfps  ratio1  ratio2"
+!     CHP added 2023-03-21
+      DLAG = 0.0
 
 !***********************************************************************
 !***********************************************************************
@@ -124,7 +123,7 @@ C-UPS     Corrected per e-mail 03/29/00
 !     ----------------------------------------------------------------
 
 !        From Century:
-         !CHP changed 1/14/2004 per email from UPS / AJG
+!        CHP changed 1/14/2004 per email from UPS / AJG
           CW = 24.5 + 0.0031 * (SSOMC(L) + 0.2 * LITC(L)) * KG2PPM(L)
 !     ----------------------------------------------------------------
 !
@@ -207,13 +206,14 @@ C         If flooded, lose all nitrate --------REVISED-US
 !            DNFRATE = 0.0
 !          ENDIF
 
-!         chp/us 4/21/2006
-          IF (FLOOD .GT. 0.0 .AND. WFDENIT > 0.0) THEN
-!            DENITRIF(L) = SNO3_AVAIL
-!           chp 9/6/2011 remove 50% NO3/d = 97% removed in 5 days
-!           previously removed 100% NO3/d
-            DENITRIF(L) = SNO3_AVAIL * 0.5
-          ENDIF
+!     2023-07-28 Mathilde Dionisi, Myriam Adam - flooded denitrification at same rates as upland
+!!         chp/us 4/21/2006
+!          IF (FLOOD .GT. 0.0 .AND. WFDENIT > 0.0) THEN
+!!            DENITRIF(L) = SNO3_AVAIL
+!!           chp 9/6/2011 remove 50% NO3/d = 97% removed in 5 days
+!!           previously removed 100% NO3/d
+!            DENITRIF(L) = SNO3_AVAIL * 0.5
+!          ENDIF
 
 !chp 4/20/2004   DENITRIF = AMAX1 (DENITRIF, DNFRATE)
           DENITRIF(L) = AMAX1 (DENITRIF(L), 0.0)
@@ -237,11 +237,6 @@ C         Compute the N2:N2O Ratio
           if (ndays_wet(L) > 0) then
             ratio2(L) = -330. + 334 * wfps(L) + 18.4 * ndays_wet(L)
             ratio2(L) = max(ratio2(L),0.0)
-
-!!           temp chp
-!            write(4000,'(i7,2i4,3F8.3)')
-!     &       yrdoy, L, ndays_wet(L), wfps(L), ratio1(L), ratio2(L)
-
           else
             ratio2(L) = 0.0
           endif
@@ -282,7 +277,7 @@ C         Compute the N2:N2O Ratio
       N2O_data % TN2OdenitD= TN2OdenitD
       N2O_data % TNOXD    = TNOXD
       N2O_data % DENITRIF = DENITRIF
-      N2O_data % n2odenit  = n2odenit
+      N2O_data % n2odenit = n2odenit
       N2O_data % N2FLUX   = N2FLUX
 
       RETURN
@@ -293,7 +288,7 @@ C         Compute the N2:N2O Ratio
 !-----------------------------------------------------------------------
       
 ! DENITRIF(L)   Denitrification rate in soil layer L (kg [N] / ha / d)
-! NO3(L)        Nitrate in soil layer L (µg[N] / g[soil])
+! NO3(L)        Nitrate in soil layer L (ï¿½g[N] / g[soil])
 
 !***********************************************************************
 

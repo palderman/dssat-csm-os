@@ -18,6 +18,7 @@ C=======================================================================
       USE ModuleDefs
       use csm_io
       IMPLICIT NONE
+      EXTERNAL FIND, ERROR
       SAVE
 
       CHARACTER*6 ERRKEY, SECTION

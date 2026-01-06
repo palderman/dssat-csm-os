@@ -1,10 +1,8 @@
 C=======================================================================
-C  COPYRIGHT 1998-2010 The University of Georgia, Griffin, Georgia
+C  COPYRIGHT 1998-2021 DSSAT Foundation
 C                      University of Florida, Gainesville, Florida
-C                      Iowa State University, Ames, Iowa
-C                      International Center for Soil Fertility and 
-C                       Agricultural Development, Muscle Shoals, Alabama
-C                      University of Guelph, Guelph, Ontario
+C                      International Fertilizer Development Center
+C    
 C  ALL RIGHTS RESERVED
 C=======================================================================
 C=====================================================================
@@ -30,6 +28,8 @@ C  08/01/2002 CHP Merged RUNINIT and SEASINIT into INIT section
 !                 FPLACE_C in Century)
 !  07/14/2006 CHP Added OM_Place (replaces RPLACE in NTRANS and 
 !                 RPLACE_C in Century)
+!  01/26/2023 CHP Reduce compile warnings: add EXTERNAL stmts, remove 
+!                 unused variables, shorten lines. 
 C=====================================================================
 
       SUBROUTINE MGMTOPS(CONTROL, ISWITCH, 
@@ -43,6 +43,8 @@ C-----------------------------------------------------------------------
       USE FloodModule
       use dssat_mpi
       IMPLICIT NONE
+      EXTERNAL AUTHAR, AUTPLT, CHEMICAL, FERT_PLACE, IPAHAR, IRRIG, 
+     &  OM_PLACE, OPMGMT, PADDY_MGMT, SUMVALS, TILLAGE, TIMDIF, YR_DOY
       SAVE
 
       CHARACTER*1  IHARI, IIRRI, IPLTI, ISWCHE, RNMODE
@@ -55,11 +57,11 @@ C-----------------------------------------------------------------------
       INTEGER NAP, NCHEM, NLAYR, TILLNO          
       INTEGER NHAR, NTIL, RUN, TIMDIF
       INTEGER YRDIF, YRDOY, MDATE, YRO, YRPLT, YRS, YRSIM
-      INTEGER HDATE(3)
+      INTEGER HDATE(NAPPL)
       INTEGER STGDOY(20)
 
       REAL IRRAMT, TOTIR, TIL_IRR
-      REAL HPC(3), HBPC(3), HARVFRAC(2)
+      REAL HPC(NAPPL), HBPC(NAPPL), HARVFRAC(2)
       REAL, DIMENSION(NL) :: DLAYR, DUL, DS, LL, ST, SW
 
 !     Variables added for flooded conditions
@@ -67,7 +69,7 @@ C-----------------------------------------------------------------------
       REAL FLOOD, RAIN
 
       !Variables needed to call IPAHAR for sequenced runs:
-      INTEGER HDLAY, HLATE, HSTG(3)
+      INTEGER HDLAY, HLATE, HSTG(NAPPL)
       REAL    SWPLTL, SWPLTH, SWPLTD
 
 !     Arrays which contain data for printing in SUMMARY.OUT file
@@ -188,7 +190,7 @@ C-----------------------------------------------------------------------
      &    FLOOD, FLOODWAT, FLOODN)                        !Output 
 
       CALL OpMgmt(CONTROL, ISWITCH,
-     &    FERTDATA, HARVRES, IIRRI, IRRAMT, NAP, OMADATA, 
+     &    FERTDATA, HARVFRAC, HARVRES, IIRRI, IRRAMT, NAP, OMADATA, 
      &    SOILPROP, TILLNO, TILLVALS, TOTIR, YRPLT)
 
       if(mpi_child%use_mpi)then
@@ -278,7 +280,7 @@ C-----------------------------------------------------------------------
       ELSEIF (DYNAMIC .EQ. OUTPUT) THEN
 !-----------------------------------------------------------------------
       CALL OpMgmt(CONTROL, ISWITCH,
-     &    FERTDATA, HARVRES, IIRRI, IRRAMT, NAP, OMADATA, 
+     &    FERTDATA, HARVFRAC, HARVRES, IIRRI, IRRAMT, NAP, OMADATA, 
      &    SOILPROP, TILLNO, TILLVALS, TOTIR, YRPLT)
 
       IF (NBUND .GT. 0) THEN
@@ -299,7 +301,7 @@ C-----------------------------------------------------------------------
      &    OMAData)                                !Output
 
       CALL OpMgmt(CONTROL, ISWITCH,
-     &    FERTDATA, HARVRES, IIRRI, IRRAMT, NAP, OMADATA, 
+     &    FERTDATA, HARVFRAC, HARVRES, IIRRI, IRRAMT, NAP, OMADATA, 
      &    SOILPROP, TILLNO, TILLVALS, TOTIR, YRPLT)
 
       IF (NBUND .GT. 0) THEN
@@ -347,7 +349,7 @@ C  Called from:   MgmtOps
 C  Calls:         None
 C=======================================================================
       SUBROUTINE OpMgmt(CONTROL, ISWITCH,
-     &    FERTDATA, HARVRES, IIRRI, IRRAMT, NAP, OMADATA, 
+     &    FERTDATA, HARVFRAC, HARVRES, IIRRI, IRRAMT, NAP, OMADATA, 
      &    SOILPROP, TILLNO, TILLVALS, TOTIR, YRPLT)
 
 !-----------------------------------------------------------------------
@@ -355,6 +357,7 @@ C=======================================================================
       USE ModuleData
       USE SumModule
       IMPLICIT NONE
+      EXTERNAL GETLUN, HEADER, NAILUJ, TIMDIF, YR_DOY
       SAVE
 
       CHARACTER*1  ISWCHE, IDETW, ISWTIL, IIRRI, RNMODE
@@ -370,12 +373,13 @@ C=======================================================================
       INTEGER DAP, DAS, DLUN, DLUN2, DOY, DYNAMIC, ERRNUM, FROP, I
       INTEGER NDAY, RUN, YEAR, YRDOY, YRPLT
       INTEGER L, NAP, TIMDIF, NAPFER(NELEM), NAPRes
-      INTEGER TILLNO, TILDATE
+      INTEGER TILLNO, TILDATE, ISH_date
       INTEGER iSTAGE, iSTGDOY
 
 
-      REAL BDAVG3, CUMDEP, IRRAMT, TILDEP, DEPIR
+      REAL BDAVG3, CUMDEP, IRRAMT, TILDEP, DEPIR, ISH_wt
       REAL TotAmtN, TotAmtP, TotAmtK, TOTIR, TotResWt, SurfRes, RootRes
+      REAL HARVFRAC(2)
       REAL, DIMENSION(NELEM) :: AMTFER, CumRESE
       REAL, DIMENSION(NL) :: BD, DLAYR
 
@@ -390,7 +394,7 @@ C     ModuleDefs.for.
       TYPE (SoilType)     SOILPROP
       TYPE (FertType)     FERTDATA
       TYPE (OrgMatAppType)OMAData
-      Type (ResidueType)  HARVRES  
+      Type (ResidueType)  HARVRES
 
       CROP    = CONTROL % CROP 
       DAS     = CONTROL % DAS 
@@ -517,7 +521,7 @@ C-----------------------------------------------------------------------
           WRITE(DLUN2,'("*MANAGEMENT OPERATIONS EVENT SUMMARY")')
         ENDIF
 
-        IF (INDEX('FQN',RNMODE) <= 0 .OR. RUN == 1) THEN
+        IF (INDEX('FQNY',RNMODE) <= 0 .OR. RUN == 1) THEN
           CALL HEADER(SEASINIT, DLUN2, RUN)  
         ENDIF
 
@@ -706,6 +710,16 @@ C-----------------------------------------------------------------------
   110     FORMAT(I4,1X,A12,2X,I3.3,2(1X,I6),2X,A2,T57,A,F7.1,A)
         ENDIF
 
+!       In-season harvest or mow operation
+        CALL GET('MHARVEST','ISH_date',ISH_date)
+        CALL GET('MHARVEST','ISH_wt',  ISH_wt)
+        IF (YRDOY == ISH_date) THEN
+!         In-season harvest
+          WRITE(DLUN2,120) RUN, Date_Txt, DOY, DAS, DAP, CROP, 
+     &          "Harvest        ",
+     &        ISH_wt, " kg/ha"
+  120     FORMAT(I4,1X,A12,2X,I3.3,2(1X,I6),2X,A2,T57,A,F7.0,A)
+        ENDIF
       ENDIF
 
 !***********************************************************************
@@ -713,37 +727,54 @@ C-----------------------------------------------------------------------
       ELSEIF (DYNAMIC .EQ. SEASEND) THEN
 !-----------------------------------------------------------------------
       IF (IDETR == 'Y') THEN
-!       Harvest
+
+!       End of simulation-season harvest or mow operation
+        CALL GET('MHARVEST','ISH_date',ISH_date)
+        CALL GET('MHARVEST','ISH_wt',  ISH_wt)
+        IF (YRDOY == ISH_date) THEN
+!         In-season harvest
+          WRITE(DLUN2,220) RUN, Date_Txt, DOY, DAS, DAP, CROP, 
+     &          "Harvest        ",
+     &        ISH_wt, " kg/ha"
+  220     FORMAT(I4,1X,A12,2X,I3.3,2(1X,I6),2X,A2,T57,A,F7.0,A)
+        ENDIF
+
+          WRITE(DLUN2,220) RUN, Date_Txt, DOY, DAS, DAP, CROP, 
+     &          "End simulation "
+
+!       Harvested amounts
         IF (CROP .NE. 'FA') THEN
-          WRITE(DLUN2,112) RUN, Date_Txt, DOY, DAS, DAP, CROP, 
-     &            "Harvest Yield  ", SumDat % HWAH, " kg/ha"
-  112     FORMAT(I4,1X,A12,2X,I3.3,2(1X,I6),2X,A2,T57,A,F7.0,A)
+          WRITE(DLUN2,312) HARVFRAC(1)*100., " % yield harvested",
+     &            SumDat % HWAH, " kg/ha"
+          WRITE(DLUN2,312) HARVFRAC(2)*100., " % by-product harv",
+     &            SumDat % BWAH, " kg/ha"
+  312     FORMAT(T45,F6.1,A,T72,F7.0,A)
+
+!         Harvest residues
           IF (INDEX('FQ',RNMODE) > 0 .AND. CROP /= 'FA') THEN
             SurfRes = HARVRES % ResWt(0)
             IF (SurfRes > 0) THEN
-              WRITE(DLUN2,200) "Surface residue", SurfRes,
-     &            " kg/ha carryover"
+              WRITE(DLUN2,400) "Surface residue carryover", SurfRes,
+     &            " kg/ha"
+  400         FORMAT(T46,A,T72,F7.0,A)
             ENDIF
-  200       FORMAT(56X,A,F7.0,A)
         
             RootRes = SUM(HARVRES % ResWt) - HARVRES % ResWt(0)
             IF (RootRes > 0) THEN
-              WRITE(DLUN2,200) "Root residue   ", RootRes, 
-     &            " kg/ha carryover"
+              WRITE(DLUN2,400) "Root residue carryover", RootRes, 
+     &            " kg/ha"
             ENDIF
           ENDIF
-        ELSE
-          WRITE(DLUN2,100) RUN, Date_Txt, DOY, DAS, DAP, CROP, 
-     &            "End Sim        "
-  100     FORMAT(I4,1X,A12,2X,I3.3,2(1X,I6),2X,A2,2X,A,3(F7.0,A))
+!        ELSE
+!          WRITE(DLUN2,500) RUN, Date_Txt, DOY, DAS, DAP, CROP, 
+!     &            "End Sim        "
+!  500     FORMAT(I4,1X,A12,2X,I3.3,2(1X,I6),2X,A2,2X,A,3(F7.0,A))
         ENDIF
 
         WRITE(DLUN2,'(" ")')
         CLOSE (DLUN)
         CLOSE (DLUN2)
       ENDIF
-
-      
 
 !***********************************************************************
 !***********************************************************************

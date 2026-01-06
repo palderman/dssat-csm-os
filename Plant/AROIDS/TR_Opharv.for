@@ -16,12 +16,14 @@ C=======================================================================
      &    SKERWT, STGDOY, STNAME, STOVER, STOVN, SWFAC,   !Input
      &    TOTNUP, TURFAC, YRPLT,                          !Input
      &    BWAH, SDWT, SDWTAH, TOPWT, WTNSD,               !Output
-     &    MCORMWT, TCORMWT ) !additions RMO
+     &    MCORMWT)    !, TCORMWT ) !additions RMO
 !-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
       IMPLICIT NONE
+      EXTERNAL FIND, ERROR, GETDESC, OPVIEW, READA, READA_Dates, 
+     &  SUMVALS, EvaluateDat, TIMDIF, READA_Y4K
       SAVE
 
       CHARACTER*1  IDETO, IPLTI, RNMODE
@@ -39,7 +41,7 @@ C=======================================================================
       INTEGER DNR1,DNR7,MDATE,STGDOY(20)
       INTEGER DYNAMIC, LUNIO, ACOUNT, ERRNUM, LINC, LNUM, FOUND
       INTEGER DFLR, DMAT, LEAFNO, YIELD, ISTAGE
-      INTEGER DNR0, IFLR, TIMDIF, IMAT, IPIN 
+      INTEGER DNR0, IFLR, TIMDIF, IMAT    !, IPIN 
 
       REAL MAXLAI,TOTNUP,PSDWT,PSPP,HI, LAI !,ACREFC
       REAL WTNCAN,PLANTS
@@ -51,7 +53,7 @@ C=======================================================================
       REAL CMOIST, CANWAA,CANNAA,CORMWT,BWAH,SDWTAH
       REAL Pstres1, Pstres2   
       REAL AGEFAC, SWFAC
-	  REAL MCORMWT, TCORMWT   !additions RMO
+      REAL MCORMWT  !, TCORMWT   !additions RMO
 
       REAL, DIMENSION(2) :: HARVFRAC
 
@@ -66,7 +68,7 @@ C=======================================================================
 !     Arrays which contain predicted and Measured data for printing
 !       in OVERVIEW.OUT and EVALUATE.OUT files (OPVIEW subroutine)
       CHARACTER*6 OLAB(40), OLAP(40)  !OLAP modified for dap
-      CHARACTER*6 X(40)
+      CHARACTER*12 X(40)
       CHARACTER*8 Simulated(40), Measured(40)
       CHARACTER*50 DESCRIP(40)
 
@@ -110,7 +112,7 @@ c     &  'GW%M  ', ! 4 Product Moisture Content (%)
      &  'CWAA  ', ! 8 Tot DM wt at max veg growth (kg dm/ha)
      &  'CNAA  ', ! 9 Tops N at at max veg growth (kg/ha) 
      &  'TWAH  ', !10 Tot DM wt at maturity (kg dm/ha)
-     &  'BWAH  ', !11 By-product harvest (kg dm/ha)
+     &  'BWAM  ', !11 By-product harvest (kg dm/ha)
      &  'HIAM  ', !12 Harvest index at maturity
      &  'L#SX  ', !13 Leaf number per stem,maximum
      &  'UNAM  ', !14 Corm N at maturity (kg/ha) 
@@ -278,7 +280,8 @@ C-----------------------------------------------------------------------
          ELSE
            TRT_ROT = TRTNUM
          ENDIF
-        CALL READA(FILEA, PATHEX, OLAB, TRT_ROT, YRSIM, X)
+        !CALL READA(FILEA, PATHEX, OLAB, TRT_ROT, YRSIM, X)
+        CALL READA_Y4K(FILEA, PATHEX,OLAB, TRT_ROT, YRSIM, X)
 
 !       Convert from YRDOY format to DAP.  Change descriptions to match.
         CALL READA_Dates(X(1), YRSIM, IFLR)
@@ -316,39 +319,47 @@ C-----------------------------------------------------------------------
 !     CHP 1/11/2005 Need to supply this value from somewhere!
       CMOIST = 200.0    ! set moisture to 200% RMO
 
-      YIELD  = NINT(DYIELD) + NINT(CMOIST*DYIELD/100.0) ! fresh yield calc. RMO
+!     fresh yield calc. RMO
+      YIELD  = NINT(DYIELD) + NINT(CMOIST*DYIELD/100.0) 
       PLTPOP = PLANTS
 
 C
 !     Write values to Simulated and Measured arrays
 !      WRITE(Simulated(1), '(I8)') DNR0;   WRITE(Measured(1),'(I8)') DPIN 
-      WRITE(Simulated(1), '(I8)') DNR1;   WRITE(Measured(1),'(A8)') X(1) 
-      WRITE(Simulated(2), '(I8)') DNR7;   WRITE(Measured(2),'(I8)') DMAT
+      WRITE(Simulated(1), '(I8)') DNR1;   
+                                    WRITE(Measured(1),'(A8)') TRIM(X(1)) 
+      WRITE(Simulated(2), '(I8)') DNR7;   
+                                    WRITE(Measured(2),'(I8)') DMAT
       WRITE(Simulated(3), '(I8)') YIELD/1000;  
-                                          WRITE(Measured(3),'(A8)') X(3)
-      WRITE(Simulated(4),'(F8.1)')DYIELD; WRITE(Measured(4),'(A8)') X(4) 
-      WRITE(Simulated(5),'(F8.2)')MCORMWT;WRITE(Measured(5),'(A8)') X(5) 
+                                    WRITE(Measured(3),'(A8)') TRIM(X(3))
+      WRITE(Simulated(4),'(F8.1)')DYIELD; 
+                                    WRITE(Measured(4),'(A8)') TRIM(X(4)) 
+      WRITE(Simulated(5),'(F8.2)')MCORMWT;
+                                    WRITE(Measured(5),'(A8)') TRIM(X(5)) 
       WRITE(Simulated(6), '(I8)') NINT(CORMLNO)                             
-                                          WRITE(Measured(6),'(A8)') X(6) 
-      WRITE(Simulated(7),'(F8.2)')MAXLAI; WRITE(Measured(7),'(A8)') X(7) 
+                                    WRITE(Measured(6),'(A8)') TRIM(X(6)) 
+      WRITE(Simulated(7),'(F8.2)')MAXLAI; 
+                                    WRITE(Measured(7),'(A8)') TRIM(X(7)) 
       WRITE(Simulated(8),'(I8)') NINT(CANWAA*10)                         
-                                          WRITE(Measured(8),'(A8)') X(8) 
+                                    WRITE(Measured(8),'(A8)') TRIM(X(8)) 
       WRITE(Simulated(9),'(I8)') NINT(CANNAA*10)                        
-                                         WRITE(Measured(9),'(A8)')X(9) 
+                                    WRITE(Measured(9),'(A8)')TRIM(X(9)) 
       WRITE(Simulated(10),'(I8)') NINT(PBIOMS)                           
-                                         WRITE(Measured(10),'(A8)')X(10) 
+                                   WRITE(Measured(10),'(A8)')TRIM(X(10)) 
       WRITE(Simulated(11),'(I8)') NINT(STOVER)                           
-                                         WRITE(Measured(11),'(A8)')X(11) 
-      WRITE(Simulated(12),'(F8.3)') HI;  WRITE(Measured(12),'(A8)')X(12) 
-      WRITE(Simulated(13),'(I8)') LEAFNO;WRITE(Measured(13),'(A8)')X(13) 
+                                   WRITE(Measured(11),'(A8)')TRIM(X(11))
+      WRITE(Simulated(12),'(F8.3)') HI;  
+                                   WRITE(Measured(12),'(A8)')TRIM(X(12)) 
+      WRITE(Simulated(13),'(I8)') LEAFNO;
+                                   WRITE(Measured(13),'(A8)')TRIM(X(13)) 
       WRITE(Simulated(14),'(I8)') NINT(CORMNUP)                             
-                                         WRITE(Measured(14),'(A8)')X(14) 
+                                   WRITE(Measured(14),'(A8)')TRIM(X(14)) 
       WRITE(Simulated(15),'(I8)') NINT(TOTNUP)                           
-                                         WRITE(Measured(15),'(A8)')X(15) 
+                                   WRITE(Measured(15),'(A8)')TRIM(X(15))
       WRITE(Simulated(16),'(I8)') NINT(APTNUP)
-                                         WRITE(Measured(16),'(A8)')X(16) 
+                                   WRITE(Measured(16),'(A8)')TRIM(X(16))
       WRITE(Simulated(17),'(F8.2)') PCORMN
-	                                   WRITE(Measured(17),'(A8)')X(17) 
+	                             WRITE(Measured(17),'(A8)')TRIM(X(17))
       ENDIF  
 
 

@@ -27,6 +27,7 @@ C-----------------------------------------------------------------------
       use csm_io
       use dssat_netcdf
       IMPLICIT NONE
+      EXTERNAL GETLUN, FIND, ERROR, IGNORE
       SAVE
 
       CHARACTER*6 ERRKEY

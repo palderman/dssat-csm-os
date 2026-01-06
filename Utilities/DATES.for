@@ -13,6 +13,7 @@ C  11/29/2004 CHP Added ETAD_NAILUJ for Ponding routine -- provides
 C                   integer month given date.
 !  10/11/2005 CHP Fix problem in Y2K_DOYW, sequenced runs spanning Y2K 
 !  11/16/2007 CHP Added leap year function
+!  03/23/2022 GH  Updated crossover year to 2035
 C=======================================================================
 C=======================================================================
 C  DOYC, Integer function, N.B. Pickering, 09/13/91
@@ -77,7 +78,8 @@ C=======================================================================
 !     CHP 09/11/2009 - change "cross-over" year from 2010 to 2015
 !     CHP 03/26/2014 - change "cross-over" year from 2015 to 2020
 !     CHP 07/06/2017 - change "cross-over" year from 2020 to 2025
-          IF (YR .LE. 25) THEN
+!     GH  03/23/2022 - change "cross-over" year from 2025 to 2035
+          IF (YR .LE. 35) THEN
             YRDOY = (2000 + YR) * 1000 + DOY
           ELSE
             YRDOY = (1900 + YR) * 1000 + DOY
@@ -88,8 +90,11 @@ C=======================================================================
       END SUBROUTINE Y2K_DOY
       
 C=======================================================================
-C  4-digit Year, Subroutine, Fabio Oliveira, Willingthon Pavan, Gerrit Hoogenboom
+C  4-digit Year, Subroutine, Fabio Oliveira, Willingthon Pavan, 
+C  Gerrit Hoogenboom
 C  Converts YRDOY to YEARDOY
+C  REVISION HISTORY
+C  08/31/2022 FO  Fixed bug for issue #259 related with SDATE.
 C-----------------------------------------------------------------------
 C  Input : YRDOY
 C  Output: 
@@ -99,6 +104,7 @@ C=======================================================================
         
       USE ModuleDefs
       IMPLICIT NONE
+      EXTERNAL ERROR, WARNING
       
       CHARACTER*6   ERRKEY,IERRKEY
       CHARACTER*(*) FILE
@@ -108,7 +114,7 @@ C=======================================================================
       INTEGER NEWYRDOY,CROVER
       
       PARAMETER (ERRKEY = 'Y4KDOY')
-      PARAMETER (CROVER = 25)
+      PARAMETER (CROVER = 35)
       
 !-----------------------------------------------------------------------
 !    Convert input date (YRDOY) to 7-digit
@@ -134,16 +140,15 @@ C=======================================================================
           CALL ERROR (ERRKEY,1,FILE,LINE)
         ENDIF
         
-        IF(YRDOY .LT. NEWSDATE) THEN
-          CALL ERROR (IERRKEY,IERRNUM,FILE,LINE)
-        ENDIF
-        
-        IF(YRDOY .GT. NEWSDATE + CROVER * 1000) THEN
+        IF(YRDOY .GT. (YRDOY + CROVER * 1000)) THEN
           WRITE(MSG(1),*) "WARNING - Y4K Date - Cross-over"
           WRITE(MSG(2),*) "Please check file: ",FILE
           WRITE(MSG(3),*) "Line: ",LINE
           WRITE(MSG(4),*) "Date: ",YRDOY
-          CALL WARNING(4,IERRKEY,MSG)
+!         2023-01-05 chp Replace error number 4 with IERRNUM from 
+!           calling subroutine
+!         CALL WARNING(4,IERRKEY,MSG)
+          CALL WARNING(IERRNUM,IERRKEY,MSG)
         ENDIF
         
 !-----------------------------------------------------------------------
@@ -156,7 +161,8 @@ C=======================================================================
 !     CHP 09/11/2009 - change "cross-over" year from 2010 to 2015
 !     CHP 03/26/2014 - change "cross-over" year from 2015 to 2020
 !     CHP 07/06/2017 - change "cross-over" year from 2020 to 2025
-          IF (YR .LE. 25) THEN
+!     GH  03/23/2022 - change "cross-over" year from 2025 to 2035
+          IF (YR .LE. 35) THEN
             YRDOY = (2000 + YR) * 1000 + DOY
           ELSE
             YRDOY = (1900 + YR) * 1000 + DOY
@@ -182,14 +188,19 @@ C=======================================================================
       SUBROUTINE Y2K_DOYW(MULTI, YRDOYWY, YRDOYW, CENTURY)
 
       USE ModuleDefs
+      USE ModuleData
       IMPLICIT NONE
+      EXTERNAL YR_DOY
 
-!      CHARACTER*1 RNMODE
       INTEGER MULTI   !, RUN
       INTEGER CENTURY,  DOY,  YEAR,  YR,  YRDOYW
       INTEGER CENTURYY, DOYY, YEARY, YRY, YRDOYWY !, YRINC
 
+      TYPE (ControlType) CONTROL
+
       DATA YRY /0/
+
+      CALL GET(CONTROL)
 
       IF (MULTI .LE. 1) YRY = 0
 
@@ -237,18 +248,18 @@ C=======================================================================
 
 !     10/10/2006 CHP
 !     Fixes problem with model going from 2010 to 1911 during simulation
-      IF (CENTURYY > CENTURY) THEN
-        CENTURY = CENTURYY
-        YEAR = CENTURY * 100 + YR
-        YRDOYW = YEAR * 1000 + DOY
-
-!     Fixes problem with crossing centuries
-      ELSEIF (CENTURYY == CENTURY .AND. 
-     &        YEAR < YEARY .AND. MOD(YEARY,100) == 99) THEN
-        CENTURY = CENTURY + 1
-        YEAR = CENTURY * 100 + YR
-        YRDOYW = YEAR * 1000 + DOY
-      ENDIF
+        IF (CENTURYY > CENTURY) THEN
+          CENTURY = CENTURYY
+          YEAR = CENTURY * 100 + YR
+          YRDOYW = YEAR * 1000 + DOY
+        
+!       Fixes problem with crossing centuries
+        ELSEIF (CENTURYY == CENTURY .AND. 
+     &          YEAR < YEARY .AND. MOD(YEARY,100) == 99) THEN
+          CENTURY = CENTURY + 1
+          YEAR = CENTURY * 100 + YR
+          YRDOYW = YEAR * 1000 + DOY
+        ENDIF
 
       RETURN
       END SUBROUTINE Y2K_DOYW
@@ -281,6 +292,7 @@ C=======================================================================
       INTEGER FUNCTION TIMDIF(YRDOY1,YRDOY2)
 
       IMPLICIT NONE
+      EXTERNAL DOYC, YR_DOY
       INTEGER DOYC,DOY1,DOY2,YR1,YR2,YRDOY1,YRDOY2
 
 C     Simple time difference of two days in the same year attempted first.
@@ -309,6 +321,7 @@ C=======================================================================
       INTEGER FUNCTION MTHEND(YR,MTH)
 
       IMPLICIT NONE
+      EXTERNAL LEAP
       INTEGER MTH,MEND(12),YR
       LOGICAL LEAP
       DATA MEND/31,59,90,120,151,181,212,243,273,304,334,365/
@@ -333,6 +346,7 @@ C=======================================================================
       INTEGER FUNCTION MTHMID(YR,MTH)
 
       IMPLICIT NONE
+      EXTERNAL LEAP
       INTEGER MTH,YR
       LOGICAL LEAP
       INTEGER MIDPT(12)
@@ -358,19 +372,23 @@ C=======================================================================
       INTEGER FUNCTION INCYD(YRDOY,INC)
 
       IMPLICIT NONE
+      EXTERNAL ENDYR, YDOY, YR_DOY
       INTEGER ENDYR,INC,NDYR,YRDOY,YR,DOY,YDOY
 
       CALL YR_DOY(YRDOY,YR,DOY)
       NDYR = ENDYR(YR)
       DOY = DOY + INC
-      IF (DOY .GT. NDYR) THEN
-        YR = YR + 1
-        DOY = DOY - NDYR
-      ELSE IF (DOY .LE. 0) THEN
-        YR = YR - 1
-        NDYR = ENDYR(YR)
-        DOY = NDYR + DOY
-      ENDIF
+      DO WHILE (DOY .GT. NDYR .OR. DOY .LE. 0)
+        IF (DOY .GT. NDYR) THEN
+          YR = YR + 1
+          DOY = DOY - NDYR
+          NDYR = ENDYR(YR)
+        ELSE IF (DOY .LE. 0) THEN
+          YR = YR - 1
+          NDYR = ENDYR(YR)
+          DOY = NDYR + DOY
+        ENDIF
+      END DO
       INCYD = YDOY(YR,DOY)
       
       END FUNCTION INCYD
@@ -387,6 +405,7 @@ C-----------------------------------------------------------------------
       INTEGER FUNCTION INCDAT(ADATE, DELTA)
 
       IMPLICIT NONE
+      EXTERNAL YR_DOY
       INTEGER NDYR, AYR, ADOY, ADATE, DELTA, ENDYR, YDOY
       EXTERNAL ENDYR, YDOY
 
@@ -447,6 +466,7 @@ C=======================================================================
       INTEGER FUNCTION YDEND(YRDOY)
 
       IMPLICIT NONE
+      EXTERNAL ENDYR, YDOY
       INTEGER ENDYR,YRDOY,YR,YDOY
 
       IF (YRDOY/1000 .NE. 0) THEN
@@ -470,7 +490,7 @@ C=======================================================================
       INTEGER FUNCTION ENDYR(YR)
 
       INTEGER YR
-      LOGICAL LEAP
+      LOGICAL, EXTERNAL :: LEAP
 
       IF (LEAP(YR)) THEN; ENDYR = 366
       ELSE;               ENDYR = 365
@@ -515,6 +535,7 @@ C=======================================================================
 
       USE ModuleDefs
       IMPLICIT    NONE
+      EXTERNAL LEAP, UPCASE
 
       CHARACTER*3 RMON    !,MonthTxt(12)
       CHARACTER*1 UPCASE
@@ -595,6 +616,7 @@ C=======================================================================
 
       USE ModuleDefs
       IMPLICIT    NONE
+      EXTERNAL    LEAP
 
       CHARACTER*3 RMON    !,MonthTxt(12)
       INTEGER     NSUM,JCOUNT,NDIF,JULD,YR,NDAY,DAYS(12)
@@ -685,6 +707,7 @@ C=======================================================================
       SUBROUTINE ETAD_NAILUJ (JULD, YR, iMON, NDAY)
 
       IMPLICIT    NONE
+      EXTERNAL    LEAP
 
       INTEGER     NSUM,NDIF,JULD,YR,NDAY,DAYS(12), iMON
       LOGICAL     LEAP

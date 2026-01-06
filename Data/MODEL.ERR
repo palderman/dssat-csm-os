@@ -157,8 +157,38 @@ Error a new weather year is defined prior to the start of simulation.
 FRHARV    1
 Error in forage harvest. Mow input date is defined prior to the start of simulation.
 
+FRHARV    2
+Error reading stuble mass and percent leaf forage harvest in species file.
+
+FRHARV    3
+Error in Automatic Management section. Correct mow harvest frequency (days).
+
+FRHARV    4
+Error in Automatic Management section. Correct mow harvest frequency (GDD).
+
+FRHARV    5
+Error in Automatic Management section. Correct the stubble percent leaf.
+
+FRHARV    6
+Error in Automatic Management section. Correct the cutting height.
+
+FRHARV    7
+Error in Automatic Management section. Correct the stubble mass.
+
+FRHARV    8
+Error in Automatic Management section. Correct residual veg. stage after mowing.
+
+FRHARV    9
+Missing AutoMOW section in the species file.
+
+FRSHWT    1
+Pod/Fruit harvest age (XMAGE) is not properly defined. Fix the Ecotype file.
+
 GETDSC   29
 Detail.CDE file not found.  Program will stop.
+
+FIRRIG    1
+Invalid combination of flooded field parameters. 
 
 IDWTH     1
 Error in Weather Sensitivity Selection entry.  Fix entry or batch file.
@@ -170,7 +200,7 @@ INPUT     1
 Error in Selection entry.  Fix entry or batch file.
 
 INPUT     2
-Planting Date is Before Start of Simulation.  Please Fix Input File.
+Planting date is defined prior to the start of simulation.
 
 INPUTX    0
 Input module failed.  Program execution halted.
@@ -184,8 +214,17 @@ Chemical input level not found. Please correct input file.
 IPCHEM    3
 First chemical application date is defined prior to the start of simulation.
 
+IPCHEM   4
+Error in chemical code.  Correct input file.
+
 IPCHEM   11
 No input amount defined for chemical applications.
+
+IPDMND   1
+Time for pod/fruit to reach har. maturity (XFPHT) not set properly.
+
+IPDMND   2
+Initial partitioning to pod/fruit in early growth (XFINT) not set properly.
 
 IPCUL     2
 Cultivar input level not found. Please correct input file.
@@ -196,11 +235,11 @@ Error in Ecotype entry.  Fix entry or batch file.
 IPECO     2
 Error in Ecotype entry.  Fix ecotype input file.
 
-IPECO     2
-Error in Ecotype entry.  Fix ecotype input file.
-
 IPECO     3
 DEFAULT Ecotype not found. Fix ecotype input file.
+
+IPECO     4
+Missing ecotype coefficients. Fix ecotype input file.
 
 IPECO    21
 Ecotype input section not found.  Please correct file.
@@ -286,6 +325,15 @@ Field input section not found.  Please add to input file.
 IPFLD     2
 Field input level not found. Please correct input file.
 
+IPFLD     3
+Latitude input has wrong format. Please correct input file.
+
+IPFLD     4
+Longitude input has wrong format. Please correct input file.
+
+IPFLD     5
+Elevation input has wrong format. Please correct input file.
+
 IPFLD    10
 Error in weather station input.  Correct input file.
 
@@ -308,7 +356,7 @@ IPHAR     5
 Reported harvest date after planting not found.  Please add to input file.
 
 IPHAR    6
-Harvest input date is defined prior to the start of simulation.
+Harvest date is defined prior to the start of simulation.
 
 IPHAR    10
 Error in date of harvest input.  Correct input file.
@@ -362,7 +410,7 @@ IPPLNT    2
 Error in planting inputs.  Check format.
 
 IPPLNT   10
-Error in planting date input.  Check format.
+Planting date is before start of simulation.  Please correct input file.
 
 IPPLNT   11
 Error in plant population input.  Check format.
@@ -394,9 +442,6 @@ Invalid planting method.  Please check input data.
 IPPLNT   64
 Invalid format in input file.  Please check format.
 
-IPPLNT    1
-Error in pest observations (FileT) date is defined prior to the start of simulation. 
-
 IPRES     1
 Residue input section not found.  Please add to input file.
 
@@ -405,6 +450,9 @@ Residue input level not found. Please correct input file.
 
 IPRES     3
 First residue application date is defined prior to the start of simulation.
+
+IPRES     4
+Error in residue code.  Correct input file.
 
 IPRES    10
 Error in date of residue application input.  Correct input file.
@@ -423,6 +471,9 @@ Error in amount of residue K input.  Correct input file.
 
 IPRICE   10
 Nursery temperature can not be less than zero. Correct input file.
+
+IPPROG    1
+Error in pest observations (FileT) date is defined prior to the start of simulation. 
 
 IPSIM     1
 Simulation control section not found.  Please add to input file.
@@ -454,6 +505,9 @@ Automatic planting date is defined prior to the start of simulation.
 IPSIM    10
 Automatic harvest date is defined prior to the start of simulation.
 
+IPSIM    11
+Harvest at maturity option not available for this crop.  Correct input file.
+
 SIMCTR    1
 Error in start simulation date input.  Check format.
 
@@ -482,7 +536,7 @@ IPSLIN    2
 Initial soil conditions input level not found. Please correct input file.
 
 IPSLIN    3
-Initial conditions date is lower than start simulation date.
+Initial conditions date is defined prior to the start of simulation.
 
 IPSLIN   10
 Error in initial soil water inputs.  Please check data.
@@ -557,7 +611,10 @@ IPTILL    2
 Tillage input level not found. Please correct input file.
 
 IPTILL    3
-First tillage application date is defined prior to the start of simulation.
+First tillage application date is defined prior to the start of simulation date.
+
+IPTILL    4
+Tillage implement is not defined or missing. Please correct input file.
 
 IPVAR     1
 Error in Cultivar entry.  Fix entry or batch file.
@@ -640,11 +697,20 @@ File not found.  Please check file name or create file.
 IPWTH    30
 Error opening file.
 
+IPASCE    1
+Error reading species parameters for evapotranspiration.
+
 IRRIG    10
 Incompatibility between Century SOM method and flooded field management.
 
 LAND      2
-Planting date is before start of simulation date.  Please fix input file.
+Planting date is defined prior to the start of simulation date.
+
+LTGROW   10
+Percent Lint (PCTLT) missing in the Ecotype file. Please correct file. 
+
+LTGROW   11
+Percent Lint (PCTLT) out of range. Range is from 25 to 60. Please correct file.
 
 MODELN    1
 Error opening file. Please check file.
@@ -676,8 +742,8 @@ Configuration file not found.
 PATH      3
 Path error in configuration file. Please correct file.
 
-PETASCE  50
-ASCE reference ET method is not available for this crop.
+PET       1
+Undefined EVAPO parameter in FileX.
 
 PPLANT   10
 Review P parameters in species file.
@@ -733,17 +799,20 @@ Error in Weather Sensitivity Analysis Selection entry. Fix entry or batch file.
 SENS      1
 Error in Sensitivity Selection entry.  Fix entry or batch file.
 
+SHADOW    1
+Error in Fraction shaded for sun and row geometry using ellipses.
+
 ENTFER    1
-Error in fertilizer data entry is defined prior to the start of simulation.
+First fertilizer application date is defined prior to the start of simulation.
 
 ENTIRR    1
-Error in interactive irrigation data entry is defined prior to the start of simulation.
+First irrigation application date is defined prior to the start of simulation.
 
 ENTRES    1
-Error in residue data entry is defined prior to the start of simulation.
+First residue application date is defined prior to the start of simulation.
 
 SOILDY   10
-Organic carbon in soil file is zero or undefined.  Please check file.
+Organic carbon in soil file is zero or undefined. Please check file.
 
 SOILDY   11
 Missing data in soil file.  Please check file.
@@ -844,6 +913,12 @@ Error in ECOTYPE entry.
 GENERI   36
 Error in cultivar entry.
 
+GENERI   37
+Missing ECOTYPE coefficient.
+
+GENERI   38
+Ecotpye not found.
+
 GENERI   42
 Input section not found.
 
@@ -923,3 +998,6 @@ Start simulation date is lower than first weather date.
 
 Y4KDOY    1
 Input date is greather than 99 years after start simulation date.
+
+FORCST    1
+Forecast date is before start of simulation date.

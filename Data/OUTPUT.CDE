@@ -1,7 +1,7 @@
 *CSM OUTPUT FILES
-! DSSAT v4.7; 09/01/2017
-!
-! Output files currently created by DSSAT crop simulation models.
+! DSSAT v4.8; 2024-12-01
+
+! Output files currently created by the DSSAT Cropping System Model
 !
 @NAME......... CDE Description....................................... ALIAS
 !Daily output files:
@@ -28,7 +28,7 @@ SOMLITN.OUT     LN Daily soil organic matter nitrogen output file     OUTSOMN
 SOMLITP.OUT     LP Daily soil organic matter phosphorus output file   OUTSOMP
 Weather.OUT     WE Daily weather output file                          OUTWTH
 EAAMOD.OUT         Daily output from EAAMOD high water table model
-FreshWt.OUT        Daily fresh fruit weight
+FreshWt.OUT        Daily fresh fruit weight                           FWOUT
 Mulch.OUT          Daily surface mulch output file
 PrimaryStalk.OUT   Casupro sugarcane output                           PSTALK
 CSP_SENES.OUT      Casupro sugarcane output                           CSP_SENES
@@ -37,8 +37,9 @@ CSP_GrowCane.OUT   Casupro sugarcane output                           CSP_GRO
 CSP_PHEN.OUT       Casupro sugarcane output                           OUTPHNL
 PlantKg.OUT        Casupro sugarcane output                           OUTKG
 Generic.OUT        Generic (temporary) output file
-SALUS.OUT          Generic plant routine
+GHG.OUT            Greenhouse gas emissions report
 N2O.OUT         NO Soil N2O and N2 daily emissions output        
+Methane.OUT     MT Methane emissions daily output file
 Potential.OUT      Water potential - daily
 PlantGr2.OUT    G2 Wheat and barley specific output file
 PlantGrf.OUT    GF Wheat and barley specific output file
@@ -46,6 +47,7 @@ Potential.OUT      Water potential - daily
 Dormancy.OUT       Forage daylength signal for stolon daily output
 PlantMob.OUT       Forage plant mobilization and refill of storage
 Storage.OUT        Forage storage organ characteristics daily output
+SoilWater.OUT      Daily soil water output file by layer              OUTSWL
 
 !Daily csv format files:
 plantgro.csv       Daily plant growth output file in CSV format
@@ -64,6 +66,7 @@ etphot.csv         Daily evapotranspiration output file in CSV
 mulch.csv          Daily surface mulch output file in CSV format
 plantp.csv         Daily plant phosphorus output in CSV format
 soilpi.csv         Daily inorganic soil phosphorus output file, CSV
+n2o.csv            Daily N2O output file, CSV
 
 !Seasonal summary output files
 Environ.OUT     EN Environmental modifications output file            SOUTE
@@ -94,6 +97,7 @@ FORAGE.OUT      FH Forage harvest output file                         FORHARV
 
 !Summary csv files:
 summary.csv        Summary output file in CSV format
+Version.OUT        Version number for simulation
 
 !Information files:
 ERROR.OUT          Error messages                                     ERRORO

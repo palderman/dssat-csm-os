@@ -25,10 +25,10 @@
      &  TSOM3E, TSOMC, TSOME, TSTRUCC, TSTRUCE)           !Output
 
 !     ------------------------------------------------------------------
-      USE ModuleDefs     !Definitions of constructed variable types, 
-                         !which contain control information, soil
-                         !parameters, hourly weather data.
+      USE ModuleDefs
+      USE ModuleData
       IMPLICIT NONE
+      EXTERNAL MULCHLAYER
       SAVE
 !     ------------------------------------------------------------------
       INTEGER IEL, L, N_ELEMS, NLAYR
@@ -142,6 +142,8 @@
       MULCH % MULCHN    = SomLitE(SRFC,1)      !kg[N]/ha
       MULCH % MULCHP    = SomLitE(SRFC,P)      !kg[P]/ha
       CALL MULCHLAYER (MULCH) 
+
+      CALL PUT('ORGC','TSOMC', TSOMC)
 
 !     ------------------------------------------------------------------
       RETURN

@@ -39,6 +39,7 @@ C=======================================================================
                          ! parameters, hourly weather data.
       use csm_io
       IMPLICIT  NONE
+      EXTERNAL ERROR, FIND
       SAVE
 
       CHARACTER*1 RNMODE, ISWNIT

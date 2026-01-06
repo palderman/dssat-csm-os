@@ -42,7 +42,7 @@
     implicit none
 
     integer         io
-    integer         stat
+!   integer         stat
     integer         errnum
     logical         file_exists
     
@@ -64,4 +64,5 @@
     ENDIF    
 
     return
+
     end subroutine open_file

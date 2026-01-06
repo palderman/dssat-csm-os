@@ -69,6 +69,7 @@
       USE Interface_IpSoil
       use csm_io
       IMPLICIT  NONE
+      EXTERNAL ERROR, FIND, TIMDIF, WARNING, YR_DOY
       SAVE
 
       CHARACTER*1 IRESI, ISWNIT, ISWPHO, RNMODE

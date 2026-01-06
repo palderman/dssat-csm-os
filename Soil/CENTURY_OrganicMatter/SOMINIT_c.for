@@ -46,6 +46,7 @@
                          !parameters, hourly weather data.
       use csm_io
       IMPLICIT  NONE
+      EXTERNAL ERROR, FIND, SOMFRAC_INIT, IPHedley_C, WARNING, INFO
       SAVE
 !     ------------------------------------------------------------------
 
@@ -688,6 +689,7 @@
 
       Use ModuleDefs
       use csm_io
+
       SAVE
 
       TYPE (ControlType), INTENT(IN) :: CONTROL

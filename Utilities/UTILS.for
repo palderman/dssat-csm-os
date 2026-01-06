@@ -1,5 +1,5 @@
 !=======================================================================
-C  UTILS, File, G. Hoogenboom, P.W. Wilkens and B. Baer
+C  UTILS, File, G. Hoogenboom, P.W. Wilkens, C.H. Porter
 C  General utility functions
 C-----------------------------------------------------------------------
 C  REVISION HISTORY
@@ -104,7 +104,7 @@ C
          IF (LINE(I) .NE. ' ') GO TO 100
       END DO
       !
-      ! Nothing entered .. spaces or ÄÄÙ .. set FLAG to 1.0 and exit
+      ! Nothing entered .. set FLAG to 1.0 and exit
       !
       FLAG = 1.0
       GO TO 1300
@@ -544,7 +544,7 @@ C-------------------------------------------------------------------------------
 C     Curve type Q10 - basic Q10 function
 C	XB=Tref, reference temperature
 C	X1=k, te response at Tref
-C	X2= Q10 increase in the response for every 10°K increase in temperature
+C	X2= Q10 increase in the response for every 10Â°K increase in temperature
 C	XM is not used
 C-------------------------------------------------------------------------------
       IF(CTYPE .EQ. 'Q10' .OR. CTYPE .EQ. 'q10') THEN
@@ -627,6 +627,7 @@ C========================================================================
       USE ModuleData
       use dssat_mpi
       IMPLICIT NONE
+      EXTERNAL LenString
       SAVE
 
       CHARACTER*(*), INTENT(IN) :: FileVarName
@@ -717,10 +718,8 @@ C========================================================================
       CASE ('FILETMP'); LUN = 23  !Tony Hunt temp file
       CASE ('SIMCNTL'); LUN = 24  !Simulation Control file
       CASE ('DSPRO');   LUN = 25  !DSSATPRO file
-
-!     RESERVE FOR ORYZA
-      CASE ('ORYZA1');  LUN = 26  !ORYZA
-      CASE ('ORYZA1A'); LUN = 27  !Prevent ORYZA1+1 from being used
+      CASE ('FILEWC');  LUN = 26  !*.cli - climate summary files
+      CASE ('FILEWG');  LUN = 27  !*.wtg - generated weather files
 
 !     Currently 30 is the highest number for reserved logical units
 !     Change value in subroutine OUTFILES if necessary
@@ -817,6 +816,8 @@ C========================================================================
       SUBROUTINE GET_CROPD(CROP, CROPD)
 C-----------------------------------------------------------------------
       IMPLICIT NONE
+      EXTERNAL READ_DETAIL, WARNING
+
       CHARACTER*2  CROP
       CHARACTER*6  ERRKEY
 !      CHARACTER*10 FILECDE
@@ -981,6 +982,9 @@ C=======================================================================
 C        USE IFPORT
 !cDEC$ ENDIF
       IMPLICIT NONE
+      EXTERNAL GETLUN, OUTFILES, WARNING
+!     Can't list routine SYSTEM as external because it generates an
+!       error with some compilers.
 
       Type (OutputType) FileData
       CHARACTER*16, DIMENSION(MaxFiles) :: FileName
@@ -1065,6 +1069,7 @@ C=======================================================================
 C        USE IFPORT
 !!!!cDEC$ ENDIF
       IMPLICIT NONE
+      EXTERNAL GETLUN
 
       SAVE
       INTEGER i, COUNT, LUNLST, LUNTMP, SYS, SYSTEM
@@ -1178,6 +1183,15 @@ C        USE IFPORT
         IF (COUNT > 0) THEN
 !         Run batch file - direct output to TEMP.BAK file
           BatchCommand = "TEMP.BAT >TEMP.BAK"
+C-KRT February 2, 2024
+C-KRT This file renaming strategy is not compatible with Linux systems.
+C-KRT The Linux operating system will fail to run the following BatchCommand.
+C-KRT Linux OS prints "sh: 1: TEMP.BAT: not found" because it can't
+C-KRT find a system command called TEMP.BAT. Anyway, the commands
+C-KRT given in the batch file are for Windows systems.
+C-KRT Model will continue to run; however, the output files are not
+C-KRT copied to the new output file names as directed in BatchCommand.
+C-KRT Need to rework this strategy for OS compatibility.
           SYS = SYSTEM(BatchCommand)
   
 !         Delete TEMP.BAT file
@@ -1267,22 +1281,28 @@ C=======================================================================
 !  REVISION HISTORY
 !  03/09/2005 CHP Written.
 !  01/11/2007 CHP Changed GETPUT calls to GET and PUT
+!  01/07/2022 FO  Find *.OUT files for MacOS and Linux systems
 !=======================================================================
       SUBROUTINE OUTFILES(FileData)
       USE ModuleDefs 
       USE ModuleData
       IMPLICIT NONE
+      EXTERNAL get_dir, IGNORE, WARNING
       SAVE
 
+      CHARACTER*6  ERRKEY
       CHARACTER*10 FILECDE
+      CHARACTER*78 MSG(2)
       CHARACTER*80 CHARTEST
       CHARACTER*120 DATAX, PATHX
+      CHARACTER(len=255) :: DSSAT_HOME
 
       INTEGER ERR, I, ISECT, LNUM, LUN
       LOGICAL FEXIST      !EOF, 
       TYPE (OutputType) FileData
 
       DATA FILECDE /'OUTPUT.CDE'/
+      PARAMETER (ERRKEY = 'OUTFLE')
 
 !-----------------------------------------------------------------------
 !     Initialize
@@ -1310,9 +1330,28 @@ C=======================================================================
       ENDIF        
 
       IF (.NOT. FEXIST) THEN
-!       Last, check for file in C:\DSSAT45 directory
+!       Check for file in C:\DSSAT48 directory
         DATAX = trim(STDPATH) // FILECDE
         INQUIRE (FILE = DATAX, EXIST = FEXIST)
+      ENDIF
+      
+! FO - 01/07/2022 - Update for MacOS and Linux systems.
+!     This is check at DSSAT_HOME is neede to remove old *.OUT
+!     files for new runs.
+      IF (.NOT. FEXIST) THEN
+        CALL get_environment_variable("DSSAT_HOME", DSSAT_HOME)
+        IF(TRIM(DSSAT_HOME) .NE. '') THEN
+            STDPATH = TRIM(DSSAT_HOME)
+        ENDIF
+        DATAX = trim(STDPATH) // FILECDE
+        INQUIRE (FILE = DATAX,EXIST = FEXIST)
+      ENDIF
+
+      IF (.NOT. FEXIST) THEN
+        MSG(1) = "OUTPUT.CDE file not found"
+        MSG(2) = "Error in subroutine OUTFILES"
+        CALL WARNING(2, ERRKEY, MSG)
+!        CALL ERROR (ERRKEY,2,DATAX,0)
       ENDIF
 
       IF (FEXIST) THEN
@@ -1402,6 +1441,7 @@ C=======================================================================
       INTEGER FUNCTION StartString (STRING)
 
       IMPLICIT  NONE
+      EXTERNAL LenString
 
       CHARACTER(len=*) STRING
       CHARACTER(len=1) CHAR
@@ -1437,6 +1477,7 @@ C=======================================================================
       Subroutine Join_Trim (STRING1, STRING2, JoinString)
 
       IMPLICIT NONE
+      EXTERNAL LenString, StartString
 
       CHARACTER(len=*) STRING1, STRING2, JoinString
       INTEGER EndLen1, EndLen2, LenString
@@ -1592,6 +1633,7 @@ C=======================================================================
       subroutine get_next_string(full_string,start,next_string)
 
         implicit none
+        external skipspc
 
         character(len=*),intent(in)  :: full_string
         character(len=*),intent(out) :: next_string
@@ -1631,3 +1673,18 @@ C=======================================================================
         only_dir = full_path(1:pos)        
 
       end subroutine get_dir
+!=======================================================================
+!  ROUND, Subroutine
+!  Subroutine to round decimal part of a number in Fortran
+!-----------------------------------------------------------------------
+!  Revision history
+!  07/11/2024 FO Added round a number function
+!=======================================================================
+      REAL FUNCTION ROUND(VAL, N)
+        IMPLICIT NONE
+        REAL VAL
+        INTEGER N
+        ROUND = ANINT(VAL*10.0**N)/10.0**N
+        RETURN
+      END FUNCTION ROUND
+!=======================================================================

@@ -32,6 +32,7 @@ C=======================================================================
       use csm_io
       use dssat_netcdf
       IMPLICIT NONE
+      EXTERNAL ERROR, FIND, GETLUN, IGNORE
 !-----------------------------------------------------------------------
       CHARACTER*1   PLME, BLANK
       CHARACTER*2   CROP
@@ -222,25 +223,27 @@ C-----------------------------------------------------------------------
             OPEN (LUNECO,FILE = FILEGC,STATUS = 'OLD',IOSTAT=ERR)
             IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEGC,0)
             ECOTYP = '      '
+            CALL GETLUN('FILEE', LUNECO)
+            OPEN (LUNECO,FILE = FILEGC,STATUS = 'OLD',IOSTAT=ERR)
+            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEGC,0)
+            ECOTYP = '      '
             LNUM = 0
-
+  
             DO WHILE (ECOTYP .NE. ECONO)
                CALL IGNORE(LUNECO, LNUM, ISECT, C255)
                IF (ISECT .EQ. 1 .AND. C255(1:1) .NE. ' ' .AND.
      &              C255(1:1) .NE. '*') THEN
-                  READ (C255,3100,IOSTAT=ERR) ECOTYP, ECONAM, IVRGRP,
+                  READ (C255,3100,IOSTAT=ERR) ECOTYP, ECONAM, IVRGRP, 
      &                 IVRTEM, THVAR, (PHTHRS(K), K=1,4), PM06, PM09,
      &                 (PHTHRS(K),K=11,12), TRIFOL, R1PPO, OPTBI, SLOBI
- 3100             FORMAT (A6, 1X, A16, 1X, 2(1X,I2), 7(1X,F5.0), 6X,
+ 3100             FORMAT (A6, 1X, A16, 1X, 2(1X,A2), 7(1X,F5.0), 6X, 
      &                 3(1X,F5.0), 2(6X), 3(1X,F5.0))
                   IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEGC,LNUM)
                   IF (ECOTYP .EQ. ECONO) THEN
                      EXIT
                   ENDIF
-
                ELSE IF (ISECT .EQ. 0) THEN
-                  IF (ECONO .EQ. 'DFAULT')
-     &                 CALL ERROR(ERRKEY,35,FILEGC,LNUM)
+                  IF (ECONO .EQ. 'DFAULT') CALL ERROR(ERRKEY,35,FILEGC,LNUM)
                   ECONO = 'DFAULT'
                   REWIND(LUNECO)
                   LNUM = 0
@@ -272,7 +275,7 @@ C-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !     IPPHENOL LOCAL VARIABLES:  (Other variables defined in PHENOL)
 !-----------------------------------------------------------------------
-! ATEMP     Temperature of transplant environment (°C)
+! ATEMP     Temperature of transplant environment (Â°C)
 ! CHAR      Contains the contents of last record read 
 ! CLDVAR    Critical daylength above which development rate remains at min 
 !             value (prior to flowering) (hours)
@@ -321,7 +324,7 @@ C-----------------------------------------------------------------------
 ! NSENP(I)  Sensitivity of phase I to Nitrogen stress. Varies from -1 
 !             (slows dev) to +1 (hastens dev) 
 ! OPTBI     Temperature below which growth rate is slowed from emergence to 
-!             flowering (°C)
+!             flowering (Â°C)
 ! PATHCR    Pathname for SPE file or FILEE. 
 ! PATHEC    Pathname for FILEC 
 ! PATHL     Number of characters in path name (path plus filename for 

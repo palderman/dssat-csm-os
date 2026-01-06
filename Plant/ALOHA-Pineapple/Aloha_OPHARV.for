@@ -17,6 +17,8 @@
 !-----------------------------------------------------------------------
       USE Aloha_mod
       IMPLICIT NONE
+      EXTERNAL GETLUN, FIND, ERROR, GETDESC, OPVIEW, READA, 
+     &  READA_Dates, SUMVALS, EvaluateDat, TIMDIF, READA_Y4K
       SAVE
 
       CHARACTER*1  IDETO, IDETS, IPLTI, RNMODE
@@ -60,7 +62,7 @@
 !       in OVERVIEW.OUT and EVALUATE.OUT files (OPVIEW subroutine)
       INTEGER ACOUNT
       CHARACTER*6, DIMENSION(EvaluateNum) :: OLAB, OLAP !OLAP in dap
-      CHARACTER*6 X(EvaluateNum)
+      CHARACTER*12 X(EvaluateNum)
       CHARACTER*8 Simulated(EvaluateNum), Measured(EvaluateNum)
       CHARACTER*50 DESCRIP(EvaluateNum)
 
@@ -301,9 +303,12 @@ C-----------------------------------------------------------------------
             PEYEWT = EYEWT * 1000.0       ! Eye weight (mg/eye)
          ENDIF
          GPSM   = GPP*FRUITS              ! # eyes/m2
-         STOVER = BIOMAS*10.0-YIELD       ! Total plant weight except fruit (g/m2)
-         YIELDFresh  = YIELD / Species % FDMC  ! Fresh fruit yield (kg/ha)
-         YIELDB = YIELDFresh / 0.8914          ! Fresh fruit yield (lb/acre)
+         ! Total plant weight except fruit(g/m2)
+         STOVER = BIOMAS*10.0-YIELD
+         ! Fresh fruit yield (kg/ha)       
+         YIELDFresh  = YIELD / Species % FDMC 
+         ! Fresh fruit yield (lb/acre)
+         YIELDB = YIELDFresh / 0.8914         
       ENDIF
 
       SDWT   = YIELD  / 10.0      !g/m2
@@ -315,10 +320,12 @@ C-----------------------------------------------------------------------
 !     CHP 10/17/2017
 !     Oddly, PSDWT = SDWT/GPSM is exactly equal to EYEWT = FRTWT/GPP
 !       Actually, not so odd:
-!       PSDWT = SDWT/GPSM = FRTWT*FRUITS/GPSM = (FRTWT*FRUITS)/(GPP*FRUITS) = FRTWT/GPP = EYEWT
+!       PSDWT = SDWT/GPSM = FRTWT*FRUITS/GPSM = (FRTWT*FRUITS)/(GPP*FRUITS) 
+!       = FRTWT/GPP = EYEWT
       PSDWT = 0.0
       IF (GPSM .GT. 0.0 .AND. SDWT  .GE. 0.0) THEN
-         PSDWT = SDWT/GPSM            !Unit weight of eye g/unit = (g/m2) / (#/m2)
+         ! Unit weight of eye g/unit = (g/m2) / (#/m2)
+         PSDWT = SDWT/GPSM           
       ENDIF
 
       IF (BIOMAS .GT. 0.0 .AND. YIELD .GE. 0.0) THEN
@@ -344,7 +351,8 @@ C-----------------------------------------------------------------------
          ELSE
            TRT_ROT = TRTNUM
          ENDIF
-         CALL READA (FILEA, PATHEX,OLAB, TRT_ROT, YRSIM, X)
+         !CALL READA (FILEA, PATHEX,OLAB, TRT_ROT, YRSIM, X)
+         CALL READA_Y4K(FILEA, PATHEX,OLAB, TRT_ROT, YRSIM, X)
 
 !-----------------------------------------------------------------------
       FBTONS = FBIOM*0.01             !Biomass at forcing, t/ha
@@ -426,24 +434,29 @@ C-----------------------------------------------------------------------
       WRITE(Simulated(2),'(I8)') DNR7;  WRITE(Measured(2),'(I8)') DMAT    !MDAT  
       WRITE(Simulated(3),'(I8)') HDAP;  WRITE(Measured(3),'(I8)') DHARV   !HDAT   
       WRITE(Simulated(4),'(F8.2)') YIELDFresh/1000.                                     
-                                        WRITE(Measured(4),'(A8)') X(4)    !FWAH 
+                                  WRITE(Measured(4),'(A8)')TRIM(X(4))     !FWAH 
       WRITE(Simulated(5),'(F8.2)') YIELD/1000.                                     
-                                        WRITE(Measured(5),'(A8)') X(5)    !YDWAH 
+                                  WRITE(Measured(5),'(A8)')TRIM(X(5))     !YDWAH 
       WRITE(Simulated(6),'(F8.1)') FBTONS                                      
-                                        WRITE(Measured(6),'(A8)') X(6)    !BADMF     
+                                  WRITE(Measured(6),'(A8)')TRIM(X(6))     !BADMF     
       WRITE(Simulated(7),'(F8.1)') PBIOMS                                        
-                                        WRITE(Measured(7),'(A8)') X(7)    !BADMH    
-      WRITE(Simulated(8),'(F8.2)')VWATM;WRITE(Measured(8),'(A8)') X(8)    !VWATM  
+                                  WRITE(Measured(7),'(A8)')TRIM(X(7))     !BADMH    
+      WRITE(Simulated(8),'(F8.2)')VWATM;
+                                  WRITE(Measured(8),'(A8)')TRIM(X(8))     !VWATM  
       WRITE(Simulated(9),'(F8.2)') MAXLAI                                          
-                                        WRITE(Measured(9),'(A8)') X(9)    !LAIX     
-      WRITE(Simulated(10),'(F8.1)') LN; WRITE(Measured(10),'(A8)')X(10)   !L#SM 
-      WRITE(Simulated(11),'(F8.3)') HI; WRITE(Measured(11),'(A8)')X(11)   !HIAM
+                                  WRITE(Measured(9),'(A8)')TRIM(X(9))     !LAIX     
+      WRITE(Simulated(10),'(F8.1)') LN; 
+                                  WRITE(Measured(10),'(A8)')TRIM(X(10))   !L#SM 
+      WRITE(Simulated(11),'(F8.3)') HI; 
+                                  WRITE(Measured(11),'(A8)')TRIM(X(11))   !HIAM
       WRITE(Simulated(12),'(I8)') NINT(GPSM)                                      
-                                        WRITE(Measured(12),'(A8)')X(12)   !E#AM 
-      WRITE(Simulated(13),'(F8.1)') GPP;WRITE(Measured(13),'(A8)')X(13)   !E#UM     
+                                  WRITE(Measured(12),'(A8)')TRIM(X(12))   !E#AM 
+      WRITE(Simulated(13),'(F8.1)') GPP;
+                                  WRITE(Measured(13),'(A8)')TRIM(X(13))   !E#UM     
       WRITE(Simulated(14),'(F8.3)') EYEWT                                          
-                                        WRITE(Measured(14),'(A8)')X(14)   !EWUM    
-      WRITE(Simulated(15),'(F8.1)')CNAM;WRITE(Measured(15),'(A8)')X(15)   !CNAM
+                                  WRITE(Measured(14),'(A8)')TRIM(X(14))   !EWUM    
+      WRITE(Simulated(15),'(F8.1)')CNAM;
+                                  WRITE(Measured(15),'(A8)')TRIM(X(15))   !CNAM
 
 ! These aren't calculated - remove from Overview output
 !     WRITE(Simulated(3),'(I8)') -99 ;  WRITE(Measured(3),'(I8)') -99     !PDFT - not used
@@ -470,10 +483,10 @@ C-----------------------------------------------------------------------
       LABEL(6)  = 'HWAH'; VALUE(6)  = HWAH
 !     BWAH multiplied by 10.0 in OPSUM - divide by 10. here to preserve units. (?????)
       LABEL(7)  = 'BWAH'; VALUE(7)  = BWAH / 10. 
-      LABEL(8)  = 'HWUM'; VALUE(8)  = EYEWT       !unit eye weight g/unit
-      LABEL(9)  = 'H#AM'; VALUE(9)  = GPSM        !# eyes/m2 at maturity
-      LABEL(10) = 'H#UM'; VALUE(10) = GPP         !# eyes/fruit at maturity
-      LABEL(11) = 'NFXM'; VALUE(11) = 0.0         !WTNFX*10.
+      LABEL(8)  = 'HWUM'; VALUE(8)  = EYEWT  !unit eye weight g/unit
+      LABEL(9)  = 'H#AM'; VALUE(9)  = GPSM   !# eyes/m2 at maturity
+      LABEL(10) = 'H#UM'; VALUE(10) = GPP    !# eyes/fruit at maturity
+      LABEL(11) = 'NFXM'; VALUE(11) = 0.0    !WTNFX*10.
       LABEL(12) = 'NUCM'; VALUE(12) = WTNUP*10.
       LABEL(13) = 'CNAM'; VALUE(13) = WTNCAN*10.
       LABEL(14) = 'GNAM'; VALUE(14) = WTNGRN*10.

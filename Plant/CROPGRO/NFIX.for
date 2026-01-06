@@ -48,6 +48,7 @@
       use csm_io
       use dssat_netcdf
       IMPLICIT NONE
+      EXTERNAL CURV, GETLUN, FIND, ERROR, IGNORE
       SAVE
 
       CHARACTER*3 TYPFXT,TYPNGT,TYPFXD,TYPFXW,TYPFXA

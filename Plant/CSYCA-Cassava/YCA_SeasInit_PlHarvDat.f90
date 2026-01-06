@@ -14,6 +14,7 @@
       USE YCA_First_Trans_m
       
       IMPLICIT NONE
+      EXTERNAL YR_DOY
       
       INTEGER DOY         , YEAR 
       
@@ -40,7 +41,9 @@
       CALL YR_DOY(YEARDOYHARF,HYEAR,HDAY)
       PLTOHARYR = HYEAR - PLYEARREAD
       ! Upgrade harvest date for seasonal and sequential runs
-      yeardoyharf = (plyear+pltoharyr)*1000 +hday
+      !yeardoyharf = (plyear+pltoharyr)*1000 +hday
+      !LPM 10FEB2021 Move yeardoyharf after updating the PLYEAR when date of simulation is 
+      !the year before planting
       
 !     IF (IPLTI /= 'A') THEN
       IF (IPLTI /= 'A' .AND. IPLTI /= 'F') THEN
@@ -48,6 +51,7 @@
               PLYEARDOYT = PLYEARTMP*1000 + PLDAY
           ELSEIF (PLDAY < DOY) THEN
               PLYEARDOYT = (YEAR+1)*1000 + PLDAY
+              PLYEAR = YEAR+1
           ENDIF
       ELSE
           PLYEARDOYT = 9999999
@@ -59,7 +63,7 @@
               IF (HLAST > 0)  HLAST  = HLAST + (TVI1+1)*1000
           ENDIF
       ENDIF
-      
+      yeardoyharf = (plyear+pltoharyr)*1000 +hday
       !-----------------------------------------------------------------------
       !       Set control flags if not already done
       !-----------------------------------------------------------------------

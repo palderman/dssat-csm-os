@@ -27,6 +27,7 @@ C-----------------------------------------------------------------------
                          ! parameters, hourly weather data.
       use dssat_netcdf
       IMPLICIT NONE
+      EXTERNAL GETLUN, FIND, ERROR, IGNORE, CURV
       SAVE
 
       CHARACTER*6 ERRKEY

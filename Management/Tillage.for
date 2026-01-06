@@ -22,10 +22,10 @@ C=======================================================================
 
 C-----------------------------------------------------------------------
       use csm_io
-      USE ModuleDefs            !Definitions of constructed variable types, 
-                         ! which contain control information, soil
-                         ! parameters, hourly weather data.
+      USE ModuleDefs
+      
       IMPLICIT NONE
+      EXTERNAL ERROR, FIND, GETLUN, IGNORE, PATH, WARNING, YR_DOY
       SAVE
 
       CHARACTER*1 ISWTIL, RNMODE, BLANK

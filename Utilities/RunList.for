@@ -15,6 +15,7 @@
       USE ModuleData
       use dssat_mpi
       IMPLICIT NONE
+      EXTERNAL GETLUN
       SAVE
 
       CHARACTER*1  RNMODE

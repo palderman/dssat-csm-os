@@ -16,6 +16,7 @@ C  07/01/2003 GH  Add error checking codes for surface values
 !  08/23/2005 CHP Fixed some error checking for soil water parameters.
 !  05/18/2006 CHP Modifications for input subroutine module
 !  09/01/2011 CHP Added Van Genuchten parameters in optional 3rd tier of data
+!  07/19/2024  FO Updated Soil prop. error checking conditions.
 C-----------------------------------------------------------------------
 C  INPUT  : RNMODE,FILES,PATHSL,ISWWAT
 C
@@ -38,6 +39,8 @@ C=======================================================================
       use csm_io
       use dssat_netcdf
       IMPLICIT NONE
+      EXTERNAL ERROR, WARNING, IGNORE2, IGNORE, CLEAR, UPCASE, VERIFY, 
+     &  PARSE_HEADERS, LYRSET, LYRSET3, LYRSET2, LMATCH
 
       CHARACTER*1   LINE(80),RNMODE,BLANK,ANS,UPCASE
       CHARACTER*5   MH(NL)
@@ -248,9 +251,10 @@ C
       nVG = -99.
       WCR = -99.
 
-!     Stable organic C read from soil analysis section only
+!     Stable organic C and SAEA read from soil analysis section only.
 !     Output with 2nd tier soil data to INP file.
       SASC   = -99.
+      SAEA   = -99.
 
 !-----------------------------------------------------------------------
 !     Find correct soil within soil file
@@ -512,22 +516,22 @@ C-KRT*******************************************************************
          IF (ISWITCH%ISWWAT .NE. 'N') THEN
            ERR = 0
            DO J = 1, NLAYRI
-             IF ((DUL(J) - SAT(J)) .GT. 1.E-4) THEN
+             IF ((DUL(J) - SAT(J)) .GT. 0.0) THEN
                 CALL ERROR (ERRKEY,7,FILES,LINSOL_1+J-1)
               ENDIF
-              IF ((LL(J) - DUL(J)) .GT. 1.E-4) THEN
+              IF ((LL(J) - DUL(J)) .GT. 0.0) THEN
                  CALL ERROR (ERRKEY,8,FILES,LINSOL_1+J-1)
               ENDIF
-              IF (DUL(J) .LT. 1.E-3) THEN
+              IF (DUL(J) .LT. 0.0) THEN
                  CALL ERROR (ERRKEY,13,FILES,LINSOL_1+J-1)
               ENDIF
-              IF (ABS(SAT(J) - DUL(J)) .LT. 1.E-2) THEN
+              IF (ABS(SAT(J) - DUL(J)) .LE. 0.0) THEN
                  SAT(J) = DUL(J) + 0.01
               ENDIF
-              IF (ABS(DUL(J) -  LL(J)) .LT. 1.E-2) THEN
+              IF (ABS(DUL(J) -  LL(J)) .LE. 0.0) THEN
                  LL(J) = DUL(J) - 0.01
               ENDIF  
-              IF (SHF(J) .LT. -1.E-6) THEN
+              IF (SHF(J) .LT. 0.0) THEN
                  WRITE(MSG(1),'(A,A72)') 'File: ',FILESS
                  
                  WRITE(MSG(2),'(A,I4,2X,A,I2)') 
@@ -539,7 +543,7 @@ C-KRT*******************************************************************
                  CALL ERROR(ERRKEY,14,FILES,LINSOL_1+J-1)
               ENDIF
 
-             IF (SWCN(J) < 1.E-4) THEN
+             IF (SWCN(J) < 0.0) THEN
                SWCN(J) = -99.
                ERR = ERR + 1
              ENDIF
@@ -805,3 +809,9 @@ C-----------------------------------------------------------------------
      &        /,6X,'NEW SELECTION ?    --->',2X,' ',$)
 
       END SUBROUTINE IPSOIL_Inp
+C=======================================================================
+! IPSOIL_Inp Variables
+! NLAYR total # of layers in the converted soil layers
+! NLAYRI total # of layers in original soil file
+! ZLYR   Depth of bottom of original soil file
+!=======================================================================

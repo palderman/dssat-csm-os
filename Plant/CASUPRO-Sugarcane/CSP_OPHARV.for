@@ -16,19 +16,21 @@ C  02/09/2007 GH  Add path for FileA
 C=======================================================================
 
       SUBROUTINE CSP_OPHARV(CONTROL, ISWITCH, 
-     &    AGEFAC, BADMD, CANHT, TillerCount, LAIMX,       !Input
-     &	LAIXD, LeafNum, LFWTHa, LSWTHa,                 !Input
+     &    AGEFAC, BADMD, TillerCount, LAIMX,              !Input
+     &    LAIXD, LeafNum, LFWTHa, LSWTHa,                 !Input
      &    HARVFRAC,NSTRES, PLTPOP, PLWT, PStres1,         !Input
      &    PStres2, PhenoStage, StalkPopul, StalkState,    !Input 
-     &	STGDOY, STKFWTHa, StkHt, STKWTHa,               !Input
+     &    STGDOY, STKFWTHa, StkHt, STKWTHa,               !Input
      &    STNAME, SUWTHa, SWFAC, TOPWT, TURFAC,           !Input
-     &    VSTAGE, WTNCAN, WTNST, WTNUP, XLAI, YRPLT)      !Input
+     &    WTNCAN, WTNUP, XLAI, YRPLT)                     !Input
 
 C-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
       IMPLICIT NONE
+      EXTERNAL GETDESC, OPVIEW, READA, READA_Dates, CHANGE_DESC, 
+     &   SUMVALS, EvaluateDat, ERROR, TIMDIF, INCDAT, READA_Y4K
       SAVE
 
       CHARACTER*1  RNMODE,IDETO,IPLTI
@@ -52,13 +54,13 @@ C-----------------------------------------------------------------------
       INTEGER DEM0, DEM1, DEM2, DLFX, DPOP, DSPT, DTMX 
       INTEGER IEM0, IEM1, IEM2, ILFX, IPOP, ISPT, ITMX   
 
-      REAL AELH, AvgHeight, AvgLfAr, AvgNode 
-	REAL AvgLfWt, BADMD, BIOMAS, BWAH, CANHT
+      REAL AvgHeight, AvgLfAr, AvgNode !AELH, 
+	REAL AvgLfWt, BADMD, BIOMAS, BWAH !, CANHT
       REAL CWAM, HeightSumA, HeightSumP, HIAM
 	REAL HWAH, HWAM, LAIH, LAIMX, LFNUM
       REAL MaxStkPop, NodeSum, PLTPOP, PLWT 
-	REAL SNAH, SMFMH, SSTKH, SUCH, TOPWT, TRSH, VSTAGE
-      REAL WTNCAN, WTNST, WTNUP, XLAI
+	REAL SNAH, SMFMH, SSTKH, SUCH, TOPWT, TRSH !, VSTAGE
+      REAL WTNCAN, WTNUP, XLAI !, WTNST
       REAL, DIMENSION(2) :: HARVFRAC
       REAL, DIMENSION(0:NumOfDays) :: LFWTHa, LSWTHa, 
      &      STKFWTHa, STKWTHa, SUWTHa,StalkPopul
@@ -74,7 +76,7 @@ C-----------------------------------------------------------------------
 !     Arrays which contain Simulated and Measured data for printing
 !       in OVERVIEW.OUT and EVALUATE.OUT files (OPVIEW subroutine)
       CHARACTER*6 OLAB(40), OLAP(40)  !OLAP modified for dap
-      CHARACTER*6  X(40)
+      CHARACTER*12  X(40)
       CHARACTER*8 Simulated(40), Measured(40)
       CHARACTER*50 DESCRIP(40)
 
@@ -109,27 +111,27 @@ C-----------------------------------------------------------------------
 !     Define headings for observed data file (FILEA)
       DATA OLAB / !  Definition
                !     -----------
-     & 'SMFMH ', ! 1   Millable cane fresh weight at harvest, (t/ha)
-     & 'SUCH  ', ! 2   Sucrose at harvest (t/ha) 
-     & 'SSTKH ', ! 3   Stalk (structure, no sucrose) dry weight at harvest (t/ha) 
-     & 'BADMH ', ! 4   Above-ground biomass (live+dead) at harvest (t/ha)
-     & 'TRSH  ', ! 5   Above-ground biomass minus stalks harvested (t/ha)
-     & 'LAIX  ', ! 6   Maximum leaf area index this season (m2[leaf]/m2[ground])
-     & 'LAIXD ', ! 7   Day of max leaf area index (DAP)
-     & 'LAIH  ', ! 8   Leaf area index, at harvest (m2[leaf]/m2[ground])
-     & 'LAASH ', ! 9   Leaf area: avg leaf area per stalk at harvest (cm2/stalk)
-     & 'LWASH ', ! 10  Leaf weight: avg leaf weight per stalk at harvest (g/stalk)
-     & 'NAPSH ', ! 11  Node number: avg nodes per stalk at harvest 
-     & 'SPDAT ', ! 12  Sprouting day, primary stalk bud from sett  (DAP)
-     & 'EDAT0 ', ! 13  Primary stalk emergence day (DAP)
-     & 'EDAT1 ', ! 14  First tiller emergence day (DAP) 
-     & 'EDAT2 ', ! 15  Second tiller emergence day (DAP)
-     & 'T#MX  ', ! 16  Tiller maximum population (stalks/m2)
-     & 'T#MXD ', ! 17  Day of tiller maximum population (DAP)
-     & 'TDECD ', ! 18  Initiation day, tiller population decline (DAP)
-     & 'S#AH  ', ! 19  Stalk population at harvest (stalks/m2)
-     & 'SHTH  ', ! 20  Stalk height: average at harvest (m) 
-     & 'HIAM  ', ! 21  Harvest index [sucrose/(stalk+sucrose)dm] 
+     & 'SMFMH ', ! 1  Millable cane fresh weight at harvest, (t/ha)
+     & 'SUCH  ', ! 2  Sucrose at harvest (t/ha) 
+     & 'SSTKH ', ! 3  Stalk (structure, no sucrose) dry wt @ harv (t/ha)
+     & 'BADMH ', ! 4  Above-ground biomass (live+dead) at harvest (t/ha)
+     & 'TRSH  ', ! 5  Above-ground biomass minus stalks harvested (t/ha)
+     & 'LAIX  ', ! 6  Max LAI this season (m2[leaf]/m2[ground])
+     & 'LAIXD ', ! 7  Day of max leaf area index (DAP)
+     & 'LAIH  ', ! 8  Leaf area index, at harvest (m2[leaf]/m2[ground])
+     & 'LAASH ', ! 9  Leaf area: avg leaf area /stalk @ harv (cm2/stalk)
+     & 'LWASH ', ! 10 Leaf weight: avg leaf wt / stalk @ harv (g/stalk)
+     & 'NAPSH ', ! 11 Node number: avg nodes per stalk @ harvest 
+     & 'SPDAT ', ! 12 Sprouting day, primary stalk bud from sett  (DAP)
+     & 'EDAT0 ', ! 13 Primary stalk emergence day (DAP)
+     & 'EDAT1 ', ! 14 First tiller emergence day (DAP) 
+     & 'EDAT2 ', ! 15 Second tiller emergence day (DAP)
+     & 'T#MX  ', ! 16 Tiller maximum population (stalks/m2)
+     & 'T#MXD ', ! 17 Day of tiller maximum population (DAP)
+     & 'TDECD ', ! 18 Initiation day, tiller population decline (DAP)
+     & 'S#AH  ', ! 19 Stalk population at harvest (stalks/m2)
+     & 'SHTH  ', ! 20 Stalk height: average at harvest (m) 
+     & 'HIAM  ', ! 21 Harvest index [sucrose/(stalk+sucrose)dm] 
      & 19*'      '/  !19 labels of 40 not used for sugarcane
 
 !***********************************************************************
@@ -376,7 +378,8 @@ C-----------------------------------------------------------------------
          ELSE
            TRT_ROT = CONTROL % TRTNUM
          ENDIF
-         CALL READA (FILEA, PATHEX, OLAB, TRT_ROT, YRSIM, X)
+         !CALL READA (FILEA, PATHEX, OLAB, TRT_ROT, YRSIM, X)
+         CALL READA_Y4K(FILEA, PATHEX,OLAB, TRT_ROT, YRSIM, X)
 
 !     Convert Date of max leaf area index from YRDOY to DAP.  
 !     and change descriptions to match.
@@ -387,7 +390,7 @@ C-----------------------------------------------------------------------
           DLFX  = -99
         ENDIF
         !CALL CHANGE_DESC(DESCRIP(7)) 
-        OLAP(7) = 'LAIXD '  ! Finds this name in Data.cde. P=DAP; T=YRDOY
+        OLAP(7) = 'LAIXD '  !Finds this name in Data.cde. P=DAP; T=YRDOY
         CALL GetDesc(1,OLAP(7), DESCRIP(7))
 
 !     Convert primary stk bud sprouts from sett from YRDOY to DAP.  
@@ -399,7 +402,7 @@ C-----------------------------------------------------------------------
           DSPT  = -99
         ENDIF
         !CALL CHANGE_DESC(DESCRIP(12)) 
-        OLAP(12) = 'SPDAP '  ! Finds this name in Data.cde. P=DAP; T=YRDOY
+        OLAP(12) = 'SPDAP ' !Finds this name in Data.cde. P=DAP; T=YRDOY
         CALL GetDesc(1,OLAP(12), DESCRIP(12))
 
 !     Convert primary stk emergence from soil from YRDOY to DAP.  
@@ -411,7 +414,7 @@ C-----------------------------------------------------------------------
           DEM0  = -99
         ENDIF
         !CALL CHANGE_DESC(DESCRIP(13)) 
-        OLAP(13) = 'EDAT0 '  ! Finds this name in Data.cde. P=DAP; T=YRDOY
+        OLAP(13) = 'EDAT0 ' !Finds this name in Data.cde. P=DAP; T=YRDOY
         CALL GetDesc(1,OLAP(13), DESCRIP(13))
 
 !     Convert first tiller emergence from YRDOY to DAP.  
@@ -423,7 +426,7 @@ C-----------------------------------------------------------------------
           DEM1  = -99
         ENDIF
         !CALL CHANGE_DESC(DESCRIP(14)) 
-        OLAP(14) = 'EDAT1 '  ! Finds this name in Data.cde. P=DAP; T=YRDOY
+        OLAP(14) = 'EDAT1 ' !Finds this name in Data.cde. P=DAP; T=YRDOY
         CALL GetDesc(1,OLAP(14), DESCRIP(14))
 
 !     Convert second tiller emergence from YRDOY to DAP.  
@@ -435,7 +438,7 @@ C-----------------------------------------------------------------------
           DEM2  = -99
         ENDIF
         !CALL CHANGE_DESC(DESCRIP(15)) 
-        OLAP(15) = 'EDAT2 '  ! Finds this name in Data.cde. P=DAP; T=YRDOY
+        OLAP(15) = 'EDAT2 ' !Finds this name in Data.cde. P=DAP; T=YRDOY
         CALL GetDesc(1,OLAP(15), DESCRIP(15))
 
 !     Convert tiller maximum population from YRDOY to DAP.  
@@ -447,10 +450,10 @@ C-----------------------------------------------------------------------
           DTMX  = -99
         ENDIF
         !CALL CHANGE_DESC(DESCRIP(17)) 
-        OLAP(17) = 'T#MXD '  ! Finds this name in Data.cde. P=DAP; T=YRDOY
+        OLAP(17) = 'T#MXD ' !Finds this name in Data.cde. P=DAP; T=YRDOY
         CALL GetDesc(1,OLAP(17), DESCRIP(17))
 
-!     Convert initiation of tiller population decline from YRDOY to DAP.  
+!     Convert initiation of tiller population decline from YRDOY to DAP
 !     and change descriptions to match.
         CALL READA_Dates(X(18), YRSIM, IPOP)
         IF (IPOP .GT. 0 .AND. IPLTI .EQ. 'R' .AND. ISENS .EQ. 0) THEN
@@ -464,40 +467,48 @@ C-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
 !     Store Simulated and Measured data for this season.
-      WRITE(Simulated(1),'(F8.2)')SMFMH;	 WRITE(Measured(1),'(A8)')X(1)
-      WRITE(Simulated(2),'(F8.2)')SUCH;    WRITE(Measured(2),'(A8)')X(2)
-      WRITE(Simulated(3),'(F8.2)')SSTKH;   WRITE(Measured(3),'(A8)')X(3)
+      WRITE(Simulated(1),'(F8.2)')SMFMH;	 
+                                    WRITE(Measured(1),'(A8)')TRIM(X(1))
+      WRITE(Simulated(2),'(F8.2)')SUCH;    
+                                    WRITE(Measured(2),'(A8)')TRIM(X(2))
+      WRITE(Simulated(3),'(F8.2)')SSTKH;   
+                                    WRITE(Measured(3),'(A8)')TRIM(X(3))
       WRITE(Simulated(4),'(F8.2)')CWAM/1000;    
-									WRITE(Measured(4),'(A8)')X(4)
-      WRITE(Simulated(5),'(F8.2)')TRSH;    WRITE(Measured(5),'(A8)')X(5)
-      WRITE(Simulated(6),'(F8.2)') LAIMX;  WRITE(Measured(6),'(A8)')X(6)
-      WRITE(Simulated(7),'(I8)')LAIXD;     WRITE(Measured(7),'(I8)')DLFX
-      WRITE(Simulated(8),'(F8.2)') LAIH;   WRITE(Measured(8),'(A8)')X(8)
-      WRITE(Simulated(9),'(F8.0)')AvgLfAr; WRITE(Measured(9),'(A8)')X(9)
+						WRITE(Measured(4),'(A8)')TRIM(X(4))
+      WRITE(Simulated(5),'(F8.2)')TRSH;    
+                                    WRITE(Measured(5),'(A8)')TRIM(X(5))
+      WRITE(Simulated(6),'(F8.2)') LAIMX;  
+                                    WRITE(Measured(6),'(A8)')TRIM(X(6))
+      WRITE(Simulated(7),'(I8)')LAIXD;     
+                                    WRITE(Measured(7),'(I8)')DLFX
+      WRITE(Simulated(8),'(F8.2)') LAIH;   
+                                    WRITE(Measured(8),'(A8)')TRIM(X(8))
+      WRITE(Simulated(9),'(F8.0)')AvgLfAr; 
+                                    WRITE(Measured(9),'(A8)')TRIM(X(9))
       WRITE(Simulated(10),'(F8.2)')AvgLfWt; 
-									WRITE(Measured(10),'(A8)')X(10)
+					     WRITE(Measured(10),'(A8)')TRIM(X(10))
       WRITE(Simulated(11),'(F8.2)')AvgNode; 
-									WRITE(Measured(11),'(A8)')X(11)
+					     WRITE(Measured(11),'(A8)')TRIM(X(11))
       WRITE(Simulated(12),'(I8)')SPDAT;     
-									WRITE(Measured(12),'(I8)')DSPT
+						WRITE(Measured(12),'(I8)')DSPT
       WRITE(Simulated(13),'(I8)')EDAT0;     
-									WRITE(Measured(13),'(I8)')DEM0
+						WRITE(Measured(13),'(I8)')DEM0
       WRITE(Simulated(14),'(I8)')EDAT1;     
-									WRITE(Measured(14),'(I8)')DEM1
+						WRITE(Measured(14),'(I8)')DEM1
       WRITE(Simulated(15),'(I8)')EDAT2;     
-									WRITE(Measured(15),'(I8)')DEM2
+						WRITE(Measured(15),'(I8)')DEM2
       WRITE(Simulated(16),'(F8.2)')MaxStkPop; 
-									WRITE(Measured(16),'(A8)')X(16)
+					     WRITE(Measured(16),'(A8)')TRIM(X(16))
       WRITE(Simulated(17),'(I8)')MaxStkDay;     
-									WRITE(Measured(17),'(I8)')DTMX  
+						WRITE(Measured(17),'(I8)')DTMX  
       WRITE(Simulated(18),'(I8)')StkDecDay;     
-									WRITE(Measured(18),'(I8)')DPOP
+						WRITE(Measured(18),'(I8)')DPOP
       WRITE(Simulated(19),'(F8.2)')SNAH; 
-									WRITE(Measured(19),'(A8)')X(19)
+					     WRITE(Measured(19),'(A8)')TRIM(X(19))
       WRITE(Simulated(20),'(F8.2)')AvgHeight; 
-									WRITE(Measured(20),'(A8)')X(20)
+					     WRITE(Measured(20),'(A8)')TRIM(X(20))
       WRITE(Simulated(21),'(F8.2)')HIAM; 
-									WRITE(Measured(21),'(A8)')X(21)
+					     WRITE(Measured(21),'(A8)')TRIM(X(21))
      
       ENDIF  
 

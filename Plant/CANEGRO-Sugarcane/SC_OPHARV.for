@@ -13,7 +13,8 @@
 !     &    PhenoStage, 
      &    STGDOY, 
 c         WFAC, TOPWT, TURFAC,       !Input
-     &    XLAI, YRPLT)                                    !Input
+     &    XLAI, YRPLT,                                    !Input
+     &    HARVFRAC, TOP_N)  !Input  ! HBD (Jan 2023) after MvdL 2011
 
 !-----------------------------------------------------------------------
       USE ModuleDefs 
@@ -21,6 +22,8 @@ c     Define CANEGRO composite variables:
       USE CNG_ModuleDefs
 
       IMPLICIT NONE
+      EXTERNAL GETDESC, OPVIEW, READA, SUMVALS, EvaluateDat, 
+     &  ERROR, TIMDIF, READA_Y4K
       SAVE
 
       CHARACTER*1  RNMODE,IDETO,IPLTI
@@ -46,6 +49,19 @@ c     Define CANEGRO composite variables:
 
       REAL PStres1, PStres2
 
+      ! HBD (Jan 2023) after MvdL 2011
+      !     MvdL
+       !REAL HARVFRAC(2)
+      Type (ResidueType) HARVRES
+!     Harvest residue variables 0 = surface
+      INTEGER, PARAMETER :: SRFC = 0
+      REAL HResWt(0:NL)   !Residue mass (kg[dry matter]/ha)
+      REAL HResLig(0:NL)  !Residue lignin (kg[lignin]/ha)
+      REAL HResE(0:NL,NELEM)  !Residue element components (kg[E]/ha)
+      REAL HARVFRAC(2) ! HBD (Jan 2023) after MvdL 2011
+!      REAL PLIGLF
+      REAL TOP_N
+
 !     Arrays which contain data for printing in SUMMARY.OUT file
 !       (OPSUM subroutine)
       INTEGER, PARAMETER :: SUMNUM = 7
@@ -55,7 +71,7 @@ c     Define CANEGRO composite variables:
 !     Arrays which contain Simulated and Measured data for printing
 !       in OVERVIEW.OUT and EVALUATE.OUT files (OPVIEW subroutine)
       CHARACTER*6, DIMENSION(EvaluateNum) :: OLAB, OLAP !OLAP in dap
-      CHARACTER*6 X(EvaluateNum)
+      CHARACTER*12 X(EvaluateNum)
       CHARACTER*8 Simulated(EvaluateNum), Measured(EvaluateNum)
       CHARACTER*50 DESCRIP(EvaluateNum)
 
@@ -340,6 +356,25 @@ c     Green Leaf area index at harvest
         DNR_EMRG = -99
       ENDIF
 
+      ! HBD (Jan 2023) after MvdL 2011
+      !   Added by MvdL: 
+      ! for C modelling purposes, * 1000 to get from t/ha to kg/ha
+
+      HResWt  = 0.0     !MvdL: Consider moving this to a later stage 
+      HResLig = 0.0
+      HResE   = 0.0
+      
+      HResWt(SRFC)  = (TRSH*1000*(1. - HARVFRAC(2))) 
+     &  + (Part%TOPDM*1000*(1. - HARVFRAC(2)))
+      HResLig(SRFC) = HResWt(SRFC)*0.07                          
+      !MvdL: This represents the min N conc.
+      HResE(SRFC, N) = (TRSH*1000*0.004*(1.-HARVFRAC(2)))        
+     & + (1.-HARVFRAC(2))*TOP_N                       
+
+      HARVRES % ResWt  = HResWt
+      HARVRES % ResLig = HResLig
+      HARVRES % ResE   = HResE 
+
 !-----------------------------------------------------------------------
 !     Read Measured (measured) data from FILEA
 !-----------------------------------------------------------------------
@@ -351,24 +386,33 @@ c     Green Leaf area index at harvest
          ELSE
            TRT_ROT = CONTROL % TRTNUM
          ENDIF
-         CALL READA (FILEA, PATHEX,OLAB, TRT_ROT, YRSIM, X)
+         !CALL READA (FILEA, PATHEX,OLAB, TRT_ROT, YRSIM, X)
+         CALL READA_Y4K(FILEA, PATHEX,OLAB, TRT_ROT, YRSIM, X)
 
 !     Store Simulated and Measured data for this season.
-        WRITE(Simulated(1),'(F8.2)') SUCH; WRITE(Measured(1),'(A8)')X(1)
-        WRITE(Simulated(2),'(F8.2)') AELH; WRITE(Measured(2),'(A8)')X(2)
-        WRITE(Simulated(3),'(F8.2)') STKH; WRITE(Measured(3),'(A8)')X(3)
-        WRITE(Simulated(4),'(F8.2)') TRSH; WRITE(Measured(4),'(A8)')X(4)
-        WRITE(Simulated(5),'(F8.2)') GLAI; WRITE(Measured(5),'(A8)')X(5)
-        WRITE(Simulated(6),'(F8.2)')MAXLAI;WRITE(Measured(6),'(A8)')X(6)
+        WRITE(Simulated(1),'(F8.2)') SUCH; 
+                        WRITE(Measured(1),'(A8)')TRIM(X(1))
+        WRITE(Simulated(2),'(F8.2)') AELH; 
+                                    WRITE(Measured(2),'(A8)')TRIM(X(2))
+        WRITE(Simulated(3),'(F8.2)') STKH; 
+                                    WRITE(Measured(3),'(A8)')TRIM(X(3))
+        WRITE(Simulated(4),'(F8.2)') TRSH; 
+                                    WRITE(Measured(4),'(A8)')TRIM(X(4))
+        WRITE(Simulated(5),'(F8.2)') GLAI; 
+                                    WRITE(Measured(5),'(A8)')TRIM(X(5))
+        WRITE(Simulated(6),'(F8.2)')MAXLAI;
+                                    WRITE(Measured(6),'(A8)')TRIM(X(6))
         WRITE(Simulated(7),'(F8.2)') CaneCrop%CANHEIGHT
-                                           WRITE(Measured(7),'(A8)')X(7)
-        WRITE(Simulated(8),'(F8.2)') HIAM; WRITE(Measured(8),'(A8)')X(8)
-        WRITE(Simulated(9),'(F8.2)') L_SH; WRITE(Measured(9),'(A8)')X(9)
+                                    WRITE(Measured(7),'(A8)')TRIM(X(7))
+        WRITE(Simulated(8),'(F8.2)') HIAM; 
+                                    WRITE(Measured(8),'(A8)')TRIM(X(8))
+        WRITE(Simulated(9),'(F8.2)') L_SH; 
+                                    WRITE(Measured(9),'(A8)')TRIM(X(9))
         WRITE(Simulated(10),'(I8)')  DNR_EMRG
-                                         WRITE(Measured(10),'(A8)')X(10)
+                                   WRITE(Measured(10),'(A8)')TRIM(X(10))
 c       MJ, Feb 2012: add fresh stalk mass at harvest to output file
         WRITE(Simulated(13),'(F8.1)')  Part%STKWM
-                                         WRITE(Measured(10),'(A8)')X(11)
+                                   WRITE(Measured(10),'(A8)')TRIM(X(11))
       ENDIF  
 
 
