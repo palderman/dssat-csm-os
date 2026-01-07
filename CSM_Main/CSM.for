@@ -286,7 +286,8 @@ C-----------------------------------------------------------------------
            else
               CALL GETLUN('BATCH ', LUNBIO)
               FINDCH='$BATCH'
-              OPEN (LUNBIO, FILE = FILEB,STATUS = 'UNKNOWN',IOSTAT=ERRNUM)
+              OPEN (LUNBIO, FILE = FILEB,STATUS = 'UNKNOWN',
+     &              IOSTAT=ERRNUM)
               IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,28,FILEB,LINBIO)
               CALL FIND (LUNBIO,FINDCH,LINBIO,IFIND)
               IF (IFIND .EQ. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
@@ -313,6 +314,24 @@ C***********************************************************************
       CONTROL % RUN = RUN
       CONTROL % YRDOY = 0
       CALL PUT(CONTROL)
+
+      if(mpi_child%use_mpi)then
+
+         if(mpi_child%curr_trt_index == size(mpi_child%trtno))then
+            DONE = .TRUE.
+            GO TO 2000
+         end if
+
+         mpi_child%curr_trt_index = mpi_child%curr_trt_index + 1
+
+         FILEIO  = 'DSSAT47.INP'
+         FILEX   = ' '
+         RNMODE  = mpi_child%rnmode
+         ROTNUM = 1
+         TRTREP = 1
+         TRTNUM = mpi_child%trtno(mpi_child%curr_trt_index)
+
+      else ! mpi_child%use_mpi
 
       IF ((INDEX('NSFBTY',RNMODE) .GT. 0) .OR. 
      &    (INDEX('E',RNMODE) .GT. 0 .AND. RUN .EQ. 1)) THEN
@@ -351,7 +370,8 @@ C***********************************************************************
                END_POS = LEN(TRIM(CHARTEST(1:92)))+1
                FILEX = CHARTEST((END_POS-12):(END_POS-1))
                PATHEX = CHARTEST(1:END_POS-13)
-               READ(CHARTEST(93:113),110,IOSTAT=ERRNUM) TRTNUM,TRTREP,ROTNUM
+               READ(CHARTEST(93:113),110,IOSTAT=ERRNUM) TRTNUM,TRTREP,
+     &               ROTNUM
  110           FORMAT(3(1X,I6))
                IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
             ELSE

@@ -68,7 +68,7 @@ c     Days after planting
       INTEGER GRYRNO
       INTEGER GRMONNO
       
-      INTEGER YEARHV(3)
+      INTEGER YEARHV(NAPPL)
       CHARACTER*3 MONHV
       INTEGER DOYHV, NDAYHV
       
@@ -432,7 +432,7 @@ C-----------------------------------------------------------------------
       CHARACTER*90 CHAR
 
       INTEGER ERRNUM
-      INTEGER I, HDATE(3)
+      INTEGER I, HDATE(NAPPL)
       INTEGER LINC, LNUM, FOUND
       INTEGER LUNIO
 

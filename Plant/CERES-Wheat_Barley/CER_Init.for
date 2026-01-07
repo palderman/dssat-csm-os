@@ -17,6 +17,11 @@
 
         USE ModuleDefs
         USE CER_First_Trans_m
+
+        use csm_io
+        use dssat_mpi
+        use dssat_netcdf
+
         IMPLICIT NONE
         EXTERNAL YR_DOY, GETLUN, Y4K_DOY, TVILENT, LTRIM, XREADC, 
      &    XREADT, SPREADRA, XREADI, XREADR, UCASE, XREADIA, XREADRA, 

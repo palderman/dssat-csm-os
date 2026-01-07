@@ -68,7 +68,7 @@ C=======================================================================
       INTEGER       ERRNUM,PATHL
       REAL          FLAG,VAR
       REAL P1,P1V,P1D,P2,P2O,P2R,P3,P4,P5,G1,G2,G3,G4,G5,G0
-      REAL PHINT,PD,TC,AX,LX,PANTH
+      REAL O1,PHINT,PD,TC,AX,LX,PANTH
       INTEGER LFN
       REAL PPS1, B01ND, B12ND, B23ND, B34ND, B45ND, B56ND
       REAL SRNWT, SRFR, HMPC, LA1S, LAXS

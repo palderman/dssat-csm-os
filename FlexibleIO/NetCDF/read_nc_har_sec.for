@@ -36,17 +36,17 @@ C=======================================================================
 
       CHARACTER*1  IHARI
       CHARACTER*2  CROP
-      CHARACTER*5  HSTG(3),HCOM(3),HSIZ(3)
+      CHARACTER*5  HSTG(NAPPL),HCOM(NAPPL),HSIZ(NAPPL)
       CHARACTER*6  ERRKEY,FINDCH
       CHARACTER*12 FILEX
       CHARACTER*80 CHARTEST
 
-      INTEGER      LNHAR,LUNEXP,ISECT,LINEXP,HDATE(3),NHAR
+      INTEGER      LNHAR,LUNEXP,ISECT,LINEXP,HDATE(NAPPL),NHAR
       INTEGER      ERRNUM,J,IFIND,LN,YRSIM
       INTEGER      HYR, HDAY
       integer      i
       integer      start,count
-      REAL         HPC(3),HBPC(3),FREQ,CUHT !NEW FORAGE VARIABLES (DIEGO-2/14/2017)
+      REAL         HPC(NAPPL),HBPC(NAPPL),FREQ,CUHT !NEW FORAGE VARIABLES (DIEGO-2/14/2017)
 
       PARAMETER   (ERRKEY='IPHAR ')
 
@@ -54,7 +54,7 @@ C=======================================================================
 
       NHAR  = 0
 
-      DO J = 1, 3
+      DO J = 1, NAPPL
          HSTG(J)  = '     '
          HCOM(J)  = '     '
          HSIZ(J)  = '     '
@@ -65,7 +65,7 @@ C=======================================================================
       IF (LNHAR .EQ. 0) return
 
       call nc_filex%get_ind_nvals('LNHAR',LNHAR,I,NHAR)
-      if(NHAR > 3) NHAR = 3
+      if(NHAR > NAPPL) NHAR = NAPPL
       call nc_filex%read('HDATE',I,HDATE(1:NHAR))
       call nc_filex%read('HSTG',I,HSTG(1:NHAR))
       call nc_filex%read('HCOM',I,HCOM(1:NHAR))
@@ -73,7 +73,7 @@ C=======================================================================
       call nc_filex%read('HPC',I,HPC(1:NHAR))
       call nc_filex%read('HBPC',I,HBPC(1:NHAR))
 
-      do i=1,3
+      do i=1,NHAR
 C
 C        Read several lines of harvest details
 C

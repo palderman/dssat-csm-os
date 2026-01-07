@@ -144,7 +144,7 @@ C========================================================================
       if(nc_gen%yes)then !NetCDF I/O
          call nc_gen%read_spe('CMOBMX',CMOBMX)
          call nc_gen%read_spe('CADSTF',CADSTF)
-         call nc_gen%read_spe('NADSTF',NADSTF)
+         call nc_gen%read_spe('NSTFAC',NSTFAC)
       else ! SPE file
          SECTION = '!*CARB'
          CALL FIND(LUNCRP, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC

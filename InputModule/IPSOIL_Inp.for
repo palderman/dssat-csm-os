@@ -69,7 +69,7 @@ C=======================================================================
       REAL U,SWCON,CN2,SALB,DEPMAX,LL(NL),DUL(NL),SAT(NL),TOTN(NL)
       REAL SHF(NL),SWCN(NL),BD(NL),OC(NL),PH(NL),DLAYR(NL)
       REAL EXTP(NL)
-      REAL SASC(NL)
+      REAL SASC(NL),SAEA(NL)
       REAL TOTP(NL),ORGP(NL),SLNF,SLPF,DS(NL),CEC(NL),ADCOEF(NL)
       REAL STONES(NL),CLAY(NL),SILT(NL),PHKCL(NL),SLAT,SLONG
       REAL CACO(NL),EXTAL(NL),EXTFE(NL),EXTMN(NL),TOTBAS(NL)

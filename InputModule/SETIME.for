@@ -28,6 +28,8 @@ C=======================================================================
       SUBROUTINE SETIME (ISIM,YEAR,NYRS,FILEW,RNMODE,
      &           MESIC,YRSIM,YRPLT,IHARI,HDATE,NHAR,PATHWT)
 
+      use ModuleDefs
+
       IMPLICIT     NONE
       EXTERNAL CLEAR, ERROR, JULIAN, NAILUJ, SWINSC, VERIFY, YDOY,YR_DOY
 
@@ -41,7 +43,7 @@ C=======================================================================
 
       INTEGER      NLOOP,MENU,YEAR,ISIM,ENDSIM,NYRS,YR,IDUMM,PATHL
       INTEGER      DSSIM,DESIM,JULIAN,YRSIM,IPYRS,YRPLT,ESIM,EPYRS
-      INTEGER      HDATE(3),NHAR,YDOY
+      INTEGER      HDATE(NAPPL),NHAR,YDOY
       LOGICAL      FEXIST
       REAL         FLAG,EFF
 
