@@ -896,7 +896,8 @@ C-----------------------------------------------------------------------
      &     int_name=(/'LNFLD','FHDur'/),
      &     real_name=(/'SLOPE  ','FLOB   ','FLDD   ','SFDRN  ',
      &                 'XCRD   ','YCRD   ','ELEV   ','SLDP   ',
-     &                 'AREA   ','SLEN   ','FLWR   ','SLAS   '/))
+     &                 'AREA   ','SLEN   ','FLWR   ','SLAS   ',
+     &                 'PMALB  ','PMWD   '/))
 
       call csminp%put('*FIELDS','WSTA',WSTA)
       call csminp%put('*FIELDS','LNFLD',LNFLD)
@@ -920,6 +921,8 @@ C-----------------------------------------------------------------------
       call csminp%put('*FIELDS','SLAS',SLAS)
       call csminp%put('*FIELDS','FldHist',FldHist)
       call csminp%put('*FIELDS','FHDur',FHDur)
+      call csminp%put('*FIELDS','PMALB',PMALB)
+      call csminp%put('*FIELDS','PMWD',PMWD)
 
       call csminp%add_sec('*PLANTING DETAILS',ntiers=1)
 
@@ -1325,12 +1328,13 @@ C-----------------------------------------------------------------------
       call csminp%add_sec('*FILES',ntiers=1)
 
       call csminp%add_var('*FILES',tier=1,
-     &     char_name=(/'FILEX ','PATHEX','FILEA ','FILET ',
-     &                 'FILEC ','PATHCR',
-     &                 'FILEE ','PATHEC','FILEG ','PATHGE',
-     &                 'FILEP ','PATHPE',
-     &                 'FILES ','PATHSL','FILEW ','PATHWT',
-     &                 'OUTO  '/),
+     &     char_name=(/'FILEX  ','PATHEX ','FILEA  ','FILET  ',
+     &                 'FILEC  ','PATHCR ',
+     &                 'FILEE  ','PATHEC ','FILEG  ','PATHGE ',
+     &                 'FILEP  ','PATHPE ',
+     &                 'FILES  ','PATHSL ','FILEW  ','PATHWTW',
+     &                 'FILEWG ','PATHWTG','FILEWC ','PATHWTC',
+     &                 'OUTO   '/),
      &     int_name=(/'LNSIM','ISENS'/))
 
       call csminp%put('*FILES','FILEX',FILEX)
@@ -1348,7 +1352,11 @@ C-----------------------------------------------------------------------
       call csminp%put('*FILES','FILES',FILES)
       call csminp%put('*FILES','PATHSL',PATHSL)
       call csminp%put('*FILES','FILEW',FILEW)
-      call csminp%put('*FILES','PATHWT',PATHWT)
+      call csminp%put('*FILES','PATHWTW',PATHWTW)
+      call csminp%put('*FILES','FILEWG',FILEWG)
+      call csminp%put('*FILES','PATHWTG',PATHWTG)
+      call csminp%put('*FILES','FILEWC',FILEWC)
+      call csminp%put('*FILES','PATHWTC',PATHWTC)
       call csminp%put('*FILES','LNSIM',LNSIM)
       call csminp%put('*FILES','OUTO',OUTO)
 

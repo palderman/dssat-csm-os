@@ -1947,7 +1947,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 !        IF (FILEIOT.EQ.'DS4') WRITE(fnumwrk,*)' '
 !        WRITE(FNUMWRK,'(A22)')' OUTPUTS              '
         ! Control switch for OUTPUT file names
-        CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'FNAME',fname)
+        call csminp%get('*SIMULATION CONTROL','IOX',fname)
 !        IF (FNAME.EQ.'Y') THEN
 !          WRITE(FNUMWRK,*)'File names switched from standard. '
 !        ELSE  

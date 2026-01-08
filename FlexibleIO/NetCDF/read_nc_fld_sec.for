@@ -27,8 +27,9 @@ C  HDLAY  :
 C=======================================================================
 
       SUBROUTINE read_nc_fld_sec(LNFLD,FLDNAM,WSTA,WSTA1,SLNO,
-     &           SLTX,FLST,SLOPE,DFDRN,FLDD,SFDRN,FLOB,SLDP,
-     &           XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS,FldHist, FHDUR)
+     &           SLTX,FLST,SLOPE,DFDRN,FLDD,SFDRN,FLOB,SLDP,PMWD,
+     &           XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS,FldHist,FHDur,
+     &           PMALB)
 
       use dssat_netcdf
       IMPLICIT NONE
@@ -46,6 +47,7 @@ C=======================================================================
 
       REAL    FLDD,SFDRN,FLOB,SLDP,SLOPE
       REAL    XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS
+      REAL PMALB, PMWD
 
       PARAMETER (ERRKEY='IPFLD ')
 

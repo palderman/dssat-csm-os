@@ -648,8 +648,8 @@ C-KRT*******************************************************************
      &          'EXTP   ','TOTP   ','ORGP   ','CACO   ','EXTAL  ',
      &          'EXTFE  ','EXTMN  ','TOTBAS ','PTERMA ','PTERMB ',
      &          'EXK    ','EXMG   ','EXNA   ','EXTS   ','SLEC   ',
-     &          'EXCA   ','SASC   ','alphaVG','mVG    ','nVG    ',
-     &          'WCR    '/))
+     &          'EXCA   ','SASC   ','SAEA   ','alphaVG','mVG    ',
+     &          'nVG    ','WCR    '/))
 
 
       if(cmd_arg_present('--mimic_inp'))then
@@ -775,6 +775,7 @@ C-KRT*******************************************************************
          call csminp%put('*SOIL','SLEC',SLEC(1:nlayr))
          call csminp%put('*SOIL','EXCA',EXCA(1:nlayr))
          call csminp%put('*SOIL','SASC',SASC(1:nlayr))
+         call csminp%put('*SOIL','SAEA',SAEA(1:nlayr))
 
          call csminp%put('*SOIL','alphaVG',alphaVG(1:nlayr))
          call csminp%put('*SOIL','mVG',mVG(1:nlayr))

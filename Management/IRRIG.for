@@ -216,18 +216,10 @@ C-----------------------------------------------------------------------
 C         Find and Read Initial Conditions Section
 C-----------------------------------------------------------------------
           IF (INDEX('FQ',RNMODE) .LE. 0 .OR. RUN == 1) THEN
-            REWIND(LUNIO)
-            SECTION = '*INITI'
-            CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LINC
-            IF (FOUND .EQ. 0) THEN
-              CALL ERROR(SECTION, 42, FILEIO, LNUM)
-            ELSE
-              READ(LUNIO,'(40X,F6.0)',IOSTAT=ERRNUM) ICWD ; LNUM =LNUM+1
-              IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+              call csminp%get('*INITIAL CONDITIONS','ICWD',ICWD)
               MgmtWTD = ICWD
 !              CALL PUT('MGMT','WATTAB',MgmtWTD)
 !              CALL PUT('MGMT','ICWD',ICWD)
-            ENDIF
           ENDIF
 
 C-----------------------------------------------------------------------

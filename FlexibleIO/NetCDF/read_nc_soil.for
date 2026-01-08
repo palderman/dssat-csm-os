@@ -66,7 +66,7 @@ C=======================================================================
       REAL U,SWCON,CN2,SALB,DEPMAX,LL(NL),DUL(NL),SAT(NL),TOTN(NL)
       REAL SHF(NL),SWCN(NL),BD(NL),OC(NL),PH(NL),DLAYR(NL)
       REAL EXTP(NL)
-      REAL SASC(NL)
+      REAL SASC(NL),SAEA(NL)
       REAL TOTP(NL),ORGP(NL),SLNF,SLPF,DS(NL),CEC(NL),ADCOEF(NL)
       REAL STONES(NL),CLAY(NL),SILT(NL),PHKCL(NL),SLAT,SLONG
       REAL CACO(NL),EXTAL(NL),EXTFE(NL),EXTMN(NL),TOTBAS(NL)
@@ -231,6 +231,7 @@ C
 !     Stable organic C read from soil analysis section only
 !     Output with 2nd tier soil data to INP file.
       SASC   = -99.
+      SAEA  = -99.
 
 !        Initialize
       HEADER = '-99'
@@ -288,6 +289,7 @@ C
       call nc_soil%read('SLEC',1,SLEC)
       call nc_soil%read('EXCA',1,EXCA)
       call nc_soil%read('SASC',1,SASC)
+      call nc_soil%read('SAEA',1,SAEA)
 
       call nc_soil%read('alphaVG',1,alphaVG)
       call nc_soil%read('mVG',1,mVG)
@@ -456,8 +458,8 @@ C
      &          'EXTP   ','TOTP   ','ORGP   ','CACO   ','EXTAL  ',
      &          'EXTFE  ','EXTMN  ','TOTBAS ','PTERMA ','PTERMB ',
      &          'EXK    ','EXMG   ','EXNA   ','EXTS   ','SLEC   ',
-     &          'EXCA   ','SASC   ','alphaVG','mVG    ','nVG    ',
-     &          'WCR    '/))
+     &          'EXCA   ','SASC   ','SAEA   ','alphaVG','mVG    ',
+     &          'nVG    ','WCR    '/))
 
       if(cmd_arg_present('--mimic_inp'))then
          
@@ -583,6 +585,7 @@ C
          call csminp%put('*SOIL','SLEC',SLEC(1:nlayr))
          call csminp%put('*SOIL','EXCA',EXCA(1:nlayr))
          call csminp%put('*SOIL','SASC',SASC(1:nlayr))
+         call csminp%put('*SOIL','SAEA',SAEA(1:nlayr))
 
          call csminp%put('*SOIL','alphaVG',alphaVG(1:nlayr))
          call csminp%put('*SOIL','mVG',mVG(1:nlayr))

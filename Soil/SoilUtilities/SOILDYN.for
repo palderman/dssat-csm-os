@@ -2228,6 +2228,8 @@ C=======================================================================
       SUBROUTINE SETPM(SOILPROP)                 !input/output
 !   ---------------------------------------------------------
       USE ModuleData
+      use csm_io
+
       Implicit NONE
       EXTERNAL ERROR, FIND, WARNING, GETLUN, INFO
 
@@ -2247,35 +2249,16 @@ C=======================================================================
 
 !   ---------------------------------------------------------
 !     Get bed dimensions and row spacing
-      CALL GETLUN('FILEIO', LUNIO)
-      OPEN (LUNIO, FILE = CONTROL%FILEIO,STATUS = 'OLD',IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,CONTROL%FILEIO,0)
-      LNUM = 0
-
 !-----------------------------------------------------------------------
       PMALB = -99.
 
 !     Read plastic mulch albedo from FIELDS section
-      SECTION = '*FIELD'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND)
-      IF (FOUND /= 0)  THEN
+      call csminp%get('*FIELDS','PMALB',PMALB)
+      call csminp%get('*FIELDS','PMWD',PMWD)
 !     For 1D model, plastic mulch width is read from "bed width" variable in FileX
-      READ(LUNIO,'(79X,F6.0,F6.0)',IOSTAT=ERR) PMALB, PMWD
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,CONTROL%FILEIO,LNUM)
-        IF ((ERR == 0) .AND. (PMALB .eq. 0.)) THEN
-          PMALB = -99.
-        ENDIF
-      ENDIF
 
 !     Read Planting Details Section
-      SECTION = '*PLANT'
-      CALL FIND(LUNIO, SECTION, LNUM, FOUND) 
-      IF (FOUND == 0) CALL ERROR(SECTION, 42, CONTROL%FILEIO, LNUM)
-      READ(LUNIO,'(42X,F6.0,42X,2F6.0)',IOSTAT=ERR) ROWSPC_CM 
-      LNUM = LNUM + 1
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,CONTROL%FILEIO,LNUM)
-
-      CLOSE(LUNIO)
+      call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC_CM)
  
       IF (PMALB .GT. 0) THEN
         IF (PMWD .GT. 0 .AND. PMWD .GE. ROWSPC_CM) THEN

@@ -324,7 +324,7 @@ C***********************************************************************
 
          mpi_child%curr_trt_index = mpi_child%curr_trt_index + 1
 
-         FILEIO  = 'DSSAT47.INP'
+         FILEIO  = 'DSSAT48.INP'
          FILEX   = ' '
          RNMODE  = mpi_child%rnmode
          ROTNUM = 1
