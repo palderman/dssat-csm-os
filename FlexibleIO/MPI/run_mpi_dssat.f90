@@ -101,17 +101,20 @@ program run_mpi_dssat
   call nf90_output%create(out_file_name,overwrite=.TRUE.)
   write(*,fmt="(a)") "done."
 
-  call nf90_output%add_dim('lat',latitude%curr_end)
-  call nf90_output%add_dim('lon',longitude%curr_end)
+  call nf90_output%add_dim('latitude',latitude%curr_end)
+  call nf90_output%add_dim('longitude',longitude%curr_end)
   call nf90_output%add_dim('season',nyears)
+  
+  call nf90_output%add_var('latitude',(/'latitude'/),nf90_float,&
+                           units = 'degrees_north')
+  call nf90_output%add_var('longitude',(/'longitude'/),nf90_float,&
+                           units = 'degrees_east')
+  call nf90_output%add_var('season',(/'season'/),nf90_int,&
+                           units = 'season of simulation')
 
-  call nf90_output%add_var('lat',(/'lat'/),nf90_float)
-  call nf90_output%add_var('lon',(/'lon'/),nf90_float)
-  call nf90_output%add_var('season',(/'season'/),nf90_int)
-
-  call nf90_output%write_variable('lat',(/1/),(/latitude%curr_end/),&
+  call nf90_output%write_variable('latitude',(/1/),(/latitude%curr_end/),&
        latitude%values)
-  call nf90_output%write_variable('lon',(/1/),(/longitude%curr_end/),&
+  call nf90_output%write_variable('longitude',(/1/),(/longitude%curr_end/),&
        longitude%values)
   call nf90_output%write_variable('season',(/1/),(/nyears/),&
        (/(i,i=1,nyears)/))

@@ -322,7 +322,7 @@ contains
 
   end subroutine add_nf90_dimension
 
-  subroutine add_nf90_variable(self,var_name,dims,vtype)
+  subroutine add_nf90_variable(self,var_name,dims,vtype,units)
 
     implicit none
 
@@ -333,6 +333,7 @@ contains
     integer,dimension(:),allocatable :: dimids
     integer          :: i,j,new_var,vtype
     logical          :: add
+    character(len=*), optional :: units
 
     logical  end_define_on_return
 
@@ -372,6 +373,9 @@ contains
        case(nf90_int)
            call nc_err_check(nf90_put_att(self%ncid,self%vars(new_var)%varid,'_FillValue',nf90_missing_integer))
        end select
+       if(present(units))then
+           call nc_err_check(nf90_put_att(self%ncid,self%vars(new_var)%varid,'units',units))
+       end if
     end if
 
     if(end_define_on_return)then
@@ -687,10 +691,10 @@ contains
     do i=1,size(parent%seasonal(1)%variables)
        if(allocated(parent%seasonal(1)%variables(i)%r_val))then
           call self%add_var(parent%seasonal(1)%variables(i)%name,&
-               (/'lon   ','lat   ','season'/),nf90_float)
+               (/'longitude','latitude ','season   '/),nf90_float)
        else if(allocated(parent%seasonal(1)%variables(i)%i_val))then
           call self%add_var(parent%seasonal(1)%variables(i)%name,&
-               (/'lon   ','lat   ','season'/),nf90_int)
+               (/'longitude','latitude ','season   '/),nf90_int)
        end if
     end do
 
