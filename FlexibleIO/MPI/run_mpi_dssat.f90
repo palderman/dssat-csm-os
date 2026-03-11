@@ -8,7 +8,7 @@ program run_mpi_dssat
 
   implicit none
 
-  integer i,ntrt,len_arg
+  integer i,ntrt,len_arg,crs_varid
 
   ! Variables for MPI_Spawn_Multiple
   integer n_dssat,trt_start,trt_end,n_fields,sim,nyears
@@ -112,6 +112,13 @@ program run_mpi_dssat
   call nf90_output%add_var('season',(/'season'/),nf90_int,&
                            units = 'season of simulation')
 
+  call nc_err_check(nf90_def_var(nf90_output%ncid, 'crs', nf90_int, varid = crs_varid))
+  call nc_err_check(nf90_put_att(nf90_output%ncid, crs_varid,'units',''))
+!    maca_new.createVariable('crs',
+!                            datatype = 'i')
+!    maca_new['crs'].setncattr('spatial_ref', 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.0174532925199433]]')
+!    maca_new['RAIN'].setncattr('grid_mapping','crs')
+  
   call nf90_output%write_variable('latitude',(/1/),(/latitude%curr_end/),&
        latitude%values)
   call nf90_output%write_variable('longitude',(/1/),(/longitude%curr_end/),&
