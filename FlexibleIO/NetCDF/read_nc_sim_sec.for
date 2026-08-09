@@ -180,7 +180,7 @@ C=======================================================================
          call nc_filex%read('SDATE',LNSIM,YRSIM)
          call nc_filex%read('RSEED',LNSIM,RRSEED1)
          call nc_filex%read('SNAME',LNSIM,TITSIM)
-         call nc_filex%read('CRMODEL',LNSIM,CRMODEL)
+         call nc_filex%read('SMODEL',LNSIM,CRMODEL)
          IF (INDEX('G',RNMODE) .GT. 0) NYRS = 1
          IF ((RNMODE .NE. 'Q') .OR. (RNMODE .EQ. 'Q'
      &        .AND. RUN .EQ. 1)) THEN
