@@ -16,6 +16,9 @@
 
         USE ModuleDefs
         USE CER_First_Trans_m
+
+        use dssat_variable_registry
+        
         IMPLICIT NONE
         EXTERNAL Cslayers, YVAL1, CALENDAR
 
@@ -1151,6 +1154,16 @@
               H2OROOTZONE = H2OROOTZONE + SW(L)*DLAYR(L)*10.
             ENDIF
           END DO
+
+!-----------------------------------------------------------------------
+!         Calculate cumulative/average extractable/total soil water
+!-----------------------------------------------------------------------
+
+          if (ISWWAT.NE.'N') then
+             call calc_sw_summary(SW, LL, DLAYR, RLV, NLAYR, DAP,
+     &            esw_tot_cum, sw_tot_cum, esw_rz_cum, sw_rz_cum,
+     &            esw_tot_avg, sw_tot_avg, esw_rz_avg, sw_rz_avg)
+          end if
 
         ENDIF
 

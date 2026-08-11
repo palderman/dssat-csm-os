@@ -13,6 +13,10 @@
         USE ModuleDefs
         USE CER_First_Trans_m
 
+        use csm_io
+        use dssat_mpi
+        use dssat_netcdf
+
         IMPLICIT     NONE
         EXTERNAL clear_CER_First_Trans_m
         
@@ -24,7 +28,23 @@
         REAL TRWUP, UH2O(20)  !SENNALG(0:20), UNH4ALG(20), UNO3ALG(20),
         REAL RESLGAL(0:20), RESNAL(0:20), RESWAL(0:20), RESWALG(0:20)
         REAL SNOW
-        
+
+        if(mpi_child%use_mpi)then
+           call seasonal_registry%set_target('GN%M',GNPCM)
+           call seasonal_registry%set_target('RAINC',RAINC)
+           call seasonal_registry%set_target('ESWTOTAVG',esw_tot_avg)
+           call seasonal_registry%set_target('ESWRZAVG',esw_rz_avg)
+           call seasonal_registry%set_target('SWTOTAVG',sw_tot_avg)
+           call seasonal_registry%set_target('SWRZAVG',sw_rz_avg)
+           call seasonal_registry%set_target('HWAM',GWAD)
+           call seasonal_registry%set_target('H#AM',GRNUMAD)
+           call seasonal_registry%set_target('T#AM',TNUMAD)
+           call seasonal_registry%set_target('CWAM',CWAD)
+           call seasonal_registry%set_target('LAIX',LAIX)
+           call seasonal_registry%set_target('PDAT',YEARPLT)
+           call seasonal_registry%set_target('ADAT',ADAT)
+           call seasonal_registry%set_target('MDAT',stgdoy(5))
+        end if
         
         !---------------------------------------------------------------
         !       Reinitializing plant variables

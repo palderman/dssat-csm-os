@@ -203,6 +203,10 @@
       REAL          EPSUM         ! Plant evaporation sum in phase mm
       REAL          EPSUM0        ! Plant evaporation for cycle    mm
       REAL          ERRORVAL      ! Plgro-tfile values/Plgro       #
+      real          esw_tot_avg   ! total average extractable soil water mm/d
+      real          esw_tot_cum   ! total cumulative extractable soil water mm
+      real          esw_rz_avg    ! root zone average extractable soil water mm/d
+      real          esw_rz_cum    ! root zone cumulative extractable soil water mm
       !REAL          ET            ! Actual total evaporation       mm/d
       REAL          ETC(0:9)      ! Total evaporation in phase     mm 
       REAL          ETSUM         ! Total evaporation sum in phase mm
@@ -1202,6 +1206,10 @@
       REAL          STWADOUT      ! Stem+St.reserves weight        kg/ha
       REAL          STLSRWAD      ! Stem wt (stem+sheath+reserves) kg/ha
       REAL          STRSWAD       ! Stem reserves                  kg/ha
+      real          sw_tot_avg    ! total average soil water mm/d
+      real          sw_tot_cum    ! total cumulative soil water mm
+      real          sw_rz_avg     ! root zone average soil water mm/d
+      real          sw_rz_cum     ! root zone cumulative soil water mm
       REAL          TBAM          ! Temporary temp base anth-mat   C    
       REAL          TNAD          ! Total nitrogen (tops+roots)    kg/ha
       REAL          TWAD          ! Total weight (tops+roots)      kg/ha
@@ -1211,15 +1219,6 @@
       REAL          VNAD          ! Vegetative canopy nitrogen     kg/ha
       REAL          VWAD          ! Vegetative canopy weight       kg/ha
       REAL          VRNSTAGE      ! Vernalization stage            #
-      real esw_tot_cum
-      real esw_rz_cum
-      real esw_tot_avg
-      real esw_rz_avg
-      real sw_tot_cum
-      real sw_rz_cum
-      real sw_tot_avg
-      real sw_rz_avg
-      real gnpct
       
 !!     2021-02-14 chp
 !      REAL          Nuptake_daily !Daily N uptake (kg [N]/ha)
@@ -1296,6 +1295,10 @@
         drootn = 0.0
         dstemn = 0.0
         du = 0.0
+        esw_rz_avg = 0.0
+        esw_rz_cum = 0.0
+        esw_tot_avg = 0.0
+        esw_tot_cum = 0.0
         gedsum = 0.0
         gestage = 0.0
         getmean = 0.0
@@ -1452,6 +1455,10 @@
         strswad = -99.0
         strswt = -99.0
         stwt = 0.0
+        sw_rz_avg = 0.0
+        sw_rz_cum = 0.0
+        sw_tot_avg = 0.0
+        sw_tot_cum = 0.0
         tfg = 1.0
         tfp = 1.0
         tlimit = 0

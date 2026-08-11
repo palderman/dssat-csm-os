@@ -44,7 +44,7 @@
         CHARACTER*250 FILEIOIN  
                
          if(mpi_child%use_mpi)then
-            call seasonal_registry%set_target('GN%M',gnpct)
+            call seasonal_registry%set_target('GN%M',GNPCM)
             call seasonal_registry%set_target('RAINC',RAINC)
             call seasonal_registry%set_target('ESWTOTAVG',esw_tot_avg)
             call seasonal_registry%set_target('ESWRZAVG',esw_rz_avg)
