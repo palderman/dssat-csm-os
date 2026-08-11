@@ -179,15 +179,11 @@
       INTRINSIC SQRT,ABS,TRIM
 
 !***********************************************************************
-      IF (DYNAMIC .EQ. RUNINIT) THEN    ! Initialization                           
+      IF (DYNAMIC .EQ. RUNINIT .or. DYNAMIC .EQ. SEASINIT) THEN    ! Initialization
 !***********************************************************************
 
         CALL CRP_RunInit (CN, DOY, FILEIOIN, FROP, IDETL, ISWNIT,
      &     ON, RN, RNMODE, RUN, SN, TN, YEAR)
-                    
-!***********************************************************************
-      ELSEIF (DYNAMIC .EQ. SEASINIT) THEN    ! Initialization                      
-!***********************************************************************
           
         CALL CRP_SeasInit (ALBEDOS, GSTAGE, LAI, CANHT, CLOUDS,
      &     CN, DEWDUR, DOY, HARVFRAC, ISWDIS, ISWNIT,
