@@ -444,4 +444,37 @@ contains
 
   end subroutine store_values_registry
 
+  subroutine calc_sw_summary(sw, ll, dlayr, rlv, nlayr, dap,&
+                             esw_tot_cum, sw_tot_cum, esw_rz_cum, sw_rz_cum,&
+                             esw_tot_avg, sw_tot_avg, esw_rz_avg, sw_rz_avg)
+
+    implicit none
+
+    integer :: l, nlayr, dap
+    real, dimension(:) :: sw, ll, dlayr, rlv
+    real ::  esw_tot_cum, sw_tot_cum, esw_rz_cum, sw_rz_cum,&
+             esw_tot_avg, sw_tot_avg, esw_rz_avg, sw_rz_avg
+
+    do l = 1, nlayr
+       esw_tot_cum = esw_tot_cum + ((sw(L)-ll(L))*dlayr(l))*10.0
+       sw_tot_cum = sw_tot_cum + sw(L)*dlayr(L)*10.0
+       if (rlv(l).gt.0.0) then
+          esw_rz_cum = esw_rz_cum + ((sw(L)-ll(L))*dlayr(l))*10.
+          sw_rz_cum = sw_rz_cum + sw(L)*dlayr(L)*10.
+       end if
+    end do
+    if(dap .gt. 0)then
+       esw_tot_avg = esw_tot_cum/dap
+       esw_rz_avg = esw_rz_cum/dap
+       sw_tot_avg = sw_tot_cum/dap
+       sw_rz_avg = sw_rz_cum/dap
+    else
+       esw_tot_avg = esw_tot_cum
+       esw_rz_avg = esw_rz_cum
+       sw_tot_avg = sw_tot_cum
+       sw_rz_avg = sw_rz_cum
+    end if
+
+  end subroutine calc_sw_summary
+  
 end module dssat_variable_registry
