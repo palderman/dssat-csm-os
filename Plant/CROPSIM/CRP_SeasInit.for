@@ -54,15 +54,20 @@
 !-----------------------------------------------------------------------
 
         ! Methods
-        call csminp%get('*SIMULATION CONTROL','PHOTO',mephs)
-        call csminp%get('*SIMULATION CONTROL','MEWNU',mewnu)
-        call csminp%get('*SIMULATION CONTROL','METHODS',meexp)
+        call csminp%get('*SIMULATION CONTROL','MEPHO',mephs)
+!***********************************************************************
+! PDA 11 Aug 2026 - I think these two are a holdover from Tony's
+!                   experimental algorithm control flags
+!***********************************************************************
+!        call csminp%get('*SIMULATION CONTROL','MEWNU',mewnu)
+!        call csminp%get('*SIMULATION CONTROL','METHODS',meexp)
+!***********************************************************************
 
         ! Experiment, treatment, and run control names
         call csminp%get('*EXP.DETAILS','ENAME',ename)
         call csminp%get('*EXP.DETAILS','EXPER',excode)
-        call csminp%get('*EXP.DETAILS','TNAME',tname)
-        call csminp%get('*EXP.DETAILS','SNAME',runname)
+        call csminp%get('*TREATMENTS','TITLER',tname)
+        call csminp%get('*SIMULATION CONTROL','TITSIM',runname)
 
         ! Planting date information
         call csminp%get('*SIMULATION CONTROL','IPLTI',iplti)
@@ -84,14 +89,14 @@
         ENDIF
 
         ! Other planting information
-        call csminp%get('*PLANTING DETAILS','CROP',crop)
-        call csminp%get('*PLANTING DETAILS','INGENO',varno)
-        call csminp%get('*PLANTING DETAILS','VRNAME',vrname)
+        call csminp%get('*CULTIVARS','CROP',crop)
+        call csminp%get('*CULTIVARS','VARNO',varno)
+        call csminp%get('*CULTIVARS','VRNAME',vrname)
         call csminp%get('*PLANTING DETAILS','PLANTS',pltpopp)
         call csminp%get('*PLANTING DETAILS','PLTPOP',pltpope)
         call csminp%get('*PLANTING DETAILS','ROWSPC',rowspc)
         call csminp%get('*PLANTING DETAILS','SDEPTH',sdepth)
-        call csminp%get('*PLANTING DETAILS','SDRATE',sdrate)
+        call csminp%get('*PLANTING DETAILS','SDWTPL',sdrate)
         call csminp%get('*PLANTING DETAILS','SDAGE',plmage)
         call csminp%get('*PLANTING DETAILS','SPRLAP',sprl)
         call csminp%get('*PLANTING DETAILS','PLPH',plph)
@@ -100,13 +105,16 @@
         ! Harvest instructions
         call csminp%get('*SIMULATION CONTROL','IHARI',ihari)
 
-        call csminp%get('*HARVEST','HPC',hpc)
-        call csminp%get('*HARVEST','HBPC',hbpc)
-        call csminp%get('*HARVEST','HDATE',hyrdoy)
-        call csminp%get('*HARVEST','HOP',hop)
-        call csminp%get('*HARVEST','CWAN',cwan)
-        call csminp%get('*HARVEST','LSNUM',lsnum)
-        call csminp%get('*HARVEST','LSWT',lswt)
+        if(csminp%find('*HARVEST') .gt. 0) then
+          call csminp%get('*HARVEST','HPC',hpc)
+          call csminp%get('*HARVEST','HBPC',hbpc)
+          call csminp%get('*HARVEST','HDATE',hyrdoy)
+          call csminp%get('*HARVEST','HOP',hop, throw_error = .false.)
+          call csminp%get('*HARVEST','CWAN',cwan, throw_error = .false.)
+          call csminp%get('*HARVEST','LSNUM',lsnum,
+     &                    throw_error = .false.)
+          call csminp%get('*HARVEST','LSWT',lswt, throw_error = .false.)
+        end if
         
             ! LAH Following inserted to allow examination of grazing
             IF (EXCODE.EQ.'KSAS8101WH'.AND.TN.EQ.1) THEN
@@ -169,10 +177,10 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
         ENDIF
 
         ! Fertilization information (to calculate N appl during cycle)
-        call csminp%get('*SIMULATION CONTROLS','FERTI',iferi)
-        if(csminp%find('*FERTILIZERS')>0)then
-          call csminp%get('*FERTILIZERS','FDATE',fday)
-          call csminp%get('*FERTILIZERS','FAMN',anfer)
+        call csminp%get('*SIMULATION CONTROL','IFERI',iferi)
+        if(csminp%find('*FERTILIZERS') .gt. 0)then
+          call csminp%get('*FERTILIZERS','FDAY',fday)
+          call csminp%get('*FERTILIZERS','ANFER',anfer)
         else
            fday = -99
            anfer = -99
@@ -662,7 +670,8 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           call csminp%get('*CULTIVAR','P6',pd(6))
           call csminp%get('*CULTIVAR','P7',pd(7))
           call csminp%get('*CULTIVAR','P8',pd(8))
-          call csminp%get('*CULTIVAR','P9',pd(9))
+          call csminp%get('*CULTIVAR','P9',pd(9),
+     &                    throw_error = .false.)
           call csminp%get('*CULTIVAR','P1L',pdl(1),
      &                    throw_error = .false.)
           call csminp%get('*CULTIVAR','P1L',pdl(1),
@@ -2823,7 +2832,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 !        WRITE(FNUMWRK,'(A22)')' OUTPUTS              '
 
         ! Control switch for OUTPUT file names
-        call csminp%get('*SIMULATION CONTROL','FNAME',fname)
+        call csminp%get('*SIMULATION CONTROL','IOX',fname)
 !        IF (FNAME.EQ.'Y') THEN
 !          WRITE(FNUMWRK,*)' File names switched from standard. '
 !        ELSE  
@@ -2858,6 +2867,23 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 !          WRITE(FNUMWRK,'(A44)')
 !     &      ' Stem weight does NOT includes the sheaths. '
         ENDIF  
+
+        if(mpi_child%use_mpi)then
+          call seasonal_registry%set_target('GN%M',GNPCM)
+          call seasonal_registry%set_target('RAINC',RAINC)
+          call seasonal_registry%set_target('ESWTOTAVG',esw_tot_avg)
+          call seasonal_registry%set_target('ESWRZAVG',esw_rz_avg)
+          call seasonal_registry%set_target('SWTOTAVG',sw_tot_avg)
+          call seasonal_registry%set_target('SWRZAVG',sw_rz_avg)
+          call seasonal_registry%set_target('HWAM',GWAD)
+          call seasonal_registry%set_target('H#AM',GNOAD)
+          call seasonal_registry%set_target('T#AM',TNUMAD)
+          call seasonal_registry%set_target('CWAM',CWAD)
+          call seasonal_registry%set_target('LAIX',LAIX)
+          call seasonal_registry%set_target('PDAT',PLYEARDOY)
+          call seasonal_registry%set_target('ADAT',ADAT)
+          call seasonal_registry%set_target('MDAT',stgyeardoy(mstg))
+        end if
 
 !        WRITE(FNUMWRK,*)' '
 !        WRITE(FNUMWRK,'(A22)')' DURING RUN STATUS:   '

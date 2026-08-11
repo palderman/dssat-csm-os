@@ -158,7 +158,7 @@
 
           ! IDETG FILES
           ! Check if need to change file names
-          call csminp%get('*SIMULATION CONTROLS','FNAME',fname)
+          call csminp%get('*SIMULATION CONTROL','IOX',fname)
           IF (FNAME.EQ.'Y') THEN   ! File name change required.
             call csminp%get('*EXP.DETAILS','EXPER',excode)
             !NB. Renaming of Plantgro and Plantn handled by CSM
