@@ -486,22 +486,22 @@ C----------------------------------------------------------------------
           !----------------------------------------------------------
           !          Read crop cultivar coefficients
           !----------------------------------------------------------
-          call csminp%get('*CULTIVARS','VARNO',VARNO)
-          call csminp%get('*CULTIVARS','VRNAME',VRNAME)
-          call csminp%get('*CULTIVARS','ECONO',ECONO)
-          call csminp%get('*CULTIVARS','P1',P1)
-          call csminp%get('*CULTIVARS','P2',P2)
-          call csminp%get('*CULTIVARS','P2O',P2O)
-          call csminp%get('*CULTIVARS','P2R',P2R)
-          call csminp%get('*CULTIVARS','PANTH',PANTH)
-          call csminp%get('*CULTIVARS','P3',P3)
-          call csminp%get('*CULTIVARS','P4',P4)
-          call csminp%get('*CULTIVARS','P5',P5)
-          call csminp%get('*CULTIVARS','PHINT',PHINT)
-          call csminp%get('*CULTIVARS','G1',G1)
-          call csminp%get('*CULTIVARS','G2',G2)
-          call csminp%get('*CULTIVARS','PBASE',PBASE)
-          call csminp%get('*CULTIVARS','PSAT',PSAT)
+          call csminp%get('*CULTIVAR','VARNO',VARNO)
+          call csminp%get('*CULTIVAR','VRNAME',VRNAME)
+          call csminp%get('*CULTIVAR','ECONO',ECONO)
+          call csminp%get('*CULTIVAR','P1',P1)
+          call csminp%get('*CULTIVAR','P2',P2)
+          call csminp%get('*CULTIVAR','P2O',P2O)
+          call csminp%get('*CULTIVAR','P2R',P2R)
+          call csminp%get('*CULTIVAR','PANTH',PANTH)
+          call csminp%get('*CULTIVAR','P3',P3)
+          call csminp%get('*CULTIVAR','P4',P4)
+          call csminp%get('*CULTIVAR','P5',P5)
+          call csminp%get('*CULTIVAR','PHINT',PHINT)
+          call csminp%get('*CULTIVAR','G1',G1)
+          call csminp%get('*CULTIVAR','G2',G2)
+          call csminp%get('*CULTIVAR','PBASE',PBASE)
+          call csminp%get('*CULTIVAR','PSAT',PSAT)
 
 !             Read optional sorghum cultivar coefficients if present
               IF (ERR /= 0 .OR. PBASE <= 0. .OR. PSAT <= 0.) THEN

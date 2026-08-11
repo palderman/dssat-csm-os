@@ -273,8 +273,8 @@ C     CROPGRO uses ROWSPC as m
 !-----------------------------------------------------------------------
 C    Read Cultivars Section
 !-----------------------------------------------------------------------
-      call csminp%get('*CULTIVARS','PHTHRS(10)',PHTHRS10)
-      call csminp%get('*CULTIVARS','LFMAX',LMXSTD)
+      call csminp%get('*CULTIVAR','PHTHRS(10)',PHTHRS10)
+      call csminp%get('*CULTIVAR','LFMAX',LMXSTD)
 
 C-----------------------------------------------------------------------
 

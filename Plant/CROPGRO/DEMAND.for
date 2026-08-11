@@ -751,13 +751,13 @@ C 24 changed to TS by Bruce Kimball on 3Jul17
 !    Find and Read Field Section from FILEIO - previously read in IPIBS
 !       Look for the second section header beginning with '*CULTI'
 !-----------------------------------------------------------------------
-      call csminp%get('*CULTIVARS','ECONO',ECONO)
-      call csminp%get('*CULTIVARS','SLAVAR',SLAVAR)
-      call csminp%get('*CULTIVARS','SIZELF',SIZELF)
-      call csminp%get('*CULTIVARS','XFRUIT',XFRUIT)
-      call csminp%get('*CULTIVARS','THRESH',THRESH)
-      call csminp%get('*CULTIVARS','SDPRO',SDPRO)
-      call csminp%get('*CULTIVARS','SDLIP',SDLIP)
+      call csminp%get('*CULTIVAR','ECONO',ECONO)
+      call csminp%get('*CULTIVAR','SLAVAR',SLAVAR)
+      call csminp%get('*CULTIVAR','SIZELF',SIZELF)
+      call csminp%get('*CULTIVAR','XFRUIT',XFRUIT)
+      call csminp%get('*CULTIVAR','THRESH',THRESH)
+      call csminp%get('*CULTIVAR','SDPRO',SDPRO)
+      call csminp%get('*CULTIVAR','SDLIP',SDLIP)
 
 !-----------------------------------------------------------------------
 !     Read in values from species file

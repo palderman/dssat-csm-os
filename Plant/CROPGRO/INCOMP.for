@@ -63,8 +63,8 @@ C-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !    Find and read 2ND Cultivar Section
 !-----------------------------------------------------------------------
-         call csminp%get('*CULTIVARS','SDPRO',SDPRO)
-         call csminp%get('*CULTIVARS','SDLIP',SDLIP)
+         call csminp%get('*CULTIVAR','SDPRO',SDPRO)
+         call csminp%get('*CULTIVAR','SDLIP',SDLIP)
 
 !-----------------------------------------------------------------------
 !     Read in values from species file

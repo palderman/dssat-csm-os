@@ -109,13 +109,13 @@ C=======================================================================
 !-----------------------------------------------------------------------
 !    Find and Read Cultivars Section from FILEIO
 !-----------------------------------------------------------------------
-          call csminp%get('*CULTIVARS','CR',CROP)
-          call csminp%get('*CULTIVARS','ECONO',ECONO)
-          call csminp%get('*CULTIVARS','WTPSD',WTPSD)
-          call csminp%get('*CULTIVARS','SFDUR',SFDUR)
-          call csminp%get('*CULTIVARS','SDPDVR',SDPDVR)
-          call csminp%get('*CULTIVARS','PODUR',PODUR)
-          call csminp%get('*CULTIVARS','THRESH',THRESH)
+          call csminp%get('*CULTIVARS','CROP',CROP)
+          call csminp%get('*CULTIVAR','ECONO',ECONO)
+          call csminp%get('*CULTIVAR','WTPSD',WTPSD)
+          call csminp%get('*CULTIVAR','SFDUR',SFDUR)
+          call csminp%get('*CULTIVAR','SDPDVR',SDPDVR)
+          call csminp%get('*CULTIVAR','PODUR',PODUR)
+          call csminp%get('*CULTIVAR','THRESH',THRESH)
 
 !-----------------------------------------------------------------------
 !     Read in values from input file, which were previously input

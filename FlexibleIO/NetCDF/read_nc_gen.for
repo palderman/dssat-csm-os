@@ -127,13 +127,13 @@ C-----------------------------------------------------------------------
             call nc_gen%read_cul('VRNAME',VRNAME)
          end if
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME'/))
 
-        call csminp%put('*CULTIVARS','VARNO',VARNO)
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','VARNO',VARNO)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
 
 !     CROPGRO crops **
       CASE ('CRGRO')
@@ -173,9 +173,9 @@ C-----------------------------------------------------------------------
 !        IF (SDPRO  .LE. 0) CALL ERROR (ERRKEY,51,FILEG,LINVAR)
 !        IF (SDLIP  .LE. 0) CALL ERROR (ERRKEY,52,FILEG,LINVAR)
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'CSDVAR    ','PPSEN     ','PH2T5     ',
      &                 'PHTHRS(6) ','PHTHRS(8) ','PHTHRS(10)',
@@ -184,26 +184,26 @@ C-----------------------------------------------------------------------
      &                 'SFDUR     ','SDPDVR    ','PODUR     ',
      &                 'THRESH    ','SDPRO     ','SDLIP     '/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','CSDVAR',CSDVAR)
-        call csminp%put('*CULTIVARS','PPSEN',PPSEN)
-        call csminp%put('*CULTIVARS','PH2T5',PH2T5)
-        call csminp%put('*CULTIVARS','PHTHRS(6)',PHTHRS(6))
-        call csminp%put('*CULTIVARS','PHTHRS(8)',PHTHRS(8))
-        call csminp%put('*CULTIVARS','PHTHRS(10)',PHTHRS(10))
-        call csminp%put('*CULTIVARS','PHTHRS(13)',PHTHRS(13))
-        call csminp%put('*CULTIVARS','LFMAX',LFMAX)
-        call csminp%put('*CULTIVARS','SLAVAR',SLAVAR)
-        call csminp%put('*CULTIVARS','SIZELF',SIZELF)
-        call csminp%put('*CULTIVARS','XFRUIT',XFRUIT)
-        call csminp%put('*CULTIVARS','WTPSD',WTPSD)
-        call csminp%put('*CULTIVARS','SFDUR',SFDUR)
-        call csminp%put('*CULTIVARS','SDPDVR',SDPDVR)
-        call csminp%put('*CULTIVARS','PODUR',PODUR)
-        call csminp%put('*CULTIVARS','THRESH',THRESH)
-        call csminp%put('*CULTIVARS','SDPRO',SDPRO)
-        call csminp%put('*CULTIVARS','SDLIP',SDLIP)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','CSDVAR',CSDVAR)
+        call csminp%put('*CULTIVAR','PPSEN',PPSEN)
+        call csminp%put('*CULTIVAR','PH2T5',PH2T5)
+        call csminp%put('*CULTIVAR','PHTHRS(6)',PHTHRS(6))
+        call csminp%put('*CULTIVAR','PHTHRS(8)',PHTHRS(8))
+        call csminp%put('*CULTIVAR','PHTHRS(10)',PHTHRS(10))
+        call csminp%put('*CULTIVAR','PHTHRS(13)',PHTHRS(13))
+        call csminp%put('*CULTIVAR','LFMAX',LFMAX)
+        call csminp%put('*CULTIVAR','SLAVAR',SLAVAR)
+        call csminp%put('*CULTIVAR','SIZELF',SIZELF)
+        call csminp%put('*CULTIVAR','XFRUIT',XFRUIT)
+        call csminp%put('*CULTIVAR','WTPSD',WTPSD)
+        call csminp%put('*CULTIVAR','SFDUR',SFDUR)
+        call csminp%put('*CULTIVAR','SDPDVR',SDPDVR)
+        call csminp%put('*CULTIVAR','PODUR',PODUR)
+        call csminp%put('*CULTIVAR','THRESH',THRESH)
+        call csminp%put('*CULTIVAR','SDPRO',SDPRO)
+        call csminp%put('*CULTIVAR','SDLIP',SDLIP)
 
 C-GH Remove cassava
 !     CropSim: wheat, barley
@@ -240,38 +240,38 @@ C-GH Remove cassava
          call nc_gen%read_cul('GNOWT',GNOWT)
          call nc_gen%read_cul('GWTS',GWTS)
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
      &     real_name=(/'P1   ','P2   ','P3   ','P4   ','P5   ',
      &                 'P6   ','P7   ','P8   ','VREQ ','VBASE',
      &                 'VEFF ','PPS1 ','PPS2 ','PHINT','LA1S ',
      &                 'LAFV ','LAFR ','SHWTS','GNOWT','GWTS '/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
-        call csminp%put('*CULTIVARS','P1',P1)
-        call csminp%put('*CULTIVARS','P2',P2)
-        call csminp%put('*CULTIVARS','P3',P3)
-        call csminp%put('*CULTIVARS','P4',P4)
-        call csminp%put('*CULTIVARS','P5',P5)
-        call csminp%put('*CULTIVARS','P6',P6)
-        call csminp%put('*CULTIVARS','P7',P7)
-        call csminp%put('*CULTIVARS','P8',P8)
-        call csminp%put('*CULTIVARS','VREQ',VREQ)
-        call csminp%put('*CULTIVARS','VBASE',VBASE)
-        call csminp%put('*CULTIVARS','VEFF',VEFF)
-        call csminp%put('*CULTIVARS','PPS1',PPS1)
-        call csminp%put('*CULTIVARS','PPS2',PPS2)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
-        call csminp%put('*CULTIVARS','LA1S',LA1S)
-        call csminp%put('*CULTIVARS','LAFV',LAFV)
-        call csminp%put('*CULTIVARS','LAFR',LAFR)
-        call csminp%put('*CULTIVARS','SHWTS',SHWTS)
-        call csminp%put('*CULTIVARS','GNOWT',GNOWT)
-        call csminp%put('*CULTIVARS','GWTS',GWTS)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVAR','P1',P1)
+        call csminp%put('*CULTIVAR','P2',P2)
+        call csminp%put('*CULTIVAR','P3',P3)
+        call csminp%put('*CULTIVAR','P4',P4)
+        call csminp%put('*CULTIVAR','P5',P5)
+        call csminp%put('*CULTIVAR','P6',P6)
+        call csminp%put('*CULTIVAR','P7',P7)
+        call csminp%put('*CULTIVAR','P8',P8)
+        call csminp%put('*CULTIVAR','VREQ',VREQ)
+        call csminp%put('*CULTIVAR','VBASE',VBASE)
+        call csminp%put('*CULTIVAR','VEFF',VEFF)
+        call csminp%put('*CULTIVAR','PPS1',PPS1)
+        call csminp%put('*CULTIVAR','PPS2',PPS2)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','LA1S',LA1S)
+        call csminp%put('*CULTIVAR','LAFV',LAFV)
+        call csminp%put('*CULTIVAR','LAFR',LAFR)
+        call csminp%put('*CULTIVAR','SHWTS',SHWTS)
+        call csminp%put('*CULTIVAR','GNOWT',GNOWT)
+        call csminp%put('*CULTIVAR','GWTS',GWTS)
 
 C-GH Tony update February, 2014
 !     &      VREQ, PPS1, P8, GNOWT, GWTS, SHWTS, PHINT, 
@@ -288,9 +288,9 @@ C-GH &      SNFX, SRNWT, SRFR, HMPC, PHINT, LA1S, LAXS, LAXND, LAXN2,
      &      SRNWT, SRFR, HMPC, PHINT, LA1S, LAXS, LAXND, LAXN2,
      &      LAFS, LAFND, SLASS, LLIFA, LPEFR, STFR, PLAINTXT
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
      &     real_name=(/'PPS1 ','B01ND','B12ND','B23ND','B34ND',
      &                 'B45ND','B56ND','SRNWT','SRFR ','HMPC ',
@@ -298,30 +298,30 @@ C-GH &      SNFX, SRNWT, SRFR, HMPC, PHINT, LA1S, LAXS, LAXND, LAXN2,
      &                 'LAFS ','LAFND','SLASS','LLIFA','LPEFR',
      &                 'STFR '/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
-        call csminp%put('*CULTIVARS','PPS1',PPS1)
-        call csminp%put('*CULTIVARS','B01ND',B01ND)
-        call csminp%put('*CULTIVARS','B12ND',B12ND)
-        call csminp%put('*CULTIVARS','B23ND',B23ND)
-        call csminp%put('*CULTIVARS','B34ND',B34ND)
-        call csminp%put('*CULTIVARS','B45ND',B45ND)
-        call csminp%put('*CULTIVARS','B56ND',B56ND)
-        call csminp%put('*CULTIVARS','SRNWT',SRNWT)
-        call csminp%put('*CULTIVARS','SRFR',SRFR)
-        call csminp%put('*CULTIVARS','HMPC',HMPC)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
-        call csminp%put('*CULTIVARS','LA1S',LA1S)
-        call csminp%put('*CULTIVARS','LAXS',LAXS)
-        call csminp%put('*CULTIVARS','LAXND',LAXND)
-        call csminp%put('*CULTIVARS','LAXN2',LAXN2)
-        call csminp%put('*CULTIVARS','LAFS',LAFS)
-        call csminp%put('*CULTIVARS','LAFND',LAFND)
-        call csminp%put('*CULTIVARS','SLASS',SLASS)
-        call csminp%put('*CULTIVARS','LLIFA',LLIFA)
-        call csminp%put('*CULTIVARS','LPEFR',LPEFR)
-        call csminp%put('*CULTIVARS','STFR',STFR)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVAR','PPS1',PPS1)
+        call csminp%put('*CULTIVAR','B01ND',B01ND)
+        call csminp%put('*CULTIVAR','B12ND',B12ND)
+        call csminp%put('*CULTIVAR','B23ND',B23ND)
+        call csminp%put('*CULTIVAR','B34ND',B34ND)
+        call csminp%put('*CULTIVAR','B45ND',B45ND)
+        call csminp%put('*CULTIVAR','B56ND',B56ND)
+        call csminp%put('*CULTIVAR','SRNWT',SRNWT)
+        call csminp%put('*CULTIVAR','SRFR',SRFR)
+        call csminp%put('*CULTIVAR','HMPC',HMPC)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','LA1S',LA1S)
+        call csminp%put('*CULTIVAR','LAXS',LAXS)
+        call csminp%put('*CULTIVAR','LAXND',LAXND)
+        call csminp%put('*CULTIVAR','LAXN2',LAXN2)
+        call csminp%put('*CULTIVAR','LAFS',LAFS)
+        call csminp%put('*CULTIVAR','LAFND',LAFND)
+        call csminp%put('*CULTIVAR','SLASS',SLASS)
+        call csminp%put('*CULTIVAR','LLIFA',LLIFA)
+        call csminp%put('*CULTIVAR','LPEFR',LPEFR)
+        call csminp%put('*CULTIVAR','STFR',STFR)
 
 !     Ceres-wheat: wheat, barley **
       CASE ('CSCER')
@@ -339,22 +339,22 @@ C-GH &      SNFX, SRNWT, SRFR, HMPC, PHINT, LA1S, LAXS, LAXND, LAXN2,
          call nc_gen%read_cul('G3',G3)
          call nc_gen%read_cul('PHINT',PHINT)
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'P1V  ','P1D  ','P5   ','G1   ','G2   ',
      &                 'G3   ','PHINT'/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','P1V',P1V)
-        call csminp%put('*CULTIVARS','P1D',P1D)
-        call csminp%put('*CULTIVARS','P5',P5)
-        call csminp%put('*CULTIVARS','G1',G1)
-        call csminp%put('*CULTIVARS','G2',G2)
-        call csminp%put('*CULTIVARS','G3',G3)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','P1V',P1V)
+        call csminp%put('*CULTIVAR','P1D',P1D)
+        call csminp%put('*CULTIVAR','P5',P5)
+        call csminp%put('*CULTIVAR','G1',G1)
+        call csminp%put('*CULTIVAR','G2',G2)
+        call csminp%put('*CULTIVAR','G3',G3)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
 
 !     Ceres Maize: maize, sweet corn **
       CASE ('MZCER','SWCER')
@@ -371,22 +371,22 @@ C-GH &      SNFX, SRNWT, SRFR, HMPC, PHINT, LA1S, LAXS, LAXND, LAXN2,
          call nc_gen%read_cul('G3',G3)
          call nc_gen%read_cul('PHINT',PHINT)
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
      &       real_name=(/'P1       ','P2       ','P5       ',
      &       'G2       ','G3       ','PHINT    ','PHTHRS(8)'/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','P1',P1)
-        call csminp%put('*CULTIVARS','P2',P2)
-        call csminp%put('*CULTIVARS','P5',P5)
-        call csminp%put('*CULTIVARS','G2',G2)
-        call csminp%put('*CULTIVARS','G3',G3)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
-        call csminp%put('*CULTIVARS','PHTHRS(8)',0.)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','P1',P1)
+        call csminp%put('*CULTIVAR','P2',P2)
+        call csminp%put('*CULTIVAR','P5',P5)
+        call csminp%put('*CULTIVAR','G2',G2)
+        call csminp%put('*CULTIVAR','G3',G3)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','PHTHRS(8)',0.)
 
 C-LPM  Add CIAT cassava model
 !     CASSAVA: cassava **
@@ -432,25 +432,25 @@ C ** Use default values if inputs not available
 	  LX = 1.1138 * AX                      !From regression, JIL 
 	ENDIF
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/),
      &     real_name=(/'P1   ','P2   ','P5   ','G2   ','G3   ','PHINT',
      &                 'AX   ','LX   ','LFN  '/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
-        call csminp%put('*CULTIVARS','P1',P1)
-        call csminp%put('*CULTIVARS','P2',P2)
-        call csminp%put('*CULTIVARS','P5',P5)
-        call csminp%put('*CULTIVARS','G2',G2)
-        call csminp%put('*CULTIVARS','G3',G3)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
-        call csminp%put('*CULTIVARS','AX',AX)
-        call csminp%put('*CULTIVARS','LX',LX)
-        call csminp%put('*CULTIVARS','LFN',LFN)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVAR','P1',P1)
+        call csminp%put('*CULTIVAR','P2',P2)
+        call csminp%put('*CULTIVAR','P5',P5)
+        call csminp%put('*CULTIVAR','G2',G2)
+        call csminp%put('*CULTIVAR','G3',G3)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','AX',AX)
+        call csminp%put('*CULTIVAR','LX',LX)
+        call csminp%put('*CULTIVAR','LFN',LFN)
 
 !     Ceres Sorghum **
       CASE ('SGCER')
@@ -466,29 +466,29 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
         IF (PBASE < 1.E-2) PBASE = -99.
         IF (PSAT  < 1.E-2) PSAT  = -99.
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'P1   ','P2   ','P2O  ','P2R  ','PANTH',
      &                 'P3   ','P4   ','P5   ','PHINT','G1   ',
      &                 'G2   ','PBASE','PSAT '/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','P1',P1)
-        call csminp%put('*CULTIVARS','P2',P2)
-        call csminp%put('*CULTIVARS','P2O',P2O)
-        call csminp%put('*CULTIVARS','P2R',P2R)
-        call csminp%put('*CULTIVARS','PANTH',PANTH)
-        call csminp%put('*CULTIVARS','P3',P3)
-        call csminp%put('*CULTIVARS','P4',P4)
-        call csminp%put('*CULTIVARS','P5',P5)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
-        call csminp%put('*CULTIVARS','G1',G1)
-        call csminp%put('*CULTIVARS','G2',G2)
-        call csminp%put('*CULTIVARS','PBASE',PBASE)
-        call csminp%put('*CULTIVARS','PSAT',PSAT)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','P1',P1)
+        call csminp%put('*CULTIVAR','P2',P2)
+        call csminp%put('*CULTIVAR','P2O',P2O)
+        call csminp%put('*CULTIVAR','P2R',P2R)
+        call csminp%put('*CULTIVAR','PANTH',PANTH)
+        call csminp%put('*CULTIVAR','P3',P3)
+        call csminp%put('*CULTIVAR','P4',P4)
+        call csminp%put('*CULTIVAR','P5',P5)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','G1',G1)
+        call csminp%put('*CULTIVAR','G2',G2)
+        call csminp%put('*CULTIVAR','PBASE',PBASE)
+        call csminp%put('*CULTIVAR','PSAT',PSAT)
 
 !     Ceres Millet **
       CASE ('MLCER')
@@ -502,22 +502,22 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
           G4 = 1.2
         ENDIF
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'P1   ','P2O  ','P2R  ','P5   ','G1   ',
      &                 'G4   ','PHINT'/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','P1',P1)
-        call csminp%put('*CULTIVARS','P2O',P2O)
-        call csminp%put('*CULTIVARS','P2R',P2R)
-        call csminp%put('*CULTIVARS','P5',P5)
-        call csminp%put('*CULTIVARS','G1',G1)
-        call csminp%put('*CULTIVARS','G4',G4)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','P1',P1)
+        call csminp%put('*CULTIVAR','P2O',P2O)
+        call csminp%put('*CULTIVAR','P2R',P2R)
+        call csminp%put('*CULTIVAR','P5',P5)
+        call csminp%put('*CULTIVAR','G1',G1)
+        call csminp%put('*CULTIVAR','G4',G4)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
 
 !     Substor Potato **
       CASE ('PTSUB')
@@ -525,19 +525,19 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      &            G2,G3,PD,P2,TC
 !     &            G2,G3,G4,PD,P2,TC
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'G2   ','G3   ','PD   ','P2   ','TC   '/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','G2',G2)
-        call csminp%put('*CULTIVARS','G3',G3)
-        call csminp%put('*CULTIVARS','PD',PD)
-        call csminp%put('*CULTIVARS','P2',P2)
-        call csminp%put('*CULTIVARS','TC',TC)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','G2',G2)
+        call csminp%put('*CULTIVAR','G3',G3)
+        call csminp%put('*CULTIVAR','PD',PD)
+        call csminp%put('*CULTIVAR','P2',P2)
+        call csminp%put('*CULTIVAR','TC',TC)
 
 !     Ceres Rice **
       CASE ('RICER')
@@ -551,24 +551,24 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
         ENDIF
         IF (G5 < 0.0) G5 = 1.0
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'P1   ','P2R  ','P5   ','P2O  ','G1   ',
      &                 'G2   ','G3   ','G4   ','PHINT'/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','P1',P1)
-        call csminp%put('*CULTIVARS','P2R',P2R)
-        call csminp%put('*CULTIVARS','P5',P5)
-        call csminp%put('*CULTIVARS','P2O',P2O)
-        call csminp%put('*CULTIVARS','G1',G1)
-        call csminp%put('*CULTIVARS','G2',G2)
-        call csminp%put('*CULTIVARS','G3',G3)
-        call csminp%put('*CULTIVARS','G4',G4)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','P1',P1)
+        call csminp%put('*CULTIVAR','P2R',P2R)
+        call csminp%put('*CULTIVAR','P5',P5)
+        call csminp%put('*CULTIVAR','P2O',P2O)
+        call csminp%put('*CULTIVAR','G1',G1)
+        call csminp%put('*CULTIVAR','G2',G2)
+        call csminp%put('*CULTIVAR','G3',G3)
+        call csminp%put('*CULTIVAR','G4',G4)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
 
 !     ORYZA Rice **
 !     Read name of OYRZA crop file
@@ -577,14 +577,14 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      &            PLAINTXT
         ECONO = '      '
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO   ','VRNAME  ','ECONO   ','PLAINTXT'/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','PLAINTXT',PLAINTXT)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','PLAINTXT',PLAINTXT)
 
 !     CaneGro: South African Sugarcane model **
       CASE ('SCCAN')
@@ -594,9 +594,9 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      &      TTRATNEM, CHUPIBASE, TT_POPGROWTH, MAX_POP, POPTT16, 
      &      LG_AMBASE 
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'MaxPARCE    ','APFMX       ','STKPFMAX    ',
      &                 'SUCA        ','TBFT        ','Tthalfo     ',
@@ -606,28 +606,28 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      &                 'CHUPIBASE   ','TT_POPGROWTH','MAX_POP     ',
      &                 'POPTT16     ','LG_AMBASE   '/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','MaxPARCE',MaxPARCE)
-        call csminp%put('*CULTIVARS','APFMX',APFMX)
-        call csminp%put('*CULTIVARS','STKPFMAX',STKPFMAX)
-        call csminp%put('*CULTIVARS','SUCA',SUCA)
-        call csminp%put('*CULTIVARS','TBFT',TBFT)
-        call csminp%put('*CULTIVARS','Tthalfo',Tthalfo)
-        call csminp%put('*CULTIVARS','TBase',TBase)
-        call csminp%put('*CULTIVARS','LFMAX',LFMAX)
-        call csminp%put('*CULTIVARS','MXLFAREA',MXLFAREA)
-        call csminp%put('*CULTIVARS','MXLFARNO',MXLFARNO)
-        call csminp%put('*CULTIVARS','PI1',PI1)
-        call csminp%put('*CULTIVARS','PI2',PI2)
-        call csminp%put('*CULTIVARS','PSWITCH',PSWITCH)
-        call csminp%put('*CULTIVARS','TTPLNTEM',TTPLNTEM)
-        call csminp%put('*CULTIVARS','TTRATNEM',TTRATNEM)
-        call csminp%put('*CULTIVARS','CHUPIBASE',CHUPIBASE)
-        call csminp%put('*CULTIVARS','TT_POPGROWTH',TT_POPGROWTH)
-        call csminp%put('*CULTIVARS','MAX_POP',MAX_POP)
-        call csminp%put('*CULTIVARS','POPTT16',POPTT16)
-        call csminp%put('*CULTIVARS','LG_AMBASE',LG_AMBASE)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','MaxPARCE',MaxPARCE)
+        call csminp%put('*CULTIVAR','APFMX',APFMX)
+        call csminp%put('*CULTIVAR','STKPFMAX',STKPFMAX)
+        call csminp%put('*CULTIVAR','SUCA',SUCA)
+        call csminp%put('*CULTIVAR','TBFT',TBFT)
+        call csminp%put('*CULTIVAR','Tthalfo',Tthalfo)
+        call csminp%put('*CULTIVAR','TBase',TBase)
+        call csminp%put('*CULTIVAR','LFMAX',LFMAX)
+        call csminp%put('*CULTIVAR','MXLFAREA',MXLFAREA)
+        call csminp%put('*CULTIVAR','MXLFARNO',MXLFARNO)
+        call csminp%put('*CULTIVAR','PI1',PI1)
+        call csminp%put('*CULTIVAR','PI2',PI2)
+        call csminp%put('*CULTIVAR','PSWITCH',PSWITCH)
+        call csminp%put('*CULTIVAR','TTPLNTEM',TTPLNTEM)
+        call csminp%put('*CULTIVAR','TTRATNEM',TTRATNEM)
+        call csminp%put('*CULTIVAR','CHUPIBASE',CHUPIBASE)
+        call csminp%put('*CULTIVAR','TT_POPGROWTH',TT_POPGROWTH)
+        call csminp%put('*CULTIVAR','MAX_POP',MAX_POP)
+        call csminp%put('*CULTIVAR','POPTT16',POPTT16)
+        call csminp%put('*CULTIVAR','LG_AMBASE',LG_AMBASE)
 
 !     Casupro: Florida-Colombia Sugarcane model **
       CASE ('SCCSP')
@@ -639,9 +639,9 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      &          TO2(2),TM(2),Ph1P,Ph1R,Ph2,Ph3,Ph4,StkHrNO,RTNFAC,
      &          MinGr,empty,RES30C,RLF30C,R30C2,empty,empty 
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'LFMAX    ','PHTMAX   ','StkH2OFac','SuH2OFac ',
      &                 'PLF1     ','PLF2     ','Gamma    ','StkB     ',
@@ -654,69 +654,69 @@ C-GH &            P1,P2O,P2R,P5,G1,G2,PHINT,P3,P4
      &                 'RTNFAC   ','MinGr    ','RES30C   ','RLF30C   ',
      &                 'R30C2    '/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','LFMAX',LFMAX)
-        call csminp%put('*CULTIVARS','PHTMAX',PHTMAX)
-        call csminp%put('*CULTIVARS','StkH2OFac',StkH2OFac)
-        call csminp%put('*CULTIVARS','SuH2OFac',SuH2OFac)
-        call csminp%put('*CULTIVARS','PLF1',PLF1)
-        call csminp%put('*CULTIVARS','PLF2',PLF2)
-        call csminp%put('*CULTIVARS','Gamma',Gamma)
-        call csminp%put('*CULTIVARS','StkB',StkB)
-        call csminp%put('*CULTIVARS','StkM',StkM)
-        call csminp%put('*CULTIVARS','SIZLF',SIZLF)
-        call csminp%put('*CULTIVARS','LIsun',LIsun)
-        call csminp%put('*CULTIVARS','LIshd',LIshd)
-        call csminp%put('*CULTIVARS','TB(1)',TB(1))
-        call csminp%put('*CULTIVARS','TO1(1)',TO1(1))
-        call csminp%put('*CULTIVARS','TO2(1)',TO2(1))
-        call csminp%put('*CULTIVARS','TM(1)',TM(1))
-        call csminp%put('*CULTIVARS','PI1',PI1)
-        call csminp%put('*CULTIVARS','PI2',PI2)
-        call csminp%put('*CULTIVARS','DTPI',DTPI)
-        call csminp%put('*CULTIVARS','LSFAC',LSFAC)
-        call csminp%put('*CULTIVARS','LI1',LI1)
-        call csminp%put('*CULTIVARS','TELOM',TELOM)
-        call csminp%put('*CULTIVARS','TB(2)',TB(2))
-        call csminp%put('*CULTIVARS','TO1(2)',TO1(2))
-        call csminp%put('*CULTIVARS','TO2(2)',TO2(2))
-        call csminp%put('*CULTIVARS','TM(2)',TM(2))
-        call csminp%put('*CULTIVARS','Ph1P',Ph1P)
-        call csminp%put('*CULTIVARS','Ph1R',Ph1R)
-        call csminp%put('*CULTIVARS','Ph2',Ph2)
-        call csminp%put('*CULTIVARS','Ph3',Ph3)
-        call csminp%put('*CULTIVARS','Ph4',Ph4)
-        call csminp%put('*CULTIVARS','StkHrNO',StkHrNO)
-        call csminp%put('*CULTIVARS','RTNFAC',RTNFAC)
-        call csminp%put('*CULTIVARS','MinGr',MinGr)
-        call csminp%put('*CULTIVARS','RES30C',RES30C)
-        call csminp%put('*CULTIVARS','RLF30C',RLF30C)
-        call csminp%put('*CULTIVARS','R30C2',R30C2)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','LFMAX',LFMAX)
+        call csminp%put('*CULTIVAR','PHTMAX',PHTMAX)
+        call csminp%put('*CULTIVAR','StkH2OFac',StkH2OFac)
+        call csminp%put('*CULTIVAR','SuH2OFac',SuH2OFac)
+        call csminp%put('*CULTIVAR','PLF1',PLF1)
+        call csminp%put('*CULTIVAR','PLF2',PLF2)
+        call csminp%put('*CULTIVAR','Gamma',Gamma)
+        call csminp%put('*CULTIVAR','StkB',StkB)
+        call csminp%put('*CULTIVAR','StkM',StkM)
+        call csminp%put('*CULTIVAR','SIZLF',SIZLF)
+        call csminp%put('*CULTIVAR','LIsun',LIsun)
+        call csminp%put('*CULTIVAR','LIshd',LIshd)
+        call csminp%put('*CULTIVAR','TB(1)',TB(1))
+        call csminp%put('*CULTIVAR','TO1(1)',TO1(1))
+        call csminp%put('*CULTIVAR','TO2(1)',TO2(1))
+        call csminp%put('*CULTIVAR','TM(1)',TM(1))
+        call csminp%put('*CULTIVAR','PI1',PI1)
+        call csminp%put('*CULTIVAR','PI2',PI2)
+        call csminp%put('*CULTIVAR','DTPI',DTPI)
+        call csminp%put('*CULTIVAR','LSFAC',LSFAC)
+        call csminp%put('*CULTIVAR','LI1',LI1)
+        call csminp%put('*CULTIVAR','TELOM',TELOM)
+        call csminp%put('*CULTIVAR','TB(2)',TB(2))
+        call csminp%put('*CULTIVAR','TO1(2)',TO1(2))
+        call csminp%put('*CULTIVAR','TO2(2)',TO2(2))
+        call csminp%put('*CULTIVAR','TM(2)',TM(2))
+        call csminp%put('*CULTIVAR','Ph1P',Ph1P)
+        call csminp%put('*CULTIVAR','Ph1R',Ph1R)
+        call csminp%put('*CULTIVAR','Ph2',Ph2)
+        call csminp%put('*CULTIVAR','Ph3',Ph3)
+        call csminp%put('*CULTIVAR','Ph4',Ph4)
+        call csminp%put('*CULTIVAR','StkHrNO',StkHrNO)
+        call csminp%put('*CULTIVAR','RTNFAC',RTNFAC)
+        call csminp%put('*CULTIVAR','MinGr',MinGr)
+        call csminp%put('*CULTIVAR','RES30C',RES30C)
+        call csminp%put('*CULTIVAR','RLF30C',RLF30C)
+        call csminp%put('*CULTIVAR','R30C2',R30C2)
 
 !     Taro, tanier **
       CASE ('TRARO','TNARO')
         READ (C360,800,IOSTAT=ERRNUM) VARTY,VRNAME,ECONO,
      &           P1,P3,P4,P5,G3,G4,PHINT,PCINT,PCGRD
 
-        call csminp%add_sec('*CULTIVARS')
+        call csminp%add_sec('*CULTIVAR')
 
-        call csminp%add_var('*CULTIVARS',
+        call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &     real_name=(/'P1   ','P3   ','P4   ','P5   ','G3   ',
      &                 'G4   ','PHINT','PCINT','PCGRD'/))
 
-        call csminp%put('*CULTIVARS','VRNAME',VRNAME)
-        call csminp%put('*CULTIVARS','ECONO',ECONO)
-        call csminp%put('*CULTIVARS','P1',P1)
-        call csminp%put('*CULTIVARS','P3',P3)
-        call csminp%put('*CULTIVARS','P4',P4)
-        call csminp%put('*CULTIVARS','P5',P5)
-        call csminp%put('*CULTIVARS','G3',G3)
-        call csminp%put('*CULTIVARS','G4',G4)
-        call csminp%put('*CULTIVARS','PHINT',PHINT)
-        call csminp%put('*CULTIVARS','PCINT',PCINT)
-        call csminp%put('*CULTIVARS','PCGRD',PCGRD)
+        call csminp%put('*CULTIVAR','VRNAME',VRNAME)
+        call csminp%put('*CULTIVAR','ECONO',ECONO)
+        call csminp%put('*CULTIVAR','P1',P1)
+        call csminp%put('*CULTIVAR','P3',P3)
+        call csminp%put('*CULTIVAR','P4',P4)
+        call csminp%put('*CULTIVAR','P5',P5)
+        call csminp%put('*CULTIVAR','G3',G3)
+        call csminp%put('*CULTIVAR','G4',G4)
+        call csminp%put('*CULTIVAR','PHINT',PHINT)
+        call csminp%put('*CULTIVAR','PCINT',PCINT)
+        call csminp%put('*CULTIVAR','PCGRD',PCGRD)
 
 !!     Sunflower **
 !      CASE ('SUOIL')

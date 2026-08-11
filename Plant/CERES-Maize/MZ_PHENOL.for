@@ -197,15 +197,15 @@
 !     -----------------------------------------------------------------
 !             Read crop cultivar coefficients
 !     -----------------------------------------------------------------
-          call csminp%get('*CULTIVARS','VARNO',VARNO)
-          call csminp%get('*CULTIVARS','VRNAME',VRNAME)
-          call csminp%get('*CULTIVARS','ECONO',ECONO)
-          call csminp%get('*CULTIVARS','P1',P1)
-          call csminp%get('*CULTIVARS','P2',P2)
-          call csminp%get('*CULTIVARS','P5',P5)
-          call csminp%get('*CULTIVARS','G2',G2)
-          call csminp%get('*CULTIVARS','G3',G3)
-          call csminp%get('*CULTIVARS','PHINT',PHINT)
+          call csminp%get('*CULTIVAR','VARNO',VARNO)
+          call csminp%get('*CULTIVAR','VRNAME',VRNAME)
+          call csminp%get('*CULTIVAR','ECONO',ECONO)
+          call csminp%get('*CULTIVAR','P1',P1)
+          call csminp%get('*CULTIVAR','P2',P2)
+          call csminp%get('*CULTIVAR','P5',P5)
+          call csminp%get('*CULTIVAR','G2',G2)
+          call csminp%get('*CULTIVAR','G3',G3)
+          call csminp%get('*CULTIVAR','PHINT',PHINT)
 
 !     -----------------------------------------------------------------
 !              Read Species Coefficients

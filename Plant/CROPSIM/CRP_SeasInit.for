@@ -625,128 +625,128 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           IF (RNMODE.NE.'T' .and. .not. nc_gen%yes)
      &          CALL FVCHECK(CUDIRFLE,GENFLCHK)
 
-          call csminp%get('*CULTIVARS','ECONO',econo)
-          call csminp%get('*CULTIVARS','VREQ',vreq)
-          call csminp%get('*CULTIVARS','VBASE',vbase)
-          call csminp%get('*CULTIVARS','VEFF',veff)
-          call csminp%get('*CULTIVARS','PPS1',pps(1))
-          call csminp%get('*CULTIVARS','PPS2',pps(2),
+          call csminp%get('*CULTIVAR','ECONO',econo)
+          call csminp%get('*CULTIVAR','VREQ',vreq)
+          call csminp%get('*CULTIVAR','VBASE',vbase)
+          call csminp%get('*CULTIVAR','VEFF',veff)
+          call csminp%get('*CULTIVAR','PPS1',pps(1))
+          call csminp%get('*CULTIVAR','PPS2',pps(2),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPS3',pps(3),
+          call csminp%get('*CULTIVAR','PPS3',pps(3),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPS4',pps(4),
+          call csminp%get('*CULTIVAR','PPS4',pps(4),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPS5',pps(5),
+          call csminp%get('*CULTIVAR','PPS5',pps(5),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPS6',pps(6),
+          call csminp%get('*CULTIVAR','PPS6',pps(6),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPS7',pps(7),
+          call csminp%get('*CULTIVAR','PPS7',pps(7),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPS8',pps(8),
+          call csminp%get('*CULTIVAR','PPS8',pps(8),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPS9',pps(9),
+          call csminp%get('*CULTIVAR','PPS9',pps(9),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPEXP',ppexp,
+          call csminp%get('*CULTIVAR','PPEXP',ppexp,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PPFPE',ppfpe,
+          call csminp%get('*CULTIVAR','PPFPE',ppfpe,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','GNOWT',gnowts)
-          call csminp%get('*CULTIVARS','GWTS',gwts)
-          call csminp%get('*CULTIVARS','SHWTS',g3)
-          call csminp%get('*CULTIVARS','PHINT',phints)
-          call csminp%get('*CULTIVARS','P1',pd(1))
-          call csminp%get('*CULTIVARS','P2',pd(2))
-          call csminp%get('*CULTIVARS','P3',pd(3))
-          call csminp%get('*CULTIVARS','P4',pd(4))
-          call csminp%get('*CULTIVARS','P5',pd(5))
-          call csminp%get('*CULTIVARS','P6',pd(6))
-          call csminp%get('*CULTIVARS','P7',pd(7))
-          call csminp%get('*CULTIVARS','P8',pd(8))
-          call csminp%get('*CULTIVARS','P9',pd(9))
-          call csminp%get('*CULTIVARS','P1L',pdl(1),
+          call csminp%get('*CULTIVAR','GNOWT',gnowts)
+          call csminp%get('*CULTIVAR','GWTS',gwts)
+          call csminp%get('*CULTIVAR','SHWTS',g3)
+          call csminp%get('*CULTIVAR','PHINT',phints)
+          call csminp%get('*CULTIVAR','P1',pd(1))
+          call csminp%get('*CULTIVAR','P2',pd(2))
+          call csminp%get('*CULTIVAR','P3',pd(3))
+          call csminp%get('*CULTIVAR','P4',pd(4))
+          call csminp%get('*CULTIVAR','P5',pd(5))
+          call csminp%get('*CULTIVAR','P6',pd(6))
+          call csminp%get('*CULTIVAR','P7',pd(7))
+          call csminp%get('*CULTIVAR','P8',pd(8))
+          call csminp%get('*CULTIVAR','P9',pd(9))
+          call csminp%get('*CULTIVAR','P1L',pdl(1),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P1L',pdl(1),
+          call csminp%get('*CULTIVAR','P1L',pdl(1),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P2L',pdl(2),
+          call csminp%get('*CULTIVAR','P2L',pdl(2),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P3L',pdl(3),
+          call csminp%get('*CULTIVAR','P3L',pdl(3),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P4L',pdl(4),
+          call csminp%get('*CULTIVAR','P4L',pdl(4),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P5L',pdl(5),
+          call csminp%get('*CULTIVAR','P5L',pdl(5),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P6L',pdl(6),
+          call csminp%get('*CULTIVAR','P6L',pdl(6),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P7L',pdl(7),
+          call csminp%get('*CULTIVAR','P7L',pdl(7),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P8L',pdl(8),
+          call csminp%get('*CULTIVAR','P8L',pdl(8),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','P9L',pdl(9),
+          call csminp%get('*CULTIVAR','P9L',pdl(9),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','LLIFA',llifa,
+          call csminp%get('*CULTIVAR','LLIFA',llifa,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','STFR',swfrs,
+          call csminp%get('*CULTIVAR','STFR',swfrs,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','LAXS',laxs,
+          call csminp%get('*CULTIVAR','LAXS',laxs,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','SLAS',laws,
+          call csminp%get('*CULTIVAR','SLAS',laws,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','NFPU',nfpu,
+          call csminp%get('*CULTIVAR','NFPU',nfpu,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','NFPL',nfpl,
+          call csminp%get('*CULTIVAR','NFPL',nfpl,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','NFGU',nfgu,
+          call csminp%get('*CULTIVAR','NFGU',nfgu,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','NFGL',nfgl,
+          call csminp%get('*CULTIVAR','NFGL',nfgl,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','RDGS',rdgs,
+          call csminp%get('*CULTIVAR','RDGS',rdgs,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','RLWR',rlwr,
+          call csminp%get('*CULTIVAR','RLWR',rlwr,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PARUE',parue,
+          call csminp%get('*CULTIVAR','PARUE',parue,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PARU2',paru2,
+          call csminp%get('*CULTIVAR','PARU2',paru2,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','TDFAC',tdfac,
+          call csminp%get('*CULTIVAR','TDFAC',tdfac,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','TDSF',tdsf,
+          call csminp%get('*CULTIVAR','TDSF',tdsf,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','GWTAT',gwtat,
+          call csminp%get('*CULTIVAR','GWTAT',gwtat,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','GWTAF',gwtaf,
+          call csminp%get('*CULTIVAR','GWTAF',gwtaf,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','G#RF',gnorf,
+          call csminp%get('*CULTIVAR','G#RF',gnorf,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','G#RT',gnort,
+          call csminp%get('*CULTIVAR','G#RT',gnort,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','LA1S',la1s,
+          call csminp%get('*CULTIVAR','LA1S',la1s,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','LAFV',lafv,
+          call csminp%get('*CULTIVAR','LAFV',lafv,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','LAFR',lafr,
+          call csminp%get('*CULTIVAR','LAFR',lafr,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PHL2',phintl(2),
+          call csminp%get('*CULTIVAR','PHL2',phintl(2),
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PHF3',phintf(3),
+          call csminp%get('*CULTIVAR','PHF3',phintf(3),
      &                    throw_error = .false.)          
           ! New (Nov 2011) N uptake variables
-          call csminp%get('*CULTIVARS','NUPNF',nupnf,
+          call csminp%get('*CULTIVAR','NUPNF',nupnf,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','NUPWF',nupwf,
+          call csminp%get('*CULTIVAR','NUPWF',nupwf,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','RTNUP',rtnup,
+          call csminp%get('*CULTIVAR','RTNUP',rtnup,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','LSPHS',lsphs,
+          call csminp%get('*CULTIVAR','LSPHS',lsphs,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','LSPHE',lsphe,
+          call csminp%get('*CULTIVAR','LSPHE',lsphe,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','NO3MN',no3mn,
+          call csminp%get('*CULTIVAR','NO3MN',no3mn,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','NH4MN',nh4mn,
+          call csminp%get('*CULTIVAR','NH4MN',nh4mn,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PGERM',pgerm,
+          call csminp%get('*CULTIVAR','PGERM',pgerm,
      &                    throw_error = .false.)
-          call csminp%get('*CULTIVARS','PEMRG',pemrg,
+          call csminp%get('*CULTIVAR','PEMRG',pemrg,
      &                    throw_error = .false.)
         ELSE
           IF (RNMODE.NE.'T') CALL FVCHECK(CUDIRFLE,GENFLCHK)

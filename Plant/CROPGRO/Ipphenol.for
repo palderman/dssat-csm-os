@@ -107,14 +107,14 @@ C=======================================================================
 !-----------------------------------------------------------------------
 !     Find and read Cultivar Section
 !-----------------------------------------------------------------------
-         call csminp%get('*CULTIVARS','ECONO',ECONO)
-         call csminp%get('*CULTIVARS','CSDVAR',CSDVAR)
-         call csminp%get('*CULTIVARS','PPSEN',PPSEN)
-         call csminp%get('*CULTIVARS','PH2T5',PH2T5)
-         call csminp%get('*CULTIVARS','PHTHRS(6)',PHTHRS(6))
-         call csminp%get('*CULTIVARS','PHTHRS(8)',PHTHRS(8))
-         call csminp%get('*CULTIVARS','PHTHRS(10)',PHTHRS(10))
-         call csminp%get('*CULTIVARS','PHTHRS(13)',PHTHRS(13))
+         call csminp%get('*CULTIVAR','ECONO',ECONO)
+         call csminp%get('*CULTIVAR','CSDVAR',CSDVAR)
+         call csminp%get('*CULTIVAR','PPSEN',PPSEN)
+         call csminp%get('*CULTIVAR','PH2T5',PH2T5)
+         call csminp%get('*CULTIVAR','PHTHRS(6)',PHTHRS(6))
+         call csminp%get('*CULTIVAR','PHTHRS(8)',PHTHRS(8))
+         call csminp%get('*CULTIVAR','PHTHRS(10)',PHTHRS(10))
+         call csminp%get('*CULTIVAR','PHTHRS(13)',PHTHRS(13))
 
       ENDIF
 

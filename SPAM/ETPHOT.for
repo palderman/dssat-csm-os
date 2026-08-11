@@ -818,7 +818,7 @@ C     Read IBSNAT35.INP file.
       ENDDO
 
 !     PHTHRS(10) needed for calculation of CUMSTR
-      call csminp%get('*CULTIVARS','PHTHRS(10)',PHTHRS10)
+      call csminp%get('*CULTIVAR','PHTHRS(10)',PHTHRS10)
 
 C     Read species file.
       CALL GETLUN('FILEC', LUNCRP)
@@ -1029,8 +1029,8 @@ C     Read IBSNAT35.INP file.
       call csminp%get('*PLANTING DETAILS','ROWSPC',ROWSPC)
       call csminp%get('*PLANTING DETAILS','AZIR',AZIR)
 
-      call csminp%get('*CULTIVARS','PHTHRS(10)',PHTHRS10)
-      call csminp%get('*CULTIVARS','LFMAX',LMXREF)
+      call csminp%get('*CULTIVAR','PHTHRS(10)',PHTHRS10)
+      call csminp%get('*CULTIVAR','LFMAX',LMXREF)
 
 C     Read species file.
          if(nc_gen%yes)then ! NetCDF I/O

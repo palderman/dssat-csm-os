@@ -157,7 +157,7 @@ C-----------------------------------------------------------------------
          call csminp%get('*TREATMENTS','TRTNO',TRTNUM)
          call csminp%get('*CULTIVARS','CROP',CROP)
          IF (CROP .NE. 'FA') THEN
-            call csminp%get('*CULTIVARS','PHTHRS(8)',PHTHRS8)
+            call csminp%get('*CULTIVAR','PHTHRS(8)',PHTHRS8)
          ENDIF
 !     Note: PHTHRS8 should be imported from plant routines unless
 !       cultivar sections are standardized.  CHP 08/27/2003

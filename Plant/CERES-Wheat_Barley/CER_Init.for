@@ -316,7 +316,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           !WRITE (*,*) ' Check WORK.OUT for details of run'
           STOP ' '
         ENDIF
-        call csminp%get('*CULTIVARS','VARNO',varno)
+        call csminp%get('*CULTIVAR','VARNO',varno)
         call csminp%get('*PLANTING DETAILS','PLANTS',pltpopp)
         call csminp%get('*PLANTING DETAILS','ROWSPC',rowspc)
         call csminp%get('*PLANTING DETAILS','SDEPTH',sdepth)
@@ -440,14 +440,14 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           IF (RNMODE.NE.'T' .and. .not. nc_gen%yes)
      &          CALL FVCHECK(CUDIRFLE,GENFLCHK)
 
-          call csminp%get('*CULTIVARS','ECONO',econo)
-          call csminp%get('*CULTIVARS','P1V',p1v)
-          call csminp%get('*CULTIVARS','P1D',p1d)
-          call csminp%get('*CULTIVARS','P5',pd(5))
-          call csminp%get('*CULTIVARS','G1',g1cwt)
-          call csminp%get('*CULTIVARS','G2',g2kwt)
-          call csminp%get('*CULTIVARS','G3',g3)
-          call csminp%get('*CULTIVARS','PHINT',phints)
+          call csminp%get('*CULTIVAR','ECONO',econo)
+          call csminp%get('*CULTIVAR','P1V',p1v)
+          call csminp%get('*CULTIVAR','P1D',p1d)
+          call csminp%get('*CULTIVAR','P5',pd(5))
+          call csminp%get('*CULTIVAR','G1',g1cwt)
+          call csminp%get('*CULTIVAR','G2',g2kwt)
+          call csminp%get('*CULTIVAR','G3',g3)
+          call csminp%get('*CULTIVAR','PHINT',phints)
 
           call csminp%get('*FILES','PATHEX',fileadir)
 
@@ -532,14 +532,14 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 
         IF (FILEIOT .NE. 'DS4') THEN
 
-              call csminp%get('*CULTIVARS','ECONO',econo)
-              call csminp%get('*CULTIVARS','P1V',p1v)
-              call csminp%get('*CULTIVARS','P1D',p1d)
-              call csminp%get('*CULTIVARS','P5',pd(5))
-              call csminp%get('*CULTIVARS','G1',g1cwt)
-              call csminp%get('*CULTIVARS','G2',g2kwt)
-              call csminp%get('*CULTIVARS','G3',g3)
-              call csminp%get('*CULTIVARS','PHINT',phints)
+              call csminp%get('*CULTIVAR','ECONO',econo)
+              call csminp%get('*CULTIVAR','P1V',p1v)
+              call csminp%get('*CULTIVAR','P1D',p1d)
+              call csminp%get('*CULTIVAR','P5',pd(5))
+              call csminp%get('*CULTIVAR','G1',g1cwt)
+              call csminp%get('*CULTIVAR','G2',g2kwt)
+              call csminp%get('*CULTIVAR','G3',g3)
+              call csminp%get('*CULTIVAR','PHINT',phints)
 !             NB. TBAM is only used experimentally;should not be in coeff.files
 !             Below are 3.5 expressions
 !            P1V = P1V*0.0054545 + 0.0003

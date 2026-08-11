@@ -1321,10 +1321,10 @@ C=======================================================================
 !-----------------------------------------------------------------------
 !    Read Cultivar Section
 !-----------------------------------------------------------------------
-         call csminp%get('*CULTIVARS','ECONO',ECONO)
-         call csminp%get('*CULTIVARS','WTPSD',WTPSD)
-         call csminp%get('*CULTIVARS','SDPRO',SDPRO)
-         call csminp%get('*CULTIVARS','SDLIP',SDLIP)
+         call csminp%get('*CULTIVAR','ECONO',ECONO)
+         call csminp%get('*CULTIVAR','WTPSD',WTPSD)
+         call csminp%get('*CULTIVAR','SDPRO',SDPRO)
+         call csminp%get('*CULTIVAR','SDLIP',SDLIP)
 
       ENDIF
 
