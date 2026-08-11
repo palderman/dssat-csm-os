@@ -12,6 +12,10 @@
         USE ModuleDefs
         USE CRP_First_Trans_m
 
+        use csm_io
+        use dssat_mpi
+        use dssat_netcdf
+
         IMPLICIT     NONE
         EXTERNAL clear_CRP_First_Trans_m
         
@@ -22,6 +26,23 @@
         REAL RESNALG(0:NL), RLV(NL), SENCALG(0:NL), SENLALG(0:NL)  
         REAL SENNALG(0:NL), TRWUP, UH2O(NL), UNH4(NL), UNO3(NL)
         
+
+        if(mpi_child%use_mpi)then
+          call seasonal_registry%set_target('GN%M',GNPCM)
+          call seasonal_registry%set_target('RAINC',RAINC)
+          call seasonal_registry%set_target('ESWTOTAVG',esw_tot_avg)
+          call seasonal_registry%set_target('ESWRZAVG',esw_rz_avg)
+          call seasonal_registry%set_target('SWTOTAVG',sw_tot_avg)
+          call seasonal_registry%set_target('SWRZAVG',sw_rz_avg)
+          call seasonal_registry%set_target('HWAM',GWAD)
+          call seasonal_registry%set_target('H#AM',GNOAD)
+          call seasonal_registry%set_target('T#AM',TNUMAD)
+          call seasonal_registry%set_target('CWAM',CWAD)
+          call seasonal_registry%set_target('LAIX',LAIX)
+          call seasonal_registry%set_target('PDAT',PLYEARDOY)
+          call seasonal_registry%set_target('ADAT',ADAT)
+          call seasonal_registry%set_target('MDAT',stgyeardoy(mstg))
+        end if
         
 !        -----------------------------------------------------------------------
 !               Reinitializing plant variables

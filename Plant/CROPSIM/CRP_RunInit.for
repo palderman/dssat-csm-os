@@ -7,7 +7,10 @@
      &     ON, RN, RNMODE, RUN, SN, TN, YEAR)
       
       USE ModuleDefs
-      USE CRP_First_Trans_m 
+      USE CRP_First_Trans_m
+
+      use csm_io
+
       IMPLICIT NONE
       EXTERNAL UCASE, TVILENT, GETLUN, TL10FROMI, XREADC, XREADT
       SAVE
@@ -107,22 +110,6 @@
           ENDIF
           FILEIO = ' '
           FILEIO(1:TVI1) = FILEIOIN(1:TVI1)
-          INQUIRE (FILE = FILEIO,EXIST = FFLAG)
-          IF (.NOT.(FFLAG)) THEN
-            CALL GETLUN ('ERROR.OUT',FNUMERR)
-            OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
-            WRITE(fnumerr,*) ' '
-            WRITE(fnumerr,*) 'Input file not found!     '
-            WRITE(fnumerr,*) 'File sought was:          '
-            WRITE(fnumerr,*) Fileio(1:78)
-            WRITE(fnumerr,*) 'Please check'
-            WRITE(*,*) ' Input file not found!     '
-            WRITE(*,*) 'File sought was:          '
-            WRITE(*,*) Fileio(1:78)
-            WRITE(*,*) ' Program will have to stop'
-            CLOSE (FNUMERR)
-            STOP ' '
-          ENDIF
 
 !-----------------------------------------------------------------------
 !         Create output file extensions (For different components)
@@ -171,9 +158,9 @@
 
           ! IDETG FILES
           ! Check if need to change file names
-          CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'FNAME',fname)
+          call csminp%get('*SIMULATION CONTROLS','FNAME',fname)
           IF (FNAME.EQ.'Y') THEN   ! File name change required.
-            CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'EXPER',excode)
+            call csminp%get('*EXP.DETAILS','EXPER',excode)
             !NB. Renaming of Plantgro and Plantn handled by CSM
             OUTPG = 'PlantGro.'//OUT
             OUTPN = 'PlantN.'//OUT

@@ -270,6 +270,10 @@
       INTEGER       ERRNUM        ! Error number from compiler     #
       REAL          ERRORVAL      ! Plgro-tfile values/Plgro       #
       !REAL          ES            ! Actual soil evaporation rate   mm/d
+      real          esw_tot_avg   ! total average extractable soil water mm/d
+      real          esw_tot_cum   ! total cumulative extractable soil water mm
+      real          esw_rz_avg    ! root zone average extractable soil water mm/d
+      real          esw_rz_cum    ! root zone cumulative extractable soil water mm
       !REAL          ET            ! Evapotranspiration daily       mm/d 
       REAL          ETCC          ! Evapotranspiration cycle sum   mm 
       REAL          ETPC(0:12)    ! Evapotranspiration phase sum   mm 
@@ -1157,6 +1161,10 @@
       REAL          STWTM         ! Stem weight,maturity           g/p
       REAL          STWTSGE       ! Stem weight,stem growth end    g/p
       !REAL          SW(20)        ! Soil water content             #
+      real          sw_tot_avg    ! total average soil water mm/d
+      real          sw_tot_cum    ! total cumulative soil water mm
+      real          sw_rz_avg     ! root zone average soil water mm/d
+      real          sw_rz_cum     ! root zone cumulative soil water mm
       REAL          SWFR          ! Stem fraction,actual           #
       REAL          SWFRN         ! Stem fraction minimum          #
       REAL          SWFRNL        ! Leaf number for min stem fr    #
@@ -1715,6 +1723,10 @@
             epcc   = 0.0
             epsratio = 0.0
             established = 'n'
+            esw_tot_cum = 0.0
+            esw_rz_cum = 0.0
+            esw_tot_avg = 0.0
+            esw_rz_avg = 0.0
             etcc   = 0.0
             eyeardoy = -99
             fappline = ' '
@@ -1963,6 +1975,10 @@
             STRESSW = 1.0
             stwt = 0.0
             stwtm = 0.0
+            sw_tot_cum = 0.0
+            sw_rz_cum = 0.0
+            sw_tot_avg = 0.0
+            sw_rz_avg = 0.0
             swphc = 0.0
             tcan = 0.0
             tdifav = -99.0
@@ -2041,4 +2057,3 @@
             nh4mn = -99.0
 
         end subroutine clear_CRP_First_Trans_m
-        

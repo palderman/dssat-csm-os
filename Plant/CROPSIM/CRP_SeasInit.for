@@ -17,6 +17,10 @@
       USE ModuleData
       USE CRP_First_Trans_m
 
+      use csm_io
+      use dssat_mpi
+      use dssat_netcdf
+
       IMPLICIT NONE
         EXTERNAL YR_DOY, GETLUN, Y4K_DOY, TVILENT, LTRIM, XREADC, 
      &    XREADT, SPREADRA, XREADI, XREADR, UCASE, XREADIA, XREADRA, 
@@ -50,61 +54,59 @@
 !-----------------------------------------------------------------------
 
         ! Methods
-        CALL XREADC(FILEIO,TN,RN,SN,ON,CN,'PHOTO',mephs)
-        CALL XREADC(FILEIO,TN,RN,SN,ON,CN,'MEWNU',mewnu)
-        CALL XREADC(FILEIO,TN,RN,SN,ON,CN,'METHODS',meexp)
+        call csminp%get('*SIMULATION CONTROL','PHOTO',mephs)
+        call csminp%get('*SIMULATION CONTROL','MEWNU',mewnu)
+        call csminp%get('*SIMULATION CONTROL','METHODS',meexp)
 
         ! Experiment, treatment, and run control names
-        CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'ENAME',ename)
-        CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'EXPER',excode)
-        CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'TNAME',tname)
-        CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'SNAME',runname)
+        call csminp%get('*EXP.DETAILS','ENAME',ename)
+        call csminp%get('*EXP.DETAILS','EXPER',excode)
+        call csminp%get('*EXP.DETAILS','TNAME',tname)
+        call csminp%get('*EXP.DETAILS','SNAME',runname)
 
         ! Planting date information
-        CALL XREADC(FILEIO,TN,RN,SN,ON,CN,'PLANT',iplti)
+        call csminp%get('*SIMULATION CONTROL','IPLTI',iplti)
 !       IF(IPLTI.EQ.'A'.OR.IPLTI.EQ.'a')THEN
         IF(IPLTI.EQ.'A'.OR.IPLTI.EQ.'a'.OR.
      &     IPLTI.EQ.'F'.OR.IPLTI.EQ.'f')THEN
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'PFRST',pwdinf)
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'PLAST',pwdinl)
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'PH2OL',swpltl)
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'PH2OU',swplth)
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'PH2OD',swpltd)
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'PSTMX',ptx)
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'PSTMN',pttn)
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'HFRST',hfirst)
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'HLAST',hlast)
+          call csminp%get('*SIMULATION CONTROL','PWDINF',pwdinf)
+          call csminp%get('*SIMULATION CONTROL','PWDINL',pwdinl)
+          call csminp%get('*SIMULATION CONTROL','SWPLTL',swpltl)
+          call csminp%get('*SIMULATION CONTROL','SWPLTH',swplth)
+          call csminp%get('*SIMULATION CONTROL','SWPLTD',swpltd)
+          call csminp%get('*SIMULATION CONTROL','PTX',ptx)
+          call csminp%get('*SIMULATION CONTROL','PTTN',pttn)
+          call csminp%get('*SIMULATION CONTROL','HDLAY',hfirst)
+          call csminp%get('*SIMULATION CONTROL','HLATE',hlast)
         ELSE
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'PDATE',pdate)
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'IDATE',idate1)
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'EDATE',edatmx)
+          call csminp%get('*PLANTING DETAILS','YRPLT',pdate)
+          call csminp%get('*PLANTING DETAILS','IEMRG',edatmx)
         ENDIF
 
         ! Other planting information
-        CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'CR',crop)
-        CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'INGENO',varno)
-        CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'CNAME',vrname)
-        CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPOP',pltpopp)
-        CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPOE',pltpope)
-        CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PLRS',rowspc)
-        CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PLDP',sdepth)
-        CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PLWT',sdrate)
-        CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PAGE',plmage)
-        CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'SPRL',sprl)
-        CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PLPH',plph)
-        CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'PLME',plme)
+        call csminp%get('*PLANTING DETAILS','CROP',crop)
+        call csminp%get('*PLANTING DETAILS','INGENO',varno)
+        call csminp%get('*PLANTING DETAILS','VRNAME',vrname)
+        call csminp%get('*PLANTING DETAILS','PLANTS',pltpopp)
+        call csminp%get('*PLANTING DETAILS','PLTPOP',pltpope)
+        call csminp%get('*PLANTING DETAILS','ROWSPC',rowspc)
+        call csminp%get('*PLANTING DETAILS','SDEPTH',sdepth)
+        call csminp%get('*PLANTING DETAILS','SDRATE',sdrate)
+        call csminp%get('*PLANTING DETAILS','SDAGE',plmage)
+        call csminp%get('*PLANTING DETAILS','SPRLAP',sprl)
+        call csminp%get('*PLANTING DETAILS','PLPH',plph)
+        call csminp%get('*PLANTING DETAILS','PLME',plme)
 
         ! Harvest instructions
-        CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'HARVS',ihari)
-        CALL XREADRA (FILEIO,TN,RN,SN,ON,CN,'HPC','40',hpc)
-        CALL XREADRA (FILEIO,TN,RN,SN,ON,CN,'HBPC','40',hbpc)
+        call csminp%get('*SIMULATION CONTROL','IHARI',ihari)
 
-        CALL XREADIA(FILEIO,TN,RN,SN,ON,CN,'HDATE','40',hyrdoy)
-        CALL XREADCA(FILEIO,TN,RN,SN,ON,CN,'HOP','40',hop)
-        CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'HAMT','40',hamt)
-        CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'CWAN','40',cwan)
-        CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'LSNUM','40',lsnum)
-        CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'LSWT','40',lswt)
+        call csminp%get('*HARVEST','HPC',hpc)
+        call csminp%get('*HARVEST','HBPC',hbpc)
+        call csminp%get('*HARVEST','HDATE',hyrdoy)
+        call csminp%get('*HARVEST','HOP',hop)
+        call csminp%get('*HARVEST','CWAN',cwan)
+        call csminp%get('*HARVEST','LSNUM',lsnum)
+        call csminp%get('*HARVEST','LSWT',lswt)
         
             ! LAH Following inserted to allow examination of grazing
             IF (EXCODE.EQ.'KSAS8101WH'.AND.TN.EQ.1) THEN
@@ -167,12 +169,17 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
         ENDIF
 
         ! Fertilization information (to calculate N appl during cycle)
-        CALL XREADC(FILEIO,TN,RN,SN,ON,CN,'FERTI',iferi)
-        CALL XREADIA(FILEIO,TN,RN,SN,ON,CN,'FDATE','200',fday)
-        CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'FAMN','200',anfer)
+        call csminp%get('*SIMULATION CONTROLS','FERTI',iferi)
+        if(csminp%find('*FERTILIZERS')>0)then
+          call csminp%get('*FERTILIZERS','FDATE',fday)
+          call csminp%get('*FERTILIZERS','FAMN',anfer)
+        else
+           fday = -99
+           anfer = -99
+        end if
 
         ! Water table depth
-        CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'ICWD',icwd)
+        call csminp%get('*INITIAL CONDITIONS','ICWD',icwd)
 
         ! Disease information
         LENDIS = TVILENT(ISWDIS)
@@ -183,21 +190,27 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
         DCDUR = -99
         DCFAC = -99
         DCTAR = -99
-        IF (LENDIS.EQ.1.AND.ISWDIS(LENDIS:LENDIS).EQ.'R') THEN
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'D1DAT',didat(1))
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'D2DAT',didat(2))
-          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'D3DAT',didat(3))
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D1GF',digfac(1))
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D2GF',digfac(2))
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D3GF',digfac(3))
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D1FFR',diffacr(1))
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D2FFR',diffacr(2))
-          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D3FFR',diffacr(3))
-          CALL XREADIA(FILEIO,TN,RN,SN,ON,CN,'DCDAT','10',dcdat)
-          CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'DCDUR','10',dcdur)
-          CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'DCFAC','10',dcfac)
-          CALL XREADIA(FILEIO,TN,RN,SN,ON,CN,'DCTAR','10',dctar)
-        ELSEIF (LENDIS.EQ.1.AND.ISWDIS(LENDIS:LENDIS).EQ.'Y') THEN
+!******************************************************************
+! PDA 11 Aug 2026 - Commenting out these lines since ISWDIS should
+!                   never be 'R' when called from DSSAT-CSM
+!******************************************************************
+!        IF (LENDIS.EQ.1.AND.ISWDIS(LENDIS:LENDIS).EQ.'R') THEN
+!          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'D1DAT',didat(1))
+!          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'D2DAT',didat(2))
+!          CALL XREADI(FILEIO,TN,RN,SN,ON,CN,'D3DAT',didat(3))
+!          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D1GF',digfac(1))
+!          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D2GF',digfac(2))
+!          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D3GF',digfac(3))
+!          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D1FFR',diffacr(1))
+!          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D2FFR',diffacr(2))
+!          CALL XREADR(FILEIO,TN,RN,SN,ON,CN,'D3FFR',diffacr(3))
+!          CALL XREADIA(FILEIO,TN,RN,SN,ON,CN,'DCDAT','10',dcdat)
+!          CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'DCDUR','10',dcdur)
+!          CALL XREADRA(FILEIO,TN,RN,SN,ON,CN,'DCFAC','10',dcfac)
+!          CALL XREADIA(FILEIO,TN,RN,SN,ON,CN,'DCTAR','10',dctar)
+!        ELSEIF (LENDIS.EQ.1.AND.ISWDIS(LENDIS:LENDIS).EQ.'Y') THEN
+!******************************************************************
+        IF (LENDIS.EQ.1.AND.ISWDIS(LENDIS:LENDIS).EQ.'Y') THEN
           DIGFAC(1) = 1.0
           DIGFAC(2) = 1.0
           DIGFAC(3) = 1.0
@@ -216,18 +229,18 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 
         IF (FILEIOT(1:2).EQ.'DS') THEN
           ! Genotype file names and locations
-          CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'CFILE',cufile)
-          CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'CDIR',pathcr)
-          CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'EFILE',ecfile)
-          CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'EDIR',pathec)
-          CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'SPFILE',spfile)
-          CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'SPDIR',pathsp)
+          call csminp%get('*FILES','FILEG',cufile)
+          call csminp%get('*FILES','PATHGE',pathcr)
+          call csminp%get('*FILES','FILEE',ecfile)
+          call csminp%get('*FILES','PATHEC',pathec)
+          call csminp%get('*FILES','FILEC',spfile)
+          call csminp%get('*FILES','PATHCR',pathsp)
           ! A-file location
-          CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'ADIR',fileadir)
+          call csminp%get('*FILES','PATHEX',fileadir)
           
           ! Additional controls that not handled by CSM
           ! To get name and location of x-file to -> special controls.
-          CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'AFILE',filea)
+          call csminp%get('*FILES','FILEA',filea)
 
 !     CHP 2021-03-19
           IF (INDEX(FILEADIR,"-99") > 0) THEN
@@ -240,15 +253,21 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           FILELEN = TVILENT(FILENEW)
           FILENEW(FILELEN:FILELEN)= 'X'
           FILEX = FILENEW
-          ! Experimental controls
-          CALL XREADC(FILEX,TN,RN,SN,ON,CN,'PHASE',cflphaseadj)
-          IF (CFLPHASEADJ.NE.'N'.AND.CFLPHASEADJ.NE.'Y') THEN
+! Experimental controls
+!***********************************************************************
+!     PDA 11 Aug 2026 - Commenting these out because I can't find any
+!                       example of these being used in default File X
+!                       for Wheat or Barley
+!***********************************************************************
+!          CALL XREADC(FILEX,TN,RN,SN,ON,CN,'PHASE',cflphaseadj)
+!          IF (CFLPHASEADJ.NE.'N'.AND.CFLPHASEADJ.NE.'Y') THEN
            CFLPHASEADJ = 'Y'  ! Default to adjustment 
-          ENDIF   
-          CALL XREADC(FILEX,TN,RN,SN,ON,CN,'PHINT',cflphintadj)
-          IF (CFLPHINTADJ.NE.'N'.AND.CFLPHINTADJ.NE.'Y') THEN
+!          ENDIF   
+!          CALL XREADC(FILEX,TN,RN,SN,ON,CN,'PHINT',cflphintadj)
+!          IF (CFLPHINTADJ.NE.'N'.AND.CFLPHINTADJ.NE.'Y') THEN
            CFLPHINTADJ = 'N'   ! Default to no adjustment
-          ENDIF   
+!          ENDIF   
+!***********************************************************************
         ENDIF
 
 !-----------------------------------------------------------------------
@@ -456,69 +475,71 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           STOP ' '
         ENDIF
 
-        INQUIRE (FILE = CUDIRFLE,EXIST = FFLAG)
-        IF (.NOT.(FFLAG)) THEN
+        IF (RNMODE.NE.'T' .and. .not. nc_gen%yes) then
+          INQUIRE (FILE = CUDIRFLE,EXIST = FFLAG)
+          IF (.NOT.(FFLAG)) THEN
           ! Following added Sept 2008 for running under VB environment.
 !          WRITE(fnumwrk,*) ' '
 !          WRITE(fnumwrk,*) 'Cultivar file not found!     '
 !          WRITE(fnumwrk,*) 'File sought was:          '  
 !          WRITE(fnumwrk,*) Cudirfle(1:78)
 !          WRITE(fnumwrk,*) 'Will search in the working directory for:'
-          CUDIRFLE = CUFILE
+            CUDIRFLE = CUFILE
 !          WRITE(fnumwrk,*)  Cudirfle(1:78)
-          INQUIRE (FILE = CUDIRFLE,EXIST = FFLAG)
-          IF (.NOT.(FFLAG)) THEN
-            OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
-            WRITE(fnumerr,*) ' '
-            WRITE(fnumerr,*) 'Cultivar file not found!     '
-            WRITE(fnumerr,*) 'File sought was:          '  
-            WRITE(fnumerr,*) Cudirfle(1:78)
-            WRITE(fnumerr,*) 'Please check'
-            WRITE (*,*) ' Cultivar file not found!     '
-            WRITE(*,*) 'File sought was:          '
-            WRITE(*,*) Cudirfle(1:78)
-            WRITE(*,*) ' Program will have to stop'
-            CLOSE (fnumerr)
-            STOP ' '
+            INQUIRE (FILE = CUDIRFLE,EXIST = FFLAG)
+            IF (.NOT.(FFLAG)) THEN
+              OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
+              WRITE(fnumerr,*) ' '
+              WRITE(fnumerr,*) 'Cultivar file not found!     '
+              WRITE(fnumerr,*) 'File sought was:          '  
+              WRITE(fnumerr,*) Cudirfle(1:78)
+              WRITE(fnumerr,*) 'Please check'
+              WRITE (*,*) ' Cultivar file not found!     '
+              WRITE(*,*) 'File sought was:          '
+              WRITE(*,*) Cudirfle(1:78)
+              WRITE(*,*) ' Program will have to stop'
+              CLOSE (fnumerr)
+              STOP ' '
+            ENDIF
           ENDIF
-        ENDIF
 
-        INQUIRE (FILE = ECDIRFLE,EXIST = FFLAGEC)
-        IF (.NOT.(FFLAGEC)) THEN
+          INQUIRE (FILE = ECDIRFLE,EXIST = FFLAGEC)
+          IF (.NOT.(FFLAGEC)) THEN
           ! Following added Sept 2008 for running under VB environment.
 !          WRITE(fnumwrk,*) ' '
 !          WRITE(fnumwrk,*) 'Ecotype file not found!     '
 !          WRITE(fnumwrk,*) 'File sought was: ',Ecdirfle(1:60)  
-          ECDIRFLE = ECFILE
+            ECDIRFLE = ECFILE
 !          WRITE(fnumwrk,*) 
 !     &     'Will search in the working directory for:',Ecdirfle(1:60)
-          INQUIRE (FILE = ECDIRFLE,EXIST = FFLAGEC)
-          IF (.NOT.(FFLAGEC)) THEN
-            OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
+            INQUIRE (FILE = ECDIRFLE,EXIST = FFLAGEC)
+            IF (.NOT.(FFLAGEC)) THEN
+              OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
 !            WRITE(fnumwrk,*) 'File not found in working directory!'
 !            WRITE(fnumwrk,*) 'Please check'
-            WRITE(*,*) ' Ecotype file not found!     '
-            WRITE(*,*) ' File sought was: ',Ecdirfle(1:60)
+              WRITE(*,*) ' Ecotype file not found!     '
+              WRITE(*,*) ' File sought was: ',Ecdirfle(1:60)
+              WRITE(*,*) ' Program will have to stop'
+              STOP ' '
+            ENDIF
+          ENDIF
+
+          INQUIRE (FILE = SPDIRFLE,EXIST = FFLAG)
+          IF (.NOT.(FFLAG)) THEN
+            OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
+            WRITE(fnumerr,*) ' '
+            WRITE(fnumerr,*) 'Species file not found!     '
+            WRITE(fnumerr,*) 'File sought was:          '
+            WRITE(fnumerr,*) Spdirfle
+            WRITE(fnumerr,*) 'Please check'
+            WRITE(*,*) ' Species file not found!     '
+            WRITE(*,*) 'File sought was:          '
+            WRITE(*,*) Spdirfle
             WRITE(*,*) ' Program will have to stop'
+            CLOSE (fnumerr)
             STOP ' '
           ENDIF
-        ENDIF
-
-        INQUIRE (FILE = SPDIRFLE,EXIST = FFLAG)
-        IF (.NOT.(FFLAG)) THEN
-          OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
-          WRITE(fnumerr,*) ' '
-          WRITE(fnumerr,*) 'Species file not found!     '
-          WRITE(fnumerr,*) 'File sought was:          '
-          WRITE(fnumerr,*) Spdirfle
-          WRITE(fnumerr,*) 'Please check'
-          WRITE(*,*) ' Species file not found!     '
-          WRITE(*,*) 'File sought was:          '
-          WRITE(*,*) Spdirfle
-          WRITE(*,*) ' Program will have to stop'
-          CLOSE (fnumerr)
-          STOP ' '
-        ENDIF
+        end if
         
 !-----------------------------------------------------------------------
 !       Read cultivar information
@@ -601,84 +622,132 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
         no3mn = -99
         
         IF (FILEIOT(1:2).EQ.'DS') THEN
-          IF (RNMODE.NE.'T') CALL FVCHECK(CUDIRFLE,GENFLCHK)
+          IF (RNMODE.NE.'T' .and. .not. nc_gen%yes)
+     &          CALL FVCHECK(CUDIRFLE,GENFLCHK)
 
-          CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'ECO#',econo)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'VREQ',vreq)
-          IF (VREQ.LT.0.0)
-     &     CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'VREQX',vreq)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'VBASE',vbase)
-          IF (VBASE.LT.0.0)
-     &     CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'VREQN',vbase)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'VEFF',veff)
-          IF (VEFF.LT.0.0)
-     &     CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'VEFFX',veff)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS1',pps(1))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS2',pps(2))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS3',pps(3))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS4',pps(4))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS5',pps(5))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS6',pps(6))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS7',pps(7))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS8',pps(8))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPS9',pps(9))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPEXP',ppexp) ! Trial
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PPFPE',ppfpe)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'G#WTS',gnowts)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'GWTS',gwts)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'SHWTS',g3)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PHINT',phints)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P1',pd(1))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P2',pd(2))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P3',pd(3))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P4',pd(4))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P5',pd(5))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P6',pd(6))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P7',pd(7))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P8',pd(8))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P9',pd(9))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P1L',pdl(1))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P2L',pdl(2))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P3L',pdl(3))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P4L',pdl(4))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P5L',pdl(5))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P6L',pdl(6))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P7L',pdl(7))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P8L',pdl(8))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'P9L',pdl(9))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'LLIFA',llifa)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'STFR',swfrs)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'LAXS',laxs)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'SLAS',laws)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'NFPU',nfpu)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'NFPL',nfpl)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'NFGU',nfgu)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'NFGL',nfgl)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'RDGS',rdgs)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'RLWR',rlwr)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PARUE',parue)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PARU2',paru2)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'TDFAC',tdfac)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'TDSF',tdsf)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'GWTAT',gwtat)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'GWTAF',gwtaf)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'G#RF',gnorf)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'G#RT',gnort)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'LA1S',la1s)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'LAFV',lafv)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'LAFR',lafr)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PHL2',phintl(2))
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PHF3',phintf(3))
+          call csminp%get('*CULTIVARS','ECONO',econo)
+          call csminp%get('*CULTIVARS','VREQ',vreq)
+          call csminp%get('*CULTIVARS','VBASE',vbase)
+          call csminp%get('*CULTIVARS','VEFF',veff)
+          call csminp%get('*CULTIVARS','PPS1',pps(1))
+          call csminp%get('*CULTIVARS','PPS2',pps(2),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPS3',pps(3),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPS4',pps(4),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPS5',pps(5),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPS6',pps(6),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPS7',pps(7),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPS8',pps(8),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPS9',pps(9),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPEXP',ppexp,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PPFPE',ppfpe,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','GNOWT',gnowts)
+          call csminp%get('*CULTIVARS','GWTS',gwts)
+          call csminp%get('*CULTIVARS','SHWTS',g3)
+          call csminp%get('*CULTIVARS','PHINT',phints)
+          call csminp%get('*CULTIVARS','P1',pd(1))
+          call csminp%get('*CULTIVARS','P2',pd(2))
+          call csminp%get('*CULTIVARS','P3',pd(3))
+          call csminp%get('*CULTIVARS','P4',pd(4))
+          call csminp%get('*CULTIVARS','P5',pd(5))
+          call csminp%get('*CULTIVARS','P6',pd(6))
+          call csminp%get('*CULTIVARS','P7',pd(7))
+          call csminp%get('*CULTIVARS','P8',pd(8))
+          call csminp%get('*CULTIVARS','P9',pd(9))
+          call csminp%get('*CULTIVARS','P1L',pdl(1),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P1L',pdl(1),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P2L',pdl(2),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P3L',pdl(3),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P4L',pdl(4),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P5L',pdl(5),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P6L',pdl(6),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P7L',pdl(7),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P8L',pdl(8),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','P9L',pdl(9),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','LLIFA',llifa,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','STFR',swfrs,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','LAXS',laxs,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','SLAS',laws,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','NFPU',nfpu,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','NFPL',nfpl,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','NFGU',nfgu,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','NFGL',nfgl,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','RDGS',rdgs,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','RLWR',rlwr,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PARUE',parue,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PARU2',paru2,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','TDFAC',tdfac,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','TDSF',tdsf,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','GWTAT',gwtat,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','GWTAF',gwtaf,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','G#RF',gnorf,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','G#RT',gnort,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','LA1S',la1s,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','LAFV',lafv,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','LAFR',lafr,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PHL2',phintl(2),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PHF3',phintf(3),
+     &                    throw_error = .false.)          
           ! New (Nov 2011) N uptake variables
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'NUPNF',nupnf)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'NUPWF',nupwf)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'RTNUP',rtnup)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'LSPHS',lsphs)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'LSPHE',lsphe)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'NO3MN',no3mn)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'NH4MN',nh4mn)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PGERM',pgerm)
-          CALL XREADR (FILEIO,TN,RN,SN,ON,CN,'PEMRG',pemrg)
+          call csminp%get('*CULTIVARS','NUPNF',nupnf,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','NUPWF',nupwf,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','RTNUP',rtnup,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','LSPHS',lsphs,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','LSPHE',lsphe,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','NO3MN',no3mn,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','NH4MN',nh4mn,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PGERM',pgerm,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVARS','PEMRG',pemrg,
+     &                    throw_error = .false.)
         ELSE
           IF (RNMODE.NE.'T') CALL FVCHECK(CUDIRFLE,GENFLCHK)
           CALL CUREADC (CUDIRFLE,VARNO,'ECO#',econo)
@@ -759,235 +828,507 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 !-----------------------------------------------------------------------
 !       Read ecotype information
 !-----------------------------------------------------------------------
+        IF (RNMODE.NE.'T' .and. .not. nc_gen%yes)
+     &    CALL FVCHECK(ECDIRFLE,GENFLCHK)
 
-        IF (RNMODE.NE.'T') CALL FVCHECK(ECDIRFLE,GENFLCHK)
-        CALL ECREADR (ECDIRFLE,ECONO,'HTSTD',htstd)
-        CALL ECREADR (ECDIRFLE,ECONO,'AWNS',awns)
-        CALL ECREADR (ECDIRFLE,ECONO,'RS%A',rspca)
-        CALL ECREADR (ECDIRFLE,ECONO,'TIL#S',ti1lf)
-        IF (TI1LF.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'TIPHS',ti1lf)
-        IF (PPS(2).LT.0.0) 
-     &   CALL ECREADR (ECDIRFLE,ECONO,'PPS2',pps(2))
-        CALL ECREADR (ECDIRFLE,ECONO,'TIFAC',tifac)
-        CALL ECREADR (ECDIRFLE,ECONO,'TILPE',tilpe)
-        CALL ECREADR (ECDIRFLE,ECONO,'TDPHS',tdphs)
-        CALL ECREADR (ECDIRFLE,ECONO,'TDPHE',tdphe)
-        CALL ECREADR (ECDIRFLE,ECONO,'GN%MN',gnpcmn)
-        CALL ECREADR (ECDIRFLE,ECONO,'GN%S',gnpcs)
-        CALL ECREADR (ECDIRFLE,ECONO,'TKFH',tkfh)
-        IF (LSPHS.LE.0) CALL ECREADR (ECDIRFLE,ECONO,'LSPHS',lsphs)
-        IF (LSPHE.LE.0) CALL ECREADR (ECDIRFLE,ECONO,'LSPHE',lsphe)
-        CALL ECREADR (ECDIRFLE,ECONO,'SSPHS',ssphs)
-        CALL ECREADR (ECDIRFLE,ECONO,'SSPHE',ssphe)
-        CALL ECREADR (ECDIRFLE,ECONO,'LSENI',lseni)
-        IF (PHINTL(1).LE.0) 
-     &   CALL ECREADR(ECDIRFLE,ECONO,'PHL1',phintl(1))
-        IF (PHINTL(2).LE.0) 
-     &   CALL ECREADR(ECDIRFLE,ECONO,'PHL2',phintl(2))
-        IF (PHINTF(2).LE.0)
-     &   CALL ECREADR(ECDIRFLE,ECONO,'PHF2',phintf(2))
-        IF (PHINTF(3).LE.0)
-     &   CALL ECREADR(ECDIRFLE,ECONO,'PHF3',phintf(3))
+        if(nc_gen%yes)then
+          CALL nc_gen%read_eco('HTSTD',htstd)
+          CALL nc_gen%read_eco('AWNS',awns)
+          CALL nc_gen%read_eco('RS%A',rspca)
+          CALL nc_gen%read_eco('TIL#S',ti1lf)
+          IF (TI1LF.LT.0.0) CALL nc_gen%read_eco('TIPHS',ti1lf)
+          IF (PPS(2).LT.0.0) CALL nc_gen%read_eco('PPS2',pps(2))
+          CALL nc_gen%read_eco('TIFAC',tifac)
+          CALL nc_gen%read_eco('TILPE',tilpe)
+          CALL nc_gen%read_eco('TDPHS',tdphs)
+          CALL nc_gen%read_eco('TDPHE',tdphe)
+          CALL nc_gen%read_eco('GN%MN',gnpcmn)
+          CALL nc_gen%read_eco('GN%S',gnpcs)
+          CALL nc_gen%read_eco('TKFH',tkfh)
+          CALL ECREADR (ECDIRFLE,ECONO,'TKFH',tkfh)
+          IF (LSPHS.LE.0) CALL nc_gen%read_eco('LSPHS',lsphs)
+          IF (LSPHE.LE.0) CALL nc_gen%read_eco('LSPHE',lsphe)
+          CALL nc_gen%read_eco('SSPHS',ssphs)
+          CALL nc_gen%read_eco('SSPHE',ssphe)
+          CALL nc_gen%read_eco('LSENI',lseni)
+          IF (PHINTL(1).LE.0) CALL nc_gen%read_eco('PHL1',phintl(1))
+          IF (PHINTL(2).LE.0) CALL nc_gen%read_eco('PHL2',phintl(2))
+          IF (PHINTF(2).LE.0) CALL nc_gen%read_eco('PHF2',phintf(2))
+          IF (PHINTF(3).LE.0) CALL nc_gen%read_eco('PHF3',phintf(3))
         ! LAH Following set up to allow for change in stem fraction
         ! Currently not used ... just one stem fraction (STFR)
-        CALL ECREADR (ECDIRFLE,ECONO,'SWFRX',swfrx)
-        CALL ECREADR (ECDIRFLE,ECONO,'SWFRN',swfrn)
-        CALL ECREADR (ECDIRFLE,ECONO,'SWFNL',swfrnl)
-        CALL ECREADR (ECDIRFLE,ECONO,'SWFXL',swfrxl)
-        CALL ECREADR (ECDIRFLE,ECONO,'SLACF',lawcf)
-        CALL ECREADR (ECDIRFLE,ECONO,'KCAN',kcan)
+          CALL nc_gen%read_eco('SWFRX',swfrx)
+          CALL nc_gen%read_eco('SWFRN',swfrn)
+          CALL nc_gen%read_eco('SWFNL',swfrnl)
+          CALL nc_gen%read_eco('SWFXL',swfrxl)
+          CALL nc_gen%read_eco('SLACF',lawcf)
+          CALL nc_gen%read_eco('KCAN',kcan)
         ! Following may have been (temporarily) in the CUL file
         ! Grains
-        IF (GMPCH.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'GM%H',gmpch)
-        IF (GNORF.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'G#RF',gnorf)
-        IF (GNORT.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'G#RT',gnort)
-        IF (GWTAT.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'GWTAT',gwtat)
-        IF (GWTAF.LT.-10.0) CALL ECREADR (ECDIRFLE,ECONO,'GWTAF',gwtaf)
+          IF (GMPCH.LT.0.0) CALL nc_gen%read_eco('GM%H',gmpch)
+          IF (GNORF.LT.0.0) CALL nc_gen%read_eco('PHF2',phintf(2))
+          IF (GNORT.LT.0.0) CALL nc_gen%read_eco('G#RT',gnort)
+          IF (GWTAT.LT.0.0) CALL nc_gen%read_eco('GWTAT',gwtat)
+          IF (GWTAF.LT.-10.0) CALL nc_gen%read_eco('GWTAF',gwtaf)
         ! Radiation use efficiency
-        IF (PARUE.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'PARUE',parue)
-        IF (PARU2.LT.-89.0) CALL ECREADR (ECDIRFLE,ECONO,'PARU2',paru2)
+          IF (PARUE.LE.0.0) CALL nc_gen%read_eco('PARUE',parue)
+          IF (PARU2.LT.-89.0) CALL nc_gen%read_eco('PARU2',paru2)
         ! Leaf area
-        IF (LA1S.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'LA1S',la1s)
-        IF (LAXS.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'LAXS',laxs)
-        IF (LAWS.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'SLAS',laws)
-        IF (LAFV.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'LAFV',lafv)
-        IF (LAFR.LT.-90.0) CALL ECREADR (ECDIRFLE,ECONO,'LAFR',lafr)
+          IF (LA1S.LE.0.0) CALL nc_gen%read_eco('LA1S',la1s)
+          IF (LAXS.LE.0.0) CALL nc_gen%read_eco('LAXS',laxs)
+          IF (LAWS.LE.0.0) CALL nc_gen%read_eco('SLAS',laws)
+          IF (LAFV.LT.0.0) CALL nc_gen%read_eco('LAFV',lafv)
+          IF (LAFR.LT.-90.0) CALL nc_gen%read_eco('LAFR',lafr)
         ! Roots
-        IF (RDGS.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'RDGS',rdgs)
+          IF (RDGS.LE.0.0) CALL nc_gen%read_eco('RDGS',rdgs)
         ! Tillers
-        IF (TDFAC.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'TDFAC',tdfac)
-        IF (TDSF.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'TDSF',tdsf)
+          IF (TDFAC.LT.0.0) CALL nc_gen%read_eco('TDFAC',tdfac)
+          IF (TDSF.LT.0.0) CALL nc_gen%read_eco('TDSF',tdsf)
         ! Reduction factors
-        IF (NFGU.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'NFGU',nfgu)
-        IF (NFGL.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'NFGL',nfgl)
+          IF (NFGU.LT.0.0) CALL nc_gen%read_eco('NFGU',nfgu)
+          IF (NFGL.LT.0.0) CALL nc_gen%read_eco('NFGL',nfgl)
         ! N uptake
-        IF (NUPNF.LT.-90.0) CALL ECREADR (ECDIRFLE,ECONO,'NUPNF',nupnf)
-        IF (NUPWF.LT.-90.0) CALL ECREADR (ECDIRFLE,ECONO,'NUPWF',nupwf)
-        IF (NUPCF.LT.-90.0) CALL ECREADR (ECDIRFLE,ECONO,'NUPCF',nupcf)
-        IF (RTNUP.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'RTNUP',rtnup)
-        IF (NO3MN.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'NO3MN',no3mn)
-        IF (NH4MN.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'NH4MN',nh4mn)
+          IF (NUPNF.LT.-90.0) CALL nc_gen%read_eco('NUPNF',nupnf)
+          IF (NUPWF.LT.-90.0) CALL nc_gen%read_eco('NUPWF',nupwf)
+          IF (NUPCF.LT.-90.0) CALL nc_gen%read_eco('NUPCF',nupcf)
+          IF (RTNUP.LT.0.0) CALL nc_gen%read_eco('RTNUP',rtnup)
+          IF (NO3MN.LT.0.0) CALL nc_gen%read_eco('NO3MN',no3mn)
+          IF (NH4MN.LT.0.0) CALL nc_gen%read_eco('NH4MN',nh4mn)
+        else
+          CALL ECREADR (ECDIRFLE,ECONO,'HTSTD',htstd)
+          CALL ECREADR (ECDIRFLE,ECONO,'AWNS',awns)
+          CALL ECREADR (ECDIRFLE,ECONO,'RS%A',rspca)
+          CALL ECREADR (ECDIRFLE,ECONO,'TIL#S',ti1lf)
+          IF (TI1LF.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'TIPHS',ti1lf)
+          IF (PPS(2).LT.0.0) 
+     &      CALL ECREADR (ECDIRFLE,ECONO,'PPS2',pps(2))
+          CALL ECREADR (ECDIRFLE,ECONO,'TIFAC',tifac)
+          CALL ECREADR (ECDIRFLE,ECONO,'TILPE',tilpe)
+          CALL ECREADR (ECDIRFLE,ECONO,'TDPHS',tdphs)
+          CALL ECREADR (ECDIRFLE,ECONO,'TDPHE',tdphe)
+          CALL ECREADR (ECDIRFLE,ECONO,'GN%MN',gnpcmn)
+          CALL ECREADR (ECDIRFLE,ECONO,'GN%S',gnpcs)
+          CALL ECREADR (ECDIRFLE,ECONO,'TKFH',tkfh)
+          IF (LSPHS.LE.0) CALL ECREADR (ECDIRFLE,ECONO,'LSPHS',lsphs)
+          IF (LSPHE.LE.0) CALL ECREADR (ECDIRFLE,ECONO,'LSPHE',lsphe)
+          CALL ECREADR (ECDIRFLE,ECONO,'SSPHS',ssphs)
+          CALL ECREADR (ECDIRFLE,ECONO,'SSPHE',ssphe)
+          CALL ECREADR (ECDIRFLE,ECONO,'LSENI',lseni)
+          IF (PHINTL(1).LE.0) 
+     &      CALL ECREADR(ECDIRFLE,ECONO,'PHL1',phintl(1))
+          IF (PHINTL(2).LE.0) 
+     &      CALL ECREADR(ECDIRFLE,ECONO,'PHL2',phintl(2))
+          IF (PHINTF(2).LE.0)
+     &      CALL ECREADR(ECDIRFLE,ECONO,'PHF2',phintf(2))
+          IF (PHINTF(3).LE.0)
+     &      CALL ECREADR(ECDIRFLE,ECONO,'PHF3',phintf(3))
+        ! LAH Following set up to allow for change in stem fraction
+        ! Currently not used ... just one stem fraction (STFR)
+          CALL ECREADR (ECDIRFLE,ECONO,'SWFRX',swfrx)
+          CALL ECREADR (ECDIRFLE,ECONO,'SWFRN',swfrn)
+          CALL ECREADR (ECDIRFLE,ECONO,'SWFNL',swfrnl)
+          CALL ECREADR (ECDIRFLE,ECONO,'SWFXL',swfrxl)
+          CALL ECREADR (ECDIRFLE,ECONO,'SLACF',lawcf)
+          CALL ECREADR (ECDIRFLE,ECONO,'KCAN',kcan)
+        ! Following may have been (temporarily) in the CUL file
+        ! Grains
+          IF (GMPCH.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'GM%H',gmpch)
+          IF (GNORF.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'G#RF',gnorf)
+          IF (GNORT.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'G#RT',gnort)
+          IF (GWTAT.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'GWTAT',gwtat)
+          IF (GWTAF.LT.-10.0)
+     &      CALL ECREADR (ECDIRFLE,ECONO,'GWTAF',gwtaf)
+        ! Radiation use efficiency
+          IF (PARUE.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'PARUE',parue)
+          IF (PARU2.LT.-89.0)
+     &      CALL ECREADR (ECDIRFLE,ECONO,'PARU2',paru2)
+        ! Leaf area
+          IF (LA1S.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'LA1S',la1s)
+          IF (LAXS.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'LAXS',laxs)
+          IF (LAWS.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'SLAS',laws)
+          IF (LAFV.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'LAFV',lafv)
+          IF (LAFR.LT.-90.0) CALL ECREADR (ECDIRFLE,ECONO,'LAFR',lafr)
+        ! Roots
+          IF (RDGS.LE.0.0) CALL ECREADR (ECDIRFLE,ECONO,'RDGS',rdgs)
+        ! Tillers
+          IF (TDFAC.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'TDFAC',tdfac)
+          IF (TDSF.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'TDSF',tdsf)
+        ! Reduction factors
+          IF (NFGU.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'NFGU',nfgu)
+          IF (NFGL.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'NFGL',nfgl)
+        ! N uptake
+          IF (NUPNF.LT.-90.0)
+     &      CALL ECREADR (ECDIRFLE,ECONO,'NUPNF',nupnf)
+          IF (NUPWF.LT.-90.0)
+     &      CALL ECREADR (ECDIRFLE,ECONO,'NUPWF',nupwf)
+          IF (NUPCF.LT.-90.0)
+     &      CALL ECREADR (ECDIRFLE,ECONO,'NUPCF',nupcf)
+          IF (RTNUP.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'RTNUP',rtnup)
+          IF (NO3MN.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'NO3MN',no3mn)
+          IF (NH4MN.LT.0.0) CALL ECREADR (ECDIRFLE,ECONO,'NH4MN',nh4mn)
+        end if
         
 !-----------------------------------------------------------------------
 !       Read species information
 !-----------------------------------------------------------------------
 
-        IF (RNMODE.NE.'T') CALL FVCHECK(SPDIRFLE,GENFLCHK)
-        CALL SPREADR (SPDIRFLE,'CHFR' ,chfr)
-        CALL SPREADR (SPDIRFLE,'CO2CC',co2compc)
-        CALL SPREADR (SPDIRFLE,'CO2EX',co2ex)
-        CALL SPREADR (SPDIRFLE,'GLIG%',gligpc)
-        CALL SPREADR (SPDIRFLE,'GN%MX',gnpcmx)
-        CALL SPREADR (SPDIRFLE,'GWLAG',gwlagfr)
-        CALL SPREADR (SPDIRFLE,'GWLIN',gwlinfr)
-        CALL SPREADR (SPDIRFLE,'HDUR' ,hdur)
-        CALL SPREADR (SPDIRFLE,'HLOSF',hlosf)
-        CALL SPREADR (SPDIRFLE,'HLOST',hlost)
-        CALL SPREADR (SPDIRFLE,'LAFST',lafst)
-        CALL SPREADR (SPDIRFLE,'SLAFF',lawff)
-        CALL SPREADR (SPDIRFLE,'SLATR',lawtr)
-        CALL SPREADR (SPDIRFLE,'SLATS',lawts)
-        CALL SPREADR (SPDIRFLE,'SLAWR',lawwr)
-        CALL SPREADR (SPDIRFLE,'LLIFG',LLIFG)
-        CALL SPREADR (SPDIRFLE,'LLIFS',llifs)
-        CALL SPREADR (SPDIRFLE,'LLIG%',lligpc)
-        CALL SPREADR (SPDIRFLE,'LLOSA',llosa)
-        CALL SPREADR (SPDIRFLE,'LWLOS',lwlos)
-        CALL SPREADR (SPDIRFLE,'NFSU' ,nfsu)
-        CALL SPREADR (SPDIRFLE,'NFSF' ,nfsf)
-        CALL SPREADR (SPDIRFLE,'NFTL ',nftl)
-        CALL SPREADR (SPDIRFLE,'NFTU ',nftu)
-        CALL SPREADR (SPDIRFLE,'LSHAR',lshar)
-        CALL SPREADR (SPDIRFLE,'LSHAV',lshav)
-        CALL SPREADR (SPDIRFLE,'LSHFR',lshfr)
-        CALL SPREADR (SPDIRFLE,'NCRG',ncrg)
-        CALL SPREADR (SPDIRFLE,'NTUPF',ntupf)
-        CALL SPREADR (SPDIRFLE,'PARIX',parix)
-        CALL SPREADR (SPDIRFLE,'LAIXX',laixx)
-        CALL SPREADR (SPDIRFLE,'PARFC',parfc)
-        IF (PEMRG.LE.0.0) CALL SPREADR (SPDIRFLE,'PEMRG',pemrg)
-        IF (PGERM.LE.0.0) CALL SPREADR (SPDIRFLE,'PGERM',pgerm)
-        CALL SPREADR (SPDIRFLE,'PDMH' ,pdmtohar)
-        CALL SPREADR (SPDIRFLE,'PHSV' ,phsv)
-        CALL SPREADR (SPDIRFLE,'PHTV' ,phtv)
-        CALL SPREADR (SPDIRFLE,'PPTHR',ppthr)
-        CALL SPREADR (SPDIRFLE,'PTFXS',ptfxs)
-        CALL SPREADR (SPDIRFLE,'PTFA' ,ptfa)
-        CALL SPREADR (SPDIRFLE,'PTFMN',ptfmn)
-        CALL SPREADR (SPDIRFLE,'PTFMX',ptfmx)
-        CALL SPREADR (SPDIRFLE,'RATM' ,ratm)
-        CALL SPREADR (SPDIRFLE,'RCROP',rcrop)
-        CALL SPREADR (SPDIRFLE,'EORAT',eoratio)
-        CALL SPREADR (SPDIRFLE,'RDGAF',rdgaf)
-        CALL SPREADR (SPDIRFLE,'RLIG%',rligpc)
-        !CALL SPREADR (SPDIRFLE,'RNUMX',rnumx) ! Taken out of spp file
-        CALL SPREADR (SPDIRFLE,'RRESP',rresp)
-        CALL SPREADR (SPDIRFLE,'RS%LX',rspclx)
-        CALL SPREADR (SPDIRFLE,'RS%X' ,rspcx)
-        CALL SPREADR (SPDIRFLE,'RSEN',rsen)
-        IF (RSEN.LT.0.0) CALL SPREADR (SPDIRFLE,'RSEN%',rsen)
-        CALL SPREADR (SPDIRFLE,'RSFPL',rsfpl)
-        CALL SPREADR (SPDIRFLE,'RSFPU',rsfpu)
-        CALL SPREADR (SPDIRFLE,'RSUSE',rsuse)
-        CALL SPREADR (SPDIRFLE,'RTUFR',rtufr)
-        CALL SPREADR (SPDIRFLE,'RUESG',ruestg)
-        CALL SPREADR (SPDIRFLE,'RWUMX',rwumx)
-        CALL SPREADR (SPDIRFLE,'RWUPM',rwupm)
-        CALL SPREADR (SPDIRFLE,'SAWS' ,saws)
-        CALL SPREADR (SPDIRFLE,'SDDUR',sddur)
-        CALL SPREADR (SPDIRFLE,'SDN%',sdnpci)
-        CALL SPREADR (SPDIRFLE,'SDRS%',sdrspc)
-        CALL SPREADR (SPDIRFLE,'SDWT' ,sdwt)
-        CALL SPREADR (SPDIRFLE,'SLIG%',sligpc)
-        CALL SPREADR (SPDIRFLE,'TGR02',tgr(2))
-        CALL SPREADR (SPDIRFLE,'TGR20',tgr(20))
-        CALL SPREADR (SPDIRFLE,'TILIP',tilip)
-        CALL SPREADR (SPDIRFLE,'TIL#X',tilnox)
-        CALL SPREADR (SPDIRFLE,'TKDLF',tkdlf)
-        CALL SPREADR (SPDIRFLE,'TKSPN',tkspn)
-        CALL SPREADR (SPDIRFLE,'TKDTI',tkdti)
-        CALL SPREADR (SPDIRFLE,'TKUH' ,tkuh)
-        CALL SPREADR (SPDIRFLE,'TKGF' ,tkgf)
-        CALL SPREADR (SPDIRFLE,'TPAR' ,tpar)
-        CALL SPREADR (SPDIRFLE,'TSRAD',tsrad)
-        CALL SPREADR (SPDIRFLE,'VEEND',veend)
-        CALL SPREADR (SPDIRFLE,'VLOSF',vlosf)
-        CALL SPREADR (SPDIRFLE,'VLOSS',vloss)
-        CALL SPREADR (SPDIRFLE,'VLOST',vlost)
-        CALL SPREADR (SPDIRFLE,'VPEND',vpend)
-        CALL SPREADR (SPDIRFLE,'WFEU' ,wfeu)
-        CALL SPREADR (SPDIRFLE,'WFGEU',wfgeu)
-        CALL SPREADR (SPDIRFLE,'WFGU' ,wfgu)
-        CALL SPREADR (SPDIRFLE,'WFGL' ,wfgl)
-        CALL SPREADR (SPDIRFLE,'WFPU' ,wfpu)
-        CALL SPREADR (SPDIRFLE,'WFPL' ,wfpl)
-        CALL SPREADR (SPDIRFLE,'WFRGU',wfrgu)
-        CALL SPREADR (SPDIRFLE,'WFSU' ,wfsu)
-        CALL SPREADR (SPDIRFLE,'WFSF' ,wfsf)
-        CALL SPREADR (SPDIRFLE,'WFTL' ,wftl)
-        CALL SPREADR (SPDIRFLE,'WFTU' ,wftu)
-        CALL SPREADR (SPDIRFLE,'NLAB%',nlabpc)
-        ! LAH Following set up to allow for change in stem fraction
-        ! Currently not used ... just one stem fraction (STFR)
-        IF (SWFRN.LE.0.0) CALL SPREADR (SPDIRFLE,'SWFRN',swfrn)
-        IF (SWFRNL.LE.0.0) CALL SPREADR (SPDIRFLE,'SWFRNL',swfrnl)
-        IF (SWFRXL.LE.0.0) CALL SPREADR (SPDIRFLE,'SWFXL',swfrxl)
-        IF (SWFRX.LE.0.0) CALL SPREADR (SPDIRFLE,'SWFRX',swfrx)
-        ! Following may be temporarily in ECO or CUL file
-        IF (PD(9).LE.0.0) CALL SPREADR (SPDIRFLE,'P9',pd(9))
-        IF (lsphe.LE.0.0) CALL SPREADR (SPDIRFLE,'LSPHE',lsphe)
-        IF (tdphe.LE.0.0) CALL SPREADR (SPDIRFLE,'TDPHE',tdphe)
-        IF (tdphs.LE.0.0) CALL SPREADR (SPDIRFLE,'TDPHS',tdphs)
-        IF (tilpe.LE.0.0) CALL SPREADR (SPDIRFLE,'TILPE',tilpe)
-        IF (LLIFA.LE.0.0) CALL SPREADR (SPDIRFLE,'LLIFA',llifa)
+        IF (RNMODE.NE.'T' .and. .not. nc_gen%yes)
+     &    CALL FVCHECK(SPDIRFLE,GENFLCHK)
+        if(nc_gen%yes)then
+          CALL nc_gen%read_spe('CHFR', chfr)
+          CALL nc_gen%read_spe('CO2CC', co2compc)
+          CALL nc_gen%read_spe('CO2EX', co2ex)
+          CALL nc_gen%read_spe('GLIG%', gligpc)
+          CALL nc_gen%read_spe('GN%MX', gnpcmx)
+          CALL nc_gen%read_spe('GWLAG', gwlagfr)
+          CALL nc_gen%read_spe('GWLIN', gwlinfr)
+          CALL nc_gen%read_spe('HDUR', hdur)
+          CALL nc_gen%read_spe('HLOSF', hlosf)
+          CALL nc_gen%read_spe('HLOST', hlost)
+          CALL nc_gen%read_spe('LAFST', lafst)
+          CALL nc_gen%read_spe('SLAFF', lawff)
+          CALL nc_gen%read_spe('SLATR', lawtr)
+          CALL nc_gen%read_spe('SLATS', lawts)
+          CALL nc_gen%read_spe('SLAWR', lawwr)
+          CALL nc_gen%read_spe('LLIFG', LLIFG)
+          CALL nc_gen%read_spe('LLIFS', llifs)
+          CALL nc_gen%read_spe('LLIG%', lligpc)
+          CALL nc_gen%read_spe('LLOSA', llosa)
+          CALL nc_gen%read_spe('LWLOS', lwlos)
+          CALL nc_gen%read_spe('NFSU', nfsu)
+          CALL nc_gen%read_spe('NFSF', nfsf)
+          CALL nc_gen%read_spe('NFTL ', nftl)
+          CALL nc_gen%read_spe('NFTU ', nftu)
+          CALL nc_gen%read_spe('LSHAR', lshar)
+          CALL nc_gen%read_spe('LSHAV', lshav)
+          CALL nc_gen%read_spe('LSHFR', lshfr)
+          CALL nc_gen%read_spe('NCRG', ncrg)
+          CALL nc_gen%read_spe('NTUPF', ntupf)
+          CALL nc_gen%read_spe('PARIX', parix)
+          CALL nc_gen%read_spe('LAIXX', laixx)
+          CALL nc_gen%read_spe('PARFC', parfc)
+          IF (PEMRG.LE.0.0) CALL nc_gen%read_spe('PEMRG', pemrg)
+          IF (PGERM.LE.0.0) CALL nc_gen%read_spe('PGERM', pgerm)
+          CALL nc_gen%read_spe('PDMH', pdmtohar)
+          CALL nc_gen%read_spe('PHSV', phsv)
+          CALL nc_gen%read_spe('PHTV', phtv)
+          CALL nc_gen%read_spe('PPTHR', ppthr)
+          CALL nc_gen%read_spe('PTFXS', ptfxs)
+          CALL nc_gen%read_spe('PTFA', ptfa)
+          CALL nc_gen%read_spe('PTFMN', ptfmn)
+          CALL nc_gen%read_spe('PTFMX', ptfmx)
+          CALL nc_gen%read_spe('RATM', ratm)
+          CALL nc_gen%read_spe('RCROP', rcrop)
+          CALL nc_gen%read_spe('EORAT', eoratio)
+          CALL nc_gen%read_spe('RDGAF', rdgaf)
+          CALL nc_gen%read_spe('RLIG%', rligpc)
+          !CALL nc_gen%read_spe('RNUMX',rnumx) ! Taken out of spp file
+          CALL nc_gen%read_spe('RRESP', rresp)
+          CALL nc_gen%read_spe('RS%LX', rspclx)
+          CALL nc_gen%read_spe('RS%X', rspcx)
+          CALL nc_gen%read_spe('RSEN', rsen)
+          IF (RSEN.LT.0.0) CALL nc_gen%read_spe('RSEN%', rsen)
+          CALL nc_gen%read_spe('RSFPL', rsfpl)
+          CALL nc_gen%read_spe('RSFPU', rsfpu)
+          CALL nc_gen%read_spe('RSUSE', rsuse)
+          CALL nc_gen%read_spe('RTUFR', rtufr)
+          CALL nc_gen%read_spe('RUESG', ruestg)
+          CALL nc_gen%read_spe('RWUMX', rwumx)
+          CALL nc_gen%read_spe('RWUPM', rwupm)
+          CALL nc_gen%read_spe('SAWS' , saws)
+          CALL nc_gen%read_spe('SDDUR', sddur)
+          CALL nc_gen%read_spe('SDN%', sdnpci)
+          CALL nc_gen%read_spe('SDRS%', sdrspc)
+          CALL nc_gen%read_spe('SDWT', sdwt)
+          CALL nc_gen%read_spe('SLIG%', sligpc)
+          CALL nc_gen%read_spe('TGR02', tgr(2))
+          CALL nc_gen%read_spe('TGR20', tgr(20))
+          CALL nc_gen%read_spe('TILIP', tilip)
+          CALL nc_gen%read_spe('TIL#X', tilnox)
+          CALL nc_gen%read_spe('TKDLF', tkdlf)
+          CALL nc_gen%read_spe('TKSPN', tkspn)
+          CALL nc_gen%read_spe('TKDTI', tkdti)
+          CALL nc_gen%read_spe('TKUH', tkuh)
+          CALL nc_gen%read_spe('TKGF', tkgf)
+          CALL nc_gen%read_spe('TPAR', tpar)
+          CALL nc_gen%read_spe('TSRAD', tsrad)
+          CALL nc_gen%read_spe('VEEND', veend)
+          CALL nc_gen%read_spe('VLOSF', vlosf)
+          CALL nc_gen%read_spe('VLOSS', vloss)
+          CALL nc_gen%read_spe('VLOST', vlost)
+          CALL nc_gen%read_spe('VPEND', vpend)
+          CALL nc_gen%read_spe('WFEU', wfeu)
+          CALL nc_gen%read_spe('WFGEU', wfgeu)
+          CALL nc_gen%read_spe('WFGU', wfgu)
+          CALL nc_gen%read_spe('WFGL', wfgl)
+          CALL nc_gen%read_spe('WFPU', wfpu)
+          CALL nc_gen%read_spe('WFPL', wfpl)
+          CALL nc_gen%read_spe('WFRGU', wfrgu)
+          CALL nc_gen%read_spe('WFSU', wfsu)
+          CALL nc_gen%read_spe('WFSF', wfsf)
+          CALL nc_gen%read_spe('WFTL', wftl)
+          CALL nc_gen%read_spe('WFTU', wftu)
+          CALL nc_gen%read_spe('NLAB%', nlabpc)
+          ! LAH Following set up to allow for change in stem fraction
+          ! Currently not used ... just one stem fraction (STFR)
+          IF (SWFRN.LE.0.0) CALL nc_gen%read_spe('SWFRN', swfrn)
+          IF (SWFRNL.LE.0.0) CALL nc_gen%read_spe('SWFRNL', swfrnl)
+          IF (SWFRXL.LE.0.0) CALL nc_gen%read_spe('SWFXL', swfrxl)
+          IF (SWFRX.LE.0.0) CALL nc_gen%read_spe('SWFRX', swfrx)
+          ! Following may be temporarily in ECO or CUL file
+          IF (PD(9).LE.0.0) CALL nc_gen%read_spe('P9', pd(9))
+          IF (lsphe.LE.0.0) CALL nc_gen%read_spe('LSPHE', lsphe)
+          IF (tdphe.LE.0.0) CALL nc_gen%read_spe('TDPHE', tdphe)
+          IF (tdphs.LE.0.0) CALL nc_gen%read_spe('TDPHS', tdphs)
+          IF (tilpe.LE.0.0) CALL nc_gen%read_spe('TILPE', tilpe)
+          IF (LLIFA.LE.0.0) CALL nc_gen%read_spe('LLIFA', llifa)
 
-        IF (PHINTL(1).LE.0) CALL SPREADR (SPDIRFLE,'PHL1',phintl(1))
-        IF (PHINTF(1).LE.0) CALL SPREADR (SPDIRFLE,'PHF1',phintf(1))
-        IF (PHINTL(2).LE.0) CALL SPREADR (SPDIRFLE,'PHL2',phintl(2))
-        IF (PHINTF(2).LE.0) CALL SPREADR (SPDIRFLE,'PHF2',phintf(2))
-        IF (PHINTF(3).LE.0) CALL SPREADR (SPDIRFLE,'PHF3',phintf(3))
+          IF (PHINTL(1).LE.0) CALL nc_gen%read_spe('PHL1', phintl(1))
+          IF (PHINTF(1).LE.0) CALL nc_gen%read_spe('PHF1', phintf(1))
+          IF (PHINTL(2).LE.0) CALL nc_gen%read_spe('PHL2', phintl(2))
+          IF (PHINTF(2).LE.0) CALL nc_gen%read_spe('PHF2', phintf(2))
+          IF (PHINTF(3).LE.0) CALL nc_gen%read_spe('PHF3', phintf(3))
 
-        IF (TDFAC.LE.0.0) CALL SPREADR (SPDIRFLE,'TDFAC',tdfac)
-        IF (RDGS.LE.0.0) CALL SPREADR (SPDIRFLE,'RDGS',rdgs)
-        IF (LAXS.LE.0.0) CALL SPREADR (SPDIRFLE,'LAXS',laxs)
-        IF (RLWR.LE.0.0) CALL SPREADR (SPDIRFLE,'RLWR',rlwr)
-        IF (NFGL.LT.0.0) CALL SPREADR (SPDIRFLE,'NFGL',nfgl)
-        IF (NFGU.LE.0.0) CALL SPREADR (SPDIRFLE,'NFGU',nfgu)
-        IF (NFPU.LE.0.0) CALL SPREADR (SPDIRFLE,'NFPU',nfpu)
-        IF (NFPL.LE.0.0) CALL SPREADR (SPDIRFLE,'NFPL',nfpl)
-        IF (KCAN.LE.0.0) CALL SPREADR (SPDIRFLE,'KCAN',kcan)
-        IF (LAFR.LE.-90.0) CALL SPREADR (SPDIRFLE,'LAFR',lafr)
-        IF (LAFV.LE.0.0) CALL SPREADR (SPDIRFLE,'LAFV',lafv)
-        IF (LAWCF.LE.0.0) CALL SPREADR (SPDIRFLE,'SLACF',lawcf)
-        IF (PPFPE.LT.0.0) CALL SPREADR (SPDIRFLE,'PPFPE',ppfpe)
-        IF (PPEXP.LT.0.0) CALL SPREADR (SPDIRFLE,'PPEXP',ppexp)
-        IF (TDSF.LT.0.0) CALL SPREADR (SPDIRFLE,'TDSF',tdsf)
-        ! Grain coefficients
-        IF (GWTAF.LT.-10.0) CALL SPREADR (SPDIRFLE,'GWTAF',gwtaf)
-        IF (GWTAT.LT.0.0) CALL SPREADR (SPDIRFLE,'GWTAT',gwtat)
-        IF (GNORF.LT.0.0) CALL SPREADR (SPDIRFLE,'G#RF',gnorf)
-        IF (GNORT.LT.0.0) CALL SPREADR (SPDIRFLE,'G#RT',gnort)
-        ! N uptake 
-        IF (NUPNF.LT.-90.0) CALL SPREADR (SPDIRFLE,'NUPNF',nupnf)
-        IF (NUPWF.LT.-90.0) CALL SPREADR (SPDIRFLE,'NUPWF',nupwf)
-        IF (RTNUP.LT.0.0) CALL SPREADR (SPDIRFLE,'RTNUP',rtnup)
-        IF (NO3MN.LT.0.0) CALL SPREADR (SPDIRFLE,'NO3MN',no3mn)
-        IF (NH4MN.LT.0.0) CALL SPREADR (SPDIRFLE,'NH4MN',nh4mn)
+          IF (TDFAC.LE.0.0) CALL nc_gen%read_spe('TDFAC', tdfac)
+          IF (RDGS.LE.0.0) CALL nc_gen%read_spe('RDGS', rdgs)
+          IF (LAXS.LE.0.0) CALL nc_gen%read_spe('LAXS', laxs)
+          IF (RLWR.LE.0.0) CALL nc_gen%read_spe('RLWR', rlwr)
+          IF (NFGL.LT.0.0) CALL nc_gen%read_spe('NFGL', nfgl)
+          IF (NFGU.LE.0.0) CALL nc_gen%read_spe('NFGU', nfgu)
+          IF (NFPU.LE.0.0) CALL nc_gen%read_spe('NFPU', nfpu)
+          IF (NFPL.LE.0.0) CALL nc_gen%read_spe('NFPL', nfpl)
+          IF (KCAN.LE.0.0) CALL nc_gen%read_spe('KCAN', kcan)
+          IF (LAFR.LE.-90.0) CALL nc_gen%read_spe('LAFR', lafr)
+          IF (LAFV.LE.0.0) CALL nc_gen%read_spe('LAFV', lafv)
+          IF (LAWCF.LE.0.0) CALL nc_gen%read_spe('SLACF', lawcf)
+          IF (PPFPE.LT.0.0) CALL nc_gen%read_spe('PPFPE', ppfpe)
+          IF (PPEXP.LT.0.0) CALL nc_gen%read_spe('PPEXP', ppexp)
+          IF (TDSF.LT.0.0) CALL nc_gen%read_spe('TDSF', tdsf)
+          ! Grain coefficients
+          IF (GWTAF.LT.-10.0) CALL nc_gen%read_spe('GWTAF', gwtaf)
+          IF (GWTAT.LT.0.0) CALL nc_gen%read_spe('GWTAT', gwtat)
+          IF (GNORF.LT.0.0) CALL nc_gen%read_spe('G#RF', gnorf)
+          IF (GNORT.LT.0.0) CALL nc_gen%read_spe('G#RT', gnort)
+          ! N uptake 
+          IF (NUPNF.LT.-90.0) CALL nc_gen%read_spe('NUPNF', nupnf)
+          IF (NUPWF.LT.-90.0) CALL nc_gen%read_spe('NUPWF', nupwf)
+          IF (RTNUP.LT.0.0) CALL nc_gen%read_spe('RTNUP', rtnup)
+          IF (NO3MN.LT.0.0) CALL nc_gen%read_spe('NO3MN', no3mn)
+          IF (NH4MN.LT.0.0) CALL nc_gen%read_spe('NH4MN', nh4mn)
 
-        CALL SPREADC (SPDIRFLE,'PPSEN',ppsen)
+          CALL nc_gen%read_spe('PPSEN', ppsen)
 
-        CALL SPREADRA (SPDIRFLE,'LN%S','2',lnpcs)
-        CALL SPREADRA (SPDIRFLE,'RN%S','2',rnpcs)
-        CALL SPREADRA (SPDIRFLE,'SN%S','2',snpcs)
-        CALL SPREADRA (SPDIRFLE,'LN%MN','2',lnpcmn)
-        CALL SPREADRA (SPDIRFLE,'RN%MN','2',rnpcmn)
-        CALL SPREADRA (SPDIRFLE,'SN%MN','2',snpcmn)
+          CALL nc_gen%read_spe('LN%S', lnpcs)
+          CALL nc_gen%read_spe('RN%S', rnpcs)
+          CALL nc_gen%read_spe('SN%S', snpcs)
+          CALL nc_gen%read_spe('LN%MN', lnpcmn)
+          CALL nc_gen%read_spe('RN%MN', rnpcmn)
+          CALL nc_gen%read_spe('SN%MN', snpcmn)
 
-        CALL SPREADRA (SPDIRFLE,'CHT%','10',chtpc)
-        CALL SPREADRA (SPDIRFLE,'CLA%','10',clapc)
+          CALL nc_gen%read_spe('CHT%', chtpc)
+          CALL nc_gen%read_spe('CLA%', clapc)
 
-        CALL SPREADRA (SPDIRFLE,'CO2RF','10',co2rf)
-        CALL SPREADRA (SPDIRFLE,'CO2F','10',co2f)
+          CALL nc_gen%read_spe('CO2RF', co2rf)
+          CALL nc_gen%read_spe('CO2F', co2f)
+
+          CALL nc_gen%read_spe('TRDV1', trdv1)
+          IF (trdv1(1).LT.-98.0) THEN
+             OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
+             WRITE(fnumerr,*) ' '
+             WRITE(fnumerr,*) ' No temp response data for phase 1'
+             WRITE(fnumerr,*) ' Please check'
+             WRITE(*,*) ' No temperature response data for phase 1'
+             WRITE(*,*) ' Program will have to stop'
+             CLOSE (fnumerr)
+             STOP ' '
+          ENDIF        
+          CALL nc_gen%read_spe('TRDV2', trdv2)
+          IF (trdv2(1).LT.-98.0) TRDV2 = TRDV1
+          CALL nc_gen%read_spe('TRDV3', trdv3)
+          IF (trdv3(1).LT.-98.0) TRDV3 = TRDV2
+          CALL nc_gen%read_spe('TRDV4', trdv4)
+          IF (trdv4(1).LT.-98.0) TRDV4 = TRDV3
+          CALL nc_gen%read_spe('TRDV5', trdv5)
+          IF (trdv5(1).LT.-98.0) TRDV5 = TRDV4
+          CALL nc_gen%read_spe('TRDV6', trdv6)
+          IF (trdv6(1).LT.-98.0) TRDV6 = TRDV5
+          CALL nc_gen%read_spe('TRDV7', trdv7)
+          IF (trdv7(1).LT.-98.0) TRDV7 = TRDV6
+          CALL nc_gen%read_spe('TRDV8', trdv8)
+          IF (trdv8(1).LT.-98.0) TRDV8 = TRDV7
+
+          CALL nc_gen%read_spe('TRGEM', trgem)
+          CALL nc_gen%read_spe('TRGFW', trgfc)
+          CALL nc_gen%read_spe('TRGFN', trgfn)
+          CALL nc_gen%read_spe('TRLFG', trlfg)
+          CALL nc_gen%read_spe('TRHAR', trcoh)
+          CALL nc_gen%read_spe('TRPHS', trphs)
+          CALL nc_gen%read_spe('TRVRN', trvrn)
+          IF (diffacr(1).LT.0.0) CALL nc_gen%read_spe('DIFFR', diffacr)
+
+          CALL nc_gen%read_spe('PSNAME', psname)
+          CALL nc_gen%read_spe('SSNAME', ssname)
+          CALL nc_gen%read_spe('PSABV', psabv)
+          CALL nc_gen%read_spe('SSABV', ssabv)
+          CALL nc_gen%read_spe('PSTYP', pstyp)
+          CALL nc_gen%read_spe('SSTYP', sstyp)
+          CALL nc_gen%read_spe('SSTG', sstg)
+        else
+          CALL SPREADR (SPDIRFLE, 'CHFR', chfr)
+          CALL SPREADR (SPDIRFLE, 'CO2CC', co2compc)
+          CALL SPREADR (SPDIRFLE, 'CO2EX', co2ex)
+          CALL SPREADR (SPDIRFLE, 'GLIG%', gligpc)
+          CALL SPREADR (SPDIRFLE, 'GN%MX', gnpcmx)
+          CALL SPREADR (SPDIRFLE, 'GWLAG', gwlagfr)
+          CALL SPREADR (SPDIRFLE, 'GWLIN', gwlinfr)
+          CALL SPREADR (SPDIRFLE, 'HDUR', hdur)
+          CALL SPREADR (SPDIRFLE, 'HLOSF', hlosf)
+          CALL SPREADR (SPDIRFLE, 'HLOST', hlost)
+          CALL SPREADR (SPDIRFLE, 'LAFST', lafst)
+          CALL SPREADR (SPDIRFLE, 'SLAFF', lawff)
+          CALL SPREADR (SPDIRFLE, 'SLATR', lawtr)
+          CALL SPREADR (SPDIRFLE, 'SLATS', lawts)
+          CALL SPREADR (SPDIRFLE, 'SLAWR', lawwr)
+          CALL SPREADR (SPDIRFLE, 'LLIFG', LLIFG)
+          CALL SPREADR (SPDIRFLE, 'LLIFS', llifs)
+          CALL SPREADR (SPDIRFLE, 'LLIG%', lligpc)
+          CALL SPREADR (SPDIRFLE, 'LLOSA', llosa)
+          CALL SPREADR (SPDIRFLE, 'LWLOS', lwlos)
+          CALL SPREADR (SPDIRFLE, 'NFSU', nfsu)
+          CALL SPREADR (SPDIRFLE, 'NFSF', nfsf)
+          CALL SPREADR (SPDIRFLE, 'NFTL ', nftl)
+          CALL SPREADR (SPDIRFLE, 'NFTU ', nftu)
+          CALL SPREADR (SPDIRFLE, 'LSHAR', lshar)
+          CALL SPREADR (SPDIRFLE, 'LSHAV', lshav)
+          CALL SPREADR (SPDIRFLE, 'LSHFR', lshfr)
+          CALL SPREADR (SPDIRFLE, 'NCRG', ncrg)
+          CALL SPREADR (SPDIRFLE, 'NTUPF', ntupf)
+          CALL SPREADR (SPDIRFLE, 'PARIX', parix)
+          CALL SPREADR (SPDIRFLE, 'LAIXX', laixx)
+          CALL SPREADR (SPDIRFLE, 'PARFC', parfc)
+          IF (PEMRG.LE.0.0) CALL SPREADR (SPDIRFLE, 'PEMRG', pemrg)
+          IF (PGERM.LE.0.0) CALL SPREADR (SPDIRFLE, 'PGERM', pgerm)
+          CALL SPREADR (SPDIRFLE, 'PDMH', pdmtohar)
+          CALL SPREADR (SPDIRFLE, 'PHSV', phsv)
+          CALL SPREADR (SPDIRFLE, 'PHTV', phtv)
+          CALL SPREADR (SPDIRFLE, 'PPTHR', ppthr)
+          CALL SPREADR (SPDIRFLE, 'PTFXS', ptfxs)
+          CALL SPREADR (SPDIRFLE, 'PTFA', ptfa)
+          CALL SPREADR (SPDIRFLE, 'PTFMN', ptfmn)
+          CALL SPREADR (SPDIRFLE, 'PTFMX', ptfmx)
+          CALL SPREADR (SPDIRFLE, 'RATM', ratm)
+          CALL SPREADR (SPDIRFLE, 'RCROP', rcrop)
+          CALL SPREADR (SPDIRFLE, 'EORAT', eoratio)
+          CALL SPREADR (SPDIRFLE, 'RDGAF', rdgaf)
+          CALL SPREADR (SPDIRFLE, 'RLIG%', rligpc)
+          !CALL SPREADR (SPDIRFLE, 'RNUMX', rnumx) ! Taken out of spp file
+          CALL SPREADR (SPDIRFLE, 'RRESP', rresp)
+          CALL SPREADR (SPDIRFLE, 'RS%LX', rspclx)
+          CALL SPREADR (SPDIRFLE, 'RS%X', rspcx)
+          CALL SPREADR (SPDIRFLE, 'RSEN', rsen)
+          IF (RSEN.LT.0.0) CALL SPREADR (SPDIRFLE, 'RSEN%', rsen)
+          CALL SPREADR (SPDIRFLE, 'RSFPL', rsfpl)
+          CALL SPREADR (SPDIRFLE, 'RSFPU', rsfpu)
+          CALL SPREADR (SPDIRFLE, 'RSUSE', rsuse)
+          CALL SPREADR (SPDIRFLE, 'RTUFR', rtufr)
+          CALL SPREADR (SPDIRFLE, 'RUESG', ruestg)
+          CALL SPREADR (SPDIRFLE, 'RWUMX', rwumx)
+          CALL SPREADR (SPDIRFLE, 'RWUPM', rwupm)
+          CALL SPREADR (SPDIRFLE, 'SAWS', saws)
+          CALL SPREADR (SPDIRFLE, 'SDDUR', sddur)
+          CALL SPREADR (SPDIRFLE, 'SDN%', sdnpci)
+          CALL SPREADR (SPDIRFLE, 'SDRS%', sdrspc)
+          CALL SPREADR (SPDIRFLE, 'SDWT', sdwt)
+          CALL SPREADR (SPDIRFLE, 'SLIG%', sligpc)
+          CALL SPREADR (SPDIRFLE, 'TGR02', tgr(2))
+          CALL SPREADR (SPDIRFLE, 'TGR20', tgr(20))
+          CALL SPREADR (SPDIRFLE, 'TILIP', tilip)
+          CALL SPREADR (SPDIRFLE, 'TIL#X', tilnox)
+          CALL SPREADR (SPDIRFLE, 'TKDLF', tkdlf)
+          CALL SPREADR (SPDIRFLE, 'TKSPN', tkspn)
+          CALL SPREADR (SPDIRFLE, 'TKDTI', tkdti)
+          CALL SPREADR (SPDIRFLE, 'TKUH', tkuh)
+          CALL SPREADR (SPDIRFLE, 'TKGF', tkgf)
+          CALL SPREADR (SPDIRFLE, 'TPAR', tpar)
+          CALL SPREADR (SPDIRFLE, 'TSRAD', tsrad)
+          CALL SPREADR (SPDIRFLE, 'VEEND', veend)
+          CALL SPREADR (SPDIRFLE, 'VLOSF', vlosf)
+          CALL SPREADR (SPDIRFLE, 'VLOSS', vloss)
+          CALL SPREADR (SPDIRFLE, 'VLOST', vlost)
+          CALL SPREADR (SPDIRFLE, 'VPEND', vpend)
+          CALL SPREADR (SPDIRFLE, 'WFEU', wfeu)
+          CALL SPREADR (SPDIRFLE, 'WFGEU', wfgeu)
+          CALL SPREADR (SPDIRFLE, 'WFGU', wfgu)
+          CALL SPREADR (SPDIRFLE, 'WFGL', wfgl)
+          CALL SPREADR (SPDIRFLE, 'WFPU', wfpu)
+          CALL SPREADR (SPDIRFLE, 'WFPL', wfpl)
+          CALL SPREADR (SPDIRFLE, 'WFRGU', wfrgu)
+          CALL SPREADR (SPDIRFLE, 'WFSU', wfsu)
+          CALL SPREADR (SPDIRFLE, 'WFSF', wfsf)
+          CALL SPREADR (SPDIRFLE, 'WFTL', wftl)
+          CALL SPREADR (SPDIRFLE, 'WFTU', wftu)
+          CALL SPREADR (SPDIRFLE, 'NLAB%', nlabpc)
+          ! LAH Following set up to allow for change in stem fraction
+          ! Currently not used ... just one stem fraction (STFR)
+          IF (SWFRN.LE.0.0) CALL SPREADR (SPDIRFLE, 'SWFRN', swfrn)
+          IF (SWFRNL.LE.0.0) CALL SPREADR (SPDIRFLE, 'SWFRNL', swfrnl)
+          IF (SWFRXL.LE.0.0) CALL SPREADR (SPDIRFLE, 'SWFXL', swfrxl)
+          IF (SWFRX.LE.0.0) CALL SPREADR (SPDIRFLE, 'SWFRX', swfrx)
+          ! Following may be temporarily in ECO or CUL file
+          IF (PD(9).LE.0.0) CALL SPREADR (SPDIRFLE, 'P9', pd(9))
+          IF (lsphe.LE.0.0) CALL SPREADR (SPDIRFLE, 'LSPHE', lsphe)
+          IF (tdphe.LE.0.0) CALL SPREADR (SPDIRFLE, 'TDPHE', tdphe)
+          IF (tdphs.LE.0.0) CALL SPREADR (SPDIRFLE, 'TDPHS', tdphs)
+          IF (tilpe.LE.0.0) CALL SPREADR (SPDIRFLE, 'TILPE', tilpe)
+          IF (LLIFA.LE.0.0) CALL SPREADR (SPDIRFLE, 'LLIFA', llifa)
+
+          IF (PHINTL(1).LE.0) CALL SPREADR (SPDIRFLE, 'PHL1', phintl(1))
+          IF (PHINTF(1).LE.0) CALL SPREADR (SPDIRFLE, 'PHF1', phintf(1))
+          IF (PHINTL(2).LE.0) CALL SPREADR (SPDIRFLE, 'PHL2', phintl(2))
+          IF (PHINTF(2).LE.0) CALL SPREADR (SPDIRFLE, 'PHF2', phintf(2))
+          IF (PHINTF(3).LE.0) CALL SPREADR (SPDIRFLE, 'PHF3', phintf(3))
+
+          IF (TDFAC.LE.0.0) CALL SPREADR (SPDIRFLE, 'TDFAC', tdfac)
+          IF (RDGS.LE.0.0) CALL SPREADR (SPDIRFLE, 'RDGS', rdgs)
+          IF (LAXS.LE.0.0) CALL SPREADR (SPDIRFLE, 'LAXS', laxs)
+          IF (RLWR.LE.0.0) CALL SPREADR (SPDIRFLE, 'RLWR', rlwr)
+          IF (NFGL.LT.0.0) CALL SPREADR (SPDIRFLE, 'NFGL', nfgl)
+          IF (NFGU.LE.0.0) CALL SPREADR (SPDIRFLE, 'NFGU', nfgu)
+          IF (NFPU.LE.0.0) CALL SPREADR (SPDIRFLE, 'NFPU', nfpu)
+          IF (NFPL.LE.0.0) CALL SPREADR (SPDIRFLE, 'NFPL', nfpl)
+          IF (KCAN.LE.0.0) CALL SPREADR (SPDIRFLE, 'KCAN', kcan)
+          IF (LAFR.LE.-90.0) CALL SPREADR (SPDIRFLE, 'LAFR', lafr)
+          IF (LAFV.LE.0.0) CALL SPREADR (SPDIRFLE, 'LAFV', lafv)
+          IF (LAWCF.LE.0.0) CALL SPREADR (SPDIRFLE, 'SLACF', lawcf)
+          IF (PPFPE.LT.0.0) CALL SPREADR (SPDIRFLE, 'PPFPE', ppfpe)
+          IF (PPEXP.LT.0.0) CALL SPREADR (SPDIRFLE, 'PPEXP', ppexp)
+          IF (TDSF.LT.0.0) CALL SPREADR (SPDIRFLE, 'TDSF', tdsf)
+          ! Grain coefficients
+          IF (GWTAF.LT.-10.0) CALL SPREADR (SPDIRFLE, 'GWTAF', gwtaf)
+          IF (GWTAT.LT.0.0) CALL SPREADR (SPDIRFLE, 'GWTAT', gwtat)
+          IF (GNORF.LT.0.0) CALL SPREADR (SPDIRFLE, 'G#RF', gnorf)
+          IF (GNORT.LT.0.0) CALL SPREADR (SPDIRFLE, 'G#RT', gnort)
+          ! N uptake 
+          IF (NUPNF.LT.-90.0) CALL SPREADR (SPDIRFLE, 'NUPNF', nupnf)
+          IF (NUPWF.LT.-90.0) CALL SPREADR (SPDIRFLE, 'NUPWF', nupwf)
+          IF (RTNUP.LT.0.0) CALL SPREADR (SPDIRFLE, 'RTNUP', rtnup)
+          IF (NO3MN.LT.0.0) CALL SPREADR (SPDIRFLE, 'NO3MN', no3mn)
+          IF (NH4MN.LT.0.0) CALL SPREADR (SPDIRFLE, 'NH4MN', nh4mn)
+
+          CALL SPREADC (SPDIRFLE, 'PPSEN', ppsen)
+
+          CALL SPREADRA (SPDIRFLE, 'LN%S', '2', lnpcs)
+          CALL SPREADRA (SPDIRFLE, 'RN%S', '2', rnpcs)
+          CALL SPREADRA (SPDIRFLE, 'SN%S', '2', snpcs)
+          CALL SPREADRA (SPDIRFLE, 'LN%MN', '2', lnpcmn)
+          CALL SPREADRA (SPDIRFLE, 'RN%MN', '2', rnpcmn)
+          CALL SPREADRA (SPDIRFLE, 'SN%MN', '2', snpcmn)
+
+          CALL SPREADRA (SPDIRFLE, 'CHT%', '10', chtpc)
+          CALL SPREADRA (SPDIRFLE, 'CLA%', '10', clapc)
+
+          CALL SPREADRA (SPDIRFLE, 'CO2RF', '10', co2rf)
+          CALL SPREADRA (SPDIRFLE, 'CO2F', '10', co2f)
         
 !         Temperature responses
 !        RRATE TRGEM TRDV1 TRDV4 TRDV8 TRLFG TRPHS TRVRN TRHAR TRGFW TRGFN  
@@ -995,49 +1336,51 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 !          1.0    26    26    26    30    10     5     0     0    16    16  
 !          1.0    50    50    50    50    20    25     7     5    35    35
 !            0    60    60    60    60    35    35    15    10    45    45
-        CALL SPREADRA (SPDIRFLE,'TRDV1','4',trdv1)
-        IF (trdv1(1).LT.-98.0) THEN
-          OPEN (UNIT = FNUMERR,FILE = 'ERROR.OUT')
-          WRITE(fnumerr,*) ' '
-          WRITE(fnumerr,*) ' No temp response data for phase 1'
-          WRITE(fnumerr,*) ' Please check'
-          WRITE(*,*) ' No temperature response data for phase 1'
-          WRITE(*,*) ' Program will have to stop'
-          CLOSE (fnumerr)
-          STOP ' '
-        ENDIF        
-        CALL SPREADRA (SPDIRFLE,'TRDV2','4',trdv2)
-        IF (trdv2(1).LT.-98.0) TRDV2 = TRDV1
-        CALL SPREADRA (SPDIRFLE,'TRDV3','4',trdv3)
-        IF (trdv3(1).LT.-98.0) TRDV3 = TRDV2
-        CALL SPREADRA (SPDIRFLE,'TRDV4','4',trdv4)
-        IF (trdv4(1).LT.-98.0) TRDV4 = TRDV3
-        CALL SPREADRA (SPDIRFLE,'TRDV5','4',trdv5)
-        IF (trdv5(1).LT.-98.0) TRDV5 = TRDV4
-        CALL SPREADRA (SPDIRFLE,'TRDV6','4',trdv6)
-        IF (trdv6(1).LT.-98.0) TRDV6 = TRDV5
-        CALL SPREADRA (SPDIRFLE,'TRDV7','4',trdv7)
-        IF (trdv7(1).LT.-98.0) TRDV7 = TRDV6
-        CALL SPREADRA (SPDIRFLE,'TRDV8','4',trdv8)
-        IF (trdv8(1).LT.-98.0) TRDV8 = TRDV7
+          CALL SPREADRA (SPDIRFLE, 'TRDV1', '4', trdv1)
+          IF (trdv1(1).LT.-98.0) THEN
+             OPEN (UNIT = FNUMERR, FILE = 'ERROR.OUT')
+             WRITE(fnumerr, *) ' '
+             WRITE(fnumerr, *) ' No temp response data for phase 1'
+             WRITE(fnumerr, *) ' Please check'
+             WRITE(*, *) ' No temperature response data for phase 1'
+             WRITE(*, *) ' Program will have to stop'
+             CLOSE (fnumerr)
+             STOP ' '
+          ENDIF        
+          CALL SPREADRA (SPDIRFLE, 'TRDV2', '4', trdv2)
+          IF (trdv2(1).LT.-98.0) TRDV2 = TRDV1
+          CALL SPREADRA (SPDIRFLE, 'TRDV3', '4', trdv3)
+          IF (trdv3(1).LT.-98.0) TRDV3 = TRDV2
+          CALL SPREADRA (SPDIRFLE, 'TRDV4', '4', trdv4)
+          IF (trdv4(1).LT.-98.0) TRDV4 = TRDV3
+          CALL SPREADRA (SPDIRFLE, 'TRDV5', '4', trdv5)
+          IF (trdv5(1).LT.-98.0) TRDV5 = TRDV4
+          CALL SPREADRA (SPDIRFLE, 'TRDV6', '4', trdv6)
+          IF (trdv6(1).LT.-98.0) TRDV6 = TRDV5
+          CALL SPREADRA (SPDIRFLE, 'TRDV7', '4', trdv7)
+          IF (trdv7(1).LT.-98.0) TRDV7 = TRDV6
+          CALL SPREADRA (SPDIRFLE, 'TRDV8', '4', trdv8)
+          IF (trdv8(1).LT.-98.0) TRDV8 = TRDV7
 
-        CALL SPREADRA (SPDIRFLE,'TRGEM','4',trgem)
-        CALL SPREADRA (SPDIRFLE,'TRGFW','4',trgfc)
-        CALL SPREADRA (SPDIRFLE,'TRGFN','4',trgfn)
-        CALL SPREADRA (SPDIRFLE,'TRLFG','4',trlfg)
-        CALL SPREADRA (SPDIRFLE,'TRHAR','4',trcoh)
-        CALL SPREADRA (SPDIRFLE,'TRPHS','4',trphs)
-        CALL SPREADRA (SPDIRFLE,'TRVRN','4',trvrn)
-        IF (diffacr(1).LT.0.0)
-     &   CALL SPREADRA (SPDIRFLE,'DIFFR','3',diffacr)
+          CALL SPREADRA (SPDIRFLE, 'TRGEM', '4', trgem)
+          CALL SPREADRA (SPDIRFLE, 'TRGFW', '4', trgfc)
+          CALL SPREADRA (SPDIRFLE, 'TRGFN', '4', trgfn)
+          CALL SPREADRA (SPDIRFLE, 'TRLFG', '4', trlfg)
+          CALL SPREADRA (SPDIRFLE, 'TRHAR', '4', trcoh)
+          CALL SPREADRA (SPDIRFLE, 'TRPHS', '4', trphs)
+          CALL SPREADRA (SPDIRFLE, 'TRVRN', '4', trvrn)
+          IF (diffacr(1).LT.0.0)
+     &     CALL SPREADRA (SPDIRFLE, 'DIFFR', '3', diffacr)
 
-        CALL SPREADCA (SPDIRFLE,'PSNAME','20',psname)
-        CALL SPREADCA (SPDIRFLE,'SSNAME','20',ssname)
-        CALL SPREADCA (SPDIRFLE,'PSABV','20',psabv)
-        CALL SPREADCA (SPDIRFLE,'SSABV','20',ssabv)
-        CALL SPREADCA (SPDIRFLE,'PSTYP','20',pstyp)
-        CALL SPREADCA (SPDIRFLE,'SSTYP','20',sstyp)
-        CALL SPREADRA (SPDIRFLE,'SSTG','20',sstg)
+          CALL SPREADCA (SPDIRFLE, 'PSNAME', '20', psname)
+          CALL SPREADCA (SPDIRFLE, 'SSNAME', '20', ssname)
+          CALL SPREADCA (SPDIRFLE, 'PSABV', '20', psabv)
+          CALL SPREADCA (SPDIRFLE, 'SSABV', '20', ssabv)
+          CALL SPREADCA (SPDIRFLE, 'PSTYP', '20', pstyp)
+          CALL SPREADCA (SPDIRFLE, 'SSTYP', '20', sstyp)
+          CALL SPREADRA (SPDIRFLE, 'SSTG', '20', sstg)
+
+        end if
 
         ! The following are to allow examination of the functioning of 
         ! different parts of the module, and comparison with CSCER     
@@ -2480,7 +2823,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
 !        WRITE(FNUMWRK,'(A22)')' OUTPUTS              '
 
         ! Control switch for OUTPUT file names
-        CALL XREADC (FILEIO,TN,RN,SN,ON,CN,'FNAME',fname)
+        call csminp%get('*SIMULATION CONTROL','FNAME',fname)
 !        IF (FNAME.EQ.'Y') THEN
 !          WRITE(FNUMWRK,*)' File names switched from standard. '
 !        ELSE  
