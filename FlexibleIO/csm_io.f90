@@ -612,6 +612,48 @@ module class_ioput
         
       end function find_sec
 
+      subroutine find_variable(ioput, sec, key,&
+                               sec_ind, tier_ind, type_ind, var_ind)
+
+        implicit none
+
+        integer :: i,sec_ind,tier_ind,type_ind,var_ind
+
+        class(csm_io_type)   :: ioput
+
+        character(len=*)    :: sec
+        character(len=*)    :: key
+
+        tier_ind = 0
+        type_ind = 0
+        var_ind = 0
+        sec_ind = find_sec(ioput, sec)
+
+        if(sec_ind .gt. 0)then
+          do i=1,size(ioput%section(sec_ind)%tier)
+            var_ind = find_name(ioput%section(sec_ind)%tier(i)%char_name, key)
+            if(var_ind .gt. 0)then
+               tier_ind = i
+               type_ind = 1
+               return
+            end if
+            var_ind = find_name(ioput%section(sec_ind)%tier(i)%real_name, key)
+            if(var_ind .gt. 0)then
+               tier_ind = i
+               type_ind = 2
+               return
+            end if
+            var_ind = find_name(ioput%section(sec_ind)%tier(i)%int_name, key)
+            if(var_ind .gt. 0)then
+               tier_ind = i
+               type_ind = 3
+               return
+            end if
+          end do
+        end if
+        
+      end subroutine find_variable
+
       subroutine add_sec(ioput,header,ntiers)
 
         implicit none
@@ -646,7 +688,7 @@ module class_ioput
         end if
       end subroutine add_sec
 
-      subroutine put_io_val_real_array(ioput,sec_name,vname,val,ind,tier)
+      subroutine put_io_val_real_array(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -656,12 +698,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         real,dimension(:),intent(in)       :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -678,8 +732,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -696,7 +754,7 @@ module class_ioput
 
       end subroutine put_io_val_real_array
 
-      subroutine put_io_val_int_array(ioput,sec_name,vname,val,ind,tier)
+      subroutine put_io_val_int_array(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -706,12 +764,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         integer,dimension(:),intent(in)    :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -728,8 +798,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -746,7 +820,7 @@ module class_ioput
 
       end subroutine put_io_val_int_array
 
-      subroutine put_io_val_char_array(ioput,sec_name,vname,val,ind,tier)
+      subroutine put_io_val_char_array(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -756,12 +830,24 @@ module class_ioput
         character(len=*),intent(in)              :: vname
         character(len=*),dimension(:),intent(in) :: val
         class(csm_io_type)                        :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -778,8 +864,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -798,7 +888,7 @@ module class_ioput
 
       end subroutine put_io_val_char_array
 
-      subroutine put_io_val_real(ioput,sec_name,vname,val,ind,tier)
+      subroutine put_io_val_real(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -808,12 +898,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         real,intent(in)                    :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -830,8 +932,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -848,7 +954,7 @@ module class_ioput
 
       end subroutine put_io_val_real
 
-      subroutine put_io_val_int(ioput,sec_name,vname,val,ind,tier)
+      subroutine put_io_val_int(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -858,12 +964,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         integer,intent(in)                 :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -880,8 +998,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -898,7 +1020,7 @@ module class_ioput
 
       end subroutine put_io_val_int
 
-      subroutine put_io_val_char(ioput,sec_name,vname,val,ind,tier)
+      subroutine put_io_val_char(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -908,12 +1030,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         character(len=*),intent(in)        :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -930,8 +1064,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -948,7 +1086,7 @@ module class_ioput
 
       end subroutine put_io_val_char
 
-      subroutine get_io_val_real(ioput,sec_name,vname,val,ind,tier)
+      subroutine get_io_val_real(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -958,12 +1096,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         real,intent(out)                    :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -980,10 +1130,13 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
-
 
         if(present(ind))then
            i = ind
@@ -995,7 +1148,7 @@ module class_ioput
 
       end subroutine get_io_val_real
 
-      subroutine get_io_val_int(ioput,sec_name,vname,val,ind,tier)
+      subroutine get_io_val_int(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -1005,12 +1158,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         integer,intent(out)                :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -1027,10 +1192,13 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
-
 
         if(present(ind))then
            i = ind
@@ -1042,7 +1210,7 @@ module class_ioput
 
       end subroutine get_io_val_int
 
-      subroutine get_io_val_char(ioput,sec_name,vname,val,ind,tier)
+      subroutine get_io_val_char(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -1052,12 +1220,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         character(len=*),intent(out)        :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -1080,15 +1260,19 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         val = ioput%section(s)%tier(t)%char_value(i,j)
 
       end subroutine get_io_val_char
 
-      subroutine get_io_val_real_array(ioput,sec_name,vname,val,ind,tier)
+      subroutine get_io_val_real_array(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -1098,12 +1282,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         real,dimension(:),intent(out)      :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -1120,8 +1316,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -1142,7 +1342,7 @@ module class_ioput
 
       end subroutine get_io_val_real_array
 
-      subroutine get_io_val_int_array(ioput,sec_name,vname,val,ind,tier)
+      subroutine get_io_val_int_array(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -1152,12 +1352,24 @@ module class_ioput
         character(len=*),intent(in)        :: vname
         integer,dimension(:),intent(out)   :: val
         class(csm_io_type)                  :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -1174,8 +1386,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -1196,7 +1412,7 @@ module class_ioput
 
       end subroutine get_io_val_int_array
 
-      subroutine get_io_val_char_array(ioput,sec_name,vname,val,ind,tier)
+      subroutine get_io_val_char_array(ioput,sec_name,vname,val,ind,tier,throw_error)
 
         implicit none
 
@@ -1206,12 +1422,24 @@ module class_ioput
         character(len=*),intent(in)               :: vname
         character(len=*),dimension(:),intent(out) :: val
         class(csm_io_type)                         :: ioput
+        logical, optional, intent(in)       :: throw_error
+        logical                             :: throw
+
+        if(present(throw_error))then
+           throw = throw_error
+        else
+           throw = .true.
+        end if
 
         s = find_sec(ioput,sec_name)
 
         if(s<=0)then
-           write(*,*) 'Section ',sec_name,' not found.'
-           stop
+          if (throw) then
+            write(*,*) 'Section ',sec_name,' not found.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(tier))then
@@ -1228,8 +1456,12 @@ module class_ioput
         end if
 
         if(j<=0)then
-           write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
-           stop
+          if (throw) then
+            write(*,*) 'Variable ',vname, ' not found in ',sec_name,'.'
+            stop
+          else
+            return
+          end if
         end if
 
         if(present(ind))then
@@ -1266,8 +1498,8 @@ module class_ioput
         s = find_sec(ioput,header)
 
         if(s<=0)then
-           write(*,*) 'Section ',header,' not found.'
-           stop
+          write(*,*) 'Section ',header,' not found.'
+          stop
         end if
 
         if(present(tier))then
