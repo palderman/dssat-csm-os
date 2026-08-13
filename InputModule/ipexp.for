@@ -180,6 +180,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
       FILELS = 'EXP.LST'
       
+      
 C-----------------------------------------------------------------------
 C     Set depths of individual soil layers
 C-----------------------------------------------------------------------
@@ -486,7 +487,7 @@ C-----------------------------------------------------------------------
 C     Call MAKEFILEW to read FILEX and 
 C-----------------------------------------------------------------------
       if(.not.nc_filex%yes)then
-      CALL MAKEFILEW(LUNEXP,DSSATP,PATHEX,FILEX,
+      CALL MAKEFILEW(LUNEXP,control%DSSATP,PATHEX,FILEX,
      &        SimLevel,LNSIM,LNPLT,LNFLD)
       end if
       
@@ -994,7 +995,7 @@ C-----------------------------------------------------------------------
             PATHWT = TRIM(PATHEX)
 !         Check weather filename in default DSSAT directory
           ELSE
-            CALL PATH(PROCOD,DSSATP,PATHWT,1,NAMEF)
+            CALL PATH(PROCOD,control%DSSATP,PATHWT,1,NAMEF)
             FILETMP = TRIM(PATHWT) // FILE_CHECK
             INQUIRE (FILE=FILETMP, EXIST = FEXIST)
             IF (FEXIST) THEN

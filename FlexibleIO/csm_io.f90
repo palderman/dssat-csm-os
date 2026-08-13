@@ -31,7 +31,7 @@ module class_alchar
 
         type(alchar),dimension(:),allocatable :: names
         character(len=*)    :: key
-        character(len=len(key)) :: tmp
+        character(len=:), allocatable :: tmp
 
         ind = 0
 
@@ -1609,5 +1609,30 @@ module csm_io
     implicit none
 
     type(csm_io_type)  :: csminp,csmout
+
+  contains
+    
+    function round_real(unrounded,width,digits) result(rounded)
+
+      implicit none
+
+      integer,intent(in) :: width,digits
+      real,intent(in) :: unrounded
+      real :: rounded
+      character(len=width) :: char_tmp
+      character(len=12) :: fmt
+
+      fmt = ' '
+
+      write(fmt(1:3),'(i3)') width
+      write(fmt(4:6),'(i3)') digits
+
+      fmt = '(f'//trim(adjustl(fmt(1:3)))//'.'//trim(adjustl(fmt(4:6)))//')'
+
+      write(char_tmp,fmt) unrounded
+
+      read(char_tmp,fmt) rounded
+
+    end function round_real
 
 end module csm_io

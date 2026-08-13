@@ -316,7 +316,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           !WRITE (*,*) ' Check WORK.OUT for details of run'
           STOP ' '
         ENDIF
-        call csminp%get('*CULTIVAR','VARNO',varno)
+        call csminp%get('*CULTIVARS','VARNO',varno)
         call csminp%get('*PLANTING DETAILS','PLANTS',pltpopp)
         call csminp%get('*PLANTING DETAILS','ROWSPC',rowspc)
         call csminp%get('*PLANTING DETAILS','SDEPTH',sdepth)
@@ -449,7 +449,73 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           call csminp%get('*CULTIVAR','G3',g3)
           call csminp%get('*CULTIVAR','PHINT',phints)
 
-          call csminp%get('*FILES','PATHEX',fileadir)
+          call csminp%get('*CULTIVAR','P1',pd(1),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','P2',pd(2),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','P2FR1',pd2fr(1),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','P3',pd(3),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','P4',pd(4),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','P4FR1',pd4fr(1),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','P4FR2',pd4fr(2),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','VEFF',veff,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','PARUE',paruv,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','PARU2',parur,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','LA1S',lapot(1),
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','SLAS',laws,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','LAFV',lafv,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','LAFR',lafr,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','TBAM',tbam,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','GN%S',grns,
+     &                    throw_error = .false.)
+          ! N uptake variables in species file
+          call csminp%get('*CULTIVAR','NCNU',ncnu,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','RLFNU',rlfnu,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','WFNUU',wfnuu,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NFPU',nfpu,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NFGU',nfgu,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NFTU',nftu,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NFPL',nfpl,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NFGL',nfgl,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NFTL',nftl,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','RTNO3',rtno3,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','RTNH4',rtnh4,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NSFAC',nsfac,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NMNFC',nmnfc,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','NLAB%',xnfs,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','RDGS',rdgs1,
+     &                    throw_error = .false.)
+          call csminp%get('*CULTIVAR','GN%MN',grnmn,
+     &                    throw_error = .false.)
+
+           call csminp%get('*FILES','PATHEX',fileadir)
 
         ELSE
 
@@ -650,6 +716,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
            CALL nc_gen%read_spe('GLIG%',gligp)
            CALL nc_gen%read_spe('RLWR',rlwr)
            CALL nc_gen%read_spe('RWUMX',rwumxs)
+           rwumx = rwumxs
            CALL nc_gen%read_spe('RSUSE',rsuse)
            CALL nc_gen%read_spe('WFRGU',wfrgu)
            CALL nc_gen%read_spe('NCRG',ncrg)
@@ -697,6 +764,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
            CALL nc_gen%read_spe('RDGTH',rdgth)
            CALL nc_gen%read_spe('TPAR',part)
            CALL nc_gen%read_spe('TSRAD',sradt)
+           KEP = (KCAN/(1.0-PART)) * (1.0-SRADT)
            IF (LAWCF.LE.0.0) CALL nc_gen%read_spe('SLACF',lawcf)
 
            CALL nc_gen%read_spe('LASF',plasf)
@@ -821,6 +889,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
            CALL SPREADR (SPDIRFLE,'GLIG%',gligp)
            CALL SPREADR (SPDIRFLE,'RLWR',rlwr)
            CALL SPREADR (SPDIRFLE,'RWUMX',rwumxs)
+           rwumx = rwumxs
            CALL SPREADR (SPDIRFLE,'RSUSE',rsuse)
            CALL SPREADR (SPDIRFLE,'WFRGU',wfrgu)
            CALL SPREADR (SPDIRFLE,'NCRG',ncrg)
@@ -868,6 +937,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
            CALL SPREADR (SPDIRFLE,'RDGTH',rdgth)
            CALL SPREADR (SPDIRFLE,'TPAR',part)
            CALL SPREADR (SPDIRFLE,'TSRAD',sradt)
+           KEP = (KCAN/(1.0-PART)) * (1.0-SRADT)
            IF (LAWCF.LE.0.0) CALL SPREADR (SPDIRFLE,'SLACF',lawcf)
 
            CALL SPREADRA (SPDIRFLE,'LASF','10',plasf)

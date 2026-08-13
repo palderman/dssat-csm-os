@@ -82,8 +82,6 @@ C=======================================================================
 
       TYPE (SwitchType) ISWITCH
 
-      real round_real
-
       PARAMETER (ERRKEY = 'NCIPSL')
       PARAMETER (LUNSL  = 12)
       PARAMETER (BLANK = ' ')
@@ -244,6 +242,7 @@ C
 
       call nc_soil%read('TAXON',1,TAXON)
 
+      call nc_soil%read('SCOM',1,SCOM)
       call nc_soil%read('SALB',1,SALB)
       call nc_soil%read('SLU1',1,U)
       call nc_soil%read('SLDR',1,SWCON)
@@ -251,7 +250,10 @@ C
       call nc_soil%read('SLNF',1,SLNF)
       call nc_soil%read('SLPF',1,SLPF)
       call nc_soil%read('SMPX',1,SMPX)
+      call nc_soil%read('SMKE',1,SMKE)
+      call nc_soil%read('SGRP',1,SGRP)
 
+      call nc_soil%read('SLMH',1,MH)
       call nc_soil%read('SBDM',1,BD)
       call nc_soil%read('SLOC',1,OC)
       call nc_soil%read('SLHW',1,PH)
@@ -323,49 +325,49 @@ C
          ENDIF
       ENDIF
 
-      IF (ISWITCH%ISWWAT .NE. 'N') THEN
-         ERR = 0
-         DO J = 1, NLAYRI
-            IF ((DUL(J) - SAT(J)) .GT. 1.E-4) THEN
-               CALL ERROR (ERRKEY,7,FILES,LINSOL_1+J-1)
-            ENDIF
-            IF ((LL(J) - DUL(J)) .GT. 1.E-4) THEN
-               CALL ERROR (ERRKEY,8,FILES,LINSOL_1+J-1)
-            ENDIF
-            IF (DUL(J) .LT. 1.E-3) THEN
-               CALL ERROR (ERRKEY,13,FILES,LINSOL_1+J-1)
-            ENDIF
-            IF (ABS(SAT(J) - DUL(J)) .LT. 1.E-2) THEN
-               SAT(J) = DUL(J) + 0.01
-            ENDIF
-            IF (ABS(DUL(J) -  LL(J)) .LT. 1.E-2) THEN
-               LL(J) = DUL(J) - 0.01
-            ENDIF  
-            IF (SHF(J) .LT. -1.E-6) THEN
-               WRITE(MSG(1),'(A,A72)') 'File: ',FILESS
-               
-               WRITE(MSG(2),'(A,I4,2X,A,I2)') 
-     &              'Line number:',LINSOL_1+J-1, 'Soil layer: ',J
-               MSG(3) = 'Root growth factor is missing.  '
-               MSG(4) = 'Model requires value between 0 and 1.'
-               MSG(5) = 'Program will stop.'
-               CALL WARNING(5,ERRKEY,MSG)
-               CALL ERROR(ERRKEY,14,FILES,LINSOL_1+J-1)
-            ENDIF
+         IF (ISWITCH%ISWWAT .NE. 'N') THEN
+           ERR = 0
+           DO J = 1, NLAYRI
+             IF ((DUL(J) - SAT(J)) .GT. 0.0) THEN
+                CALL ERROR (ERRKEY,7,FILES,LINSOL_1+J-1)
+              ENDIF
+              IF ((LL(J) - DUL(J)) .GT. 0.0) THEN
+                 CALL ERROR (ERRKEY,8,FILES,LINSOL_1+J-1)
+              ENDIF
+              IF (DUL(J) .LT. 0.0) THEN
+                 CALL ERROR (ERRKEY,13,FILES,LINSOL_1+J-1)
+              ENDIF
+              IF (ABS(SAT(J) - DUL(J)) .LE. 0.0) THEN
+                 SAT(J) = DUL(J) + 0.01
+              ENDIF
+              IF (ABS(DUL(J) -  LL(J)) .LE. 0.0) THEN
+                 LL(J) = DUL(J) - 0.01
+              ENDIF  
+              IF (SHF(J) .LT. 0.0) THEN
+                 WRITE(MSG(1),'(A,A72)') 'File: ',FILESS
+                 
+                 WRITE(MSG(2),'(A,I4,2X,A,I2)') 
+     &                'Line number:',LINSOL_1+J-1, 'Soil layer: ',J
+                 MSG(3) = 'Root growth factor is missing.  '
+                 MSG(4) = 'Model requires value between 0 and 1.'
+                 MSG(5) = 'Program will stop.'
+                 CALL WARNING(5,ERRKEY,MSG)
+                 CALL ERROR(ERRKEY,14,FILES,LINSOL_1+J-1)
+              ENDIF
 
-            IF (SWCN(J) < 1.E-4) THEN
+             IF (SWCN(J) < 0.0) THEN
                SWCN(J) = -99.
                ERR = ERR + 1
-            ENDIF
-         ENDDO
+             ENDIF
+           ENDDO
 
-         IF (ERR > 0) THEN
-            MSG(1) = "Saturated hydraulic conductivity equal to " // 
-     &           "zero for one or more soil layers."
-            MSG(2) = "Data will be treated as missing."
-            CALL WARNING(2,ERRKEY,MSG)
+           IF (ERR > 0) THEN
+             MSG(1) = "Saturated hydraulic conductivity equal to " // 
+     &          "zero for one or more soil layers."
+             MSG(2) = "Data will be treated as missing."
+             CALL WARNING(2,ERRKEY,MSG)
+           ENDIF
          ENDIF
-      ENDIF
 
       SELECT CASE (ISWITCH % MESOL)
       CASE('1'); CALL LYRSET (NLAYRI, ZLYR, NLAYR, DS, DLAYR, DEPMAX)
@@ -618,27 +620,3 @@ C-----------------------------------------------------------------------
      &        /,6X,'NEW SELECTION ?    --->',2X,' ',$)
 
       END SUBROUTINE read_nc_soil
-
-      function round_real(unrounded,width,digits) result(rounded)
-
-        implicit none
-
-        integer,intent(in) :: width,digits
-        real,intent(in) :: unrounded
-        real :: rounded
-        character(len=width) :: char_tmp
-        character(len=12) :: fmt
-
-        fmt = ' '
-
-        write(fmt(1:3),'(i3)') width
-        write(fmt(4:6),'(i3)') digits
-
-        fmt = '(f'//trim(adjustl(fmt(1:3)))//'.'//
-     &       trim(adjustl(fmt(4:6)))//')'
-
-        write(char_tmp,fmt) unrounded
-
-        read(char_tmp,fmt) rounded
-
-      end function

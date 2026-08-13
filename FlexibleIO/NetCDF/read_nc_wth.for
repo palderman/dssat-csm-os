@@ -57,8 +57,6 @@
       integer,dimension(3) :: start,count
       integer dimid, t_size
 
-      real round_real
-
       MULTI  = CONTROL % MULTI
       RNMODE = CONTROL % RNMODE
       RUN    = CONTROL % RUN

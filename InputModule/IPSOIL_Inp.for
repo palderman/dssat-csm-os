@@ -85,8 +85,6 @@ C=======================================================================
 
       TYPE (SwitchType) ISWITCH
 
-      real round_real
-
       PARAMETER (ERRKEY = 'IPSOIL')
       PARAMETER (LUNSL  = 12)
       PARAMETER (BLANK = ' ')

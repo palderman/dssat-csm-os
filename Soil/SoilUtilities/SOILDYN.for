@@ -276,7 +276,7 @@ C-----------------------------------------------------------------------
         call csminp%get('*SOIL','SALB',SALB)
         call csminp%get('*SOIL','U',U)
         call csminp%get('*SOIL','SWCON',SWCON)
-        call csminp%get('*SOIL','CN',CN)
+        call csminp%get('*SOIL','CN2',CN)
         call csminp%get('*SOIL','SLNF',DMOD)
         call csminp%get('*SOIL','SLPF',SLPF)
         call csminp%get('*SOIL','SMPX',SMPX)

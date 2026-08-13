@@ -46,6 +46,7 @@ C=======================================================================
      &                  PATHGE,ECONO, MODEL, ATLINE)
 
       use csm_io
+      use dssat_cmd_arg
 
 !     2023-01-26 chp removed unused variables in argument list:
 !       CROP
@@ -317,6 +318,29 @@ C-GH Remove cassava
      &                 'LAFR     ','SHWTS    ','GNOWT    ','GWTS     ',
      &                 'PHTHRS(8)'/))
 
+        if(cmd_arg_present('--mimic_inp'))then
+           P1 = round_real(P1, 6, 1)
+           P2 = round_real(P2, 6, 1)
+           P3 = round_real(P3, 6, 1)
+           P4 = round_real(P4, 6, 1)
+           P5 = round_real(P5, 6, 1)
+           P6 = round_real(P6, 6, 1)
+           P7 = round_real(P7, 6, 1)
+           P8 = round_real(P8, 6, 1)
+           VREQ = round_real(VREQ, 6, 1)
+           VBASE = round_real(VBASE, 6, 1)
+           VEFF = round_real(VEFF, 6, 2)
+           PPS1 = round_real(PPS1, 6, 1)
+           PPS2 = round_real(PPS2, 6, 1)
+           PHINT = round_real(PHINT, 6, 1)
+           LA1S = round_real(LA1S, 6, 1)
+           LAFV = round_real(LAFV, 6, 2)
+           LAFR = round_real(LAFR, 6, 2)
+           SHWTS = round_real(SHWTS, 6, 2)
+           GNOWT = round_real(GNOWT, 6, 1)
+           GWTS = round_real(GWTS, 6, 1)
+        end if
+
         call csminp%put('*CULTIVAR','VRNAME',VRNAME)
         call csminp%put('*CULTIVAR','ECONO',ECONO)
         call csminp%put('*CULTIVAR','PLAINTXT',PLAINTXT)
@@ -445,6 +469,16 @@ C-LPM  Add CIAT cassava model
      &                 'G2       ','G3       ','PHINT    ',
      &                 'PHTHRS(8)'/))
 
+        if(cmd_arg_present('--mimic_inp'))then
+           P1V = round_real(P1V, 5, 1)
+           P1D = round_real(P1D, 5, 1)
+           P5 = round_real(P5, 5, 1)
+           G1 = round_real(G1, 5, 1)
+           G2 = round_real(G2, 5, 1)
+           G3 = round_real(G3, 5, 2)
+           PHINT = round_real(PHINT, 5, 1)
+        end if
+
         call csminp%put('*CULTIVAR','VRNAME',VRNAME)
         call csminp%put('*CULTIVAR','ECONO',ECONO)
         call csminp%put('*CULTIVAR','PLAINTXT',PLAINTXT)
@@ -471,6 +505,18 @@ C-LPM  Add CIAT cassava model
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
      &       real_name=(/'VSEN ','PPSEN','P2   ','P5   ','PHINT',
      &                   'GRNO ','MXFIL','STMMX','SLAP1'/))
+
+        if(cmd_arg_present('--mimic_inp'))then
+           VSEN = round_real(VSEN, 6, 2)
+           PPSEN = round_real(PPSEN, 6, 2)
+           P2 = round_real(P2, 6, 1)
+           P5 = round_real(P5, 6, 1)
+           PHINT = round_real(PHINT, 6, 1)
+           GRNO = round_real(GRNO, 6, 1)
+           MXFIL = round_real(MXFIL, 6, 2)
+           STMMX = round_real(STMMX, 6, 2)
+           SLAP1 = round_real(SLAP1, 6, 1)
+        end if
 
         call csminp%put('*CULTIVAR','VRNAME',VRNAME)
         call csminp%put('*CULTIVAR','ECONO',ECONO)

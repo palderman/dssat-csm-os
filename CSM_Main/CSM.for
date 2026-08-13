@@ -471,11 +471,11 @@ C-----------------------------------------------------------------------
             FNAME = filex(1:8)
          end if
          call csminp%get('*SIMULATION CONTROL','NYRS',NYRS)
-         call csminp%get('*SIMULATION CONTROL','NREPS',NREPS)
+         call csminp%get('*SIMULATION CONTROL','NREPSQ',NREPS)
          call csminp%get('*SIMULATION CONTROL','YRSIM',YRSIM)
       ELSE IF (RNMODE .NE. 'Q') THEN
          call csminp%get('*SIMULATION CONTROL','NYRS',NYRS)
-         call csminp%get('*SIMULATION CONTROL','NREPS',NREPS)
+         call csminp%get('*SIMULATION CONTROL','NREPSQ',NREPS)
          call csminp%get('*SIMULATION CONTROL','YRSIM',YRSIM)
       ENDIF
 

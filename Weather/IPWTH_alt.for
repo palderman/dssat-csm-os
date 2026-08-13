@@ -76,8 +76,6 @@ C=======================================================================
       REAL
      &  XELEV,PAR,RAIN,REFHT,SRAD,TAV,TAMP,TDEW,TMAX,TMIN,WINDHT,
      &  WINDSP,XLAT,XLONG,CCO2,RHUM, VAPR, DCO2, OZON7
-
-      real round_real
       
       LOGICAL FEXIST, LongFile
 
