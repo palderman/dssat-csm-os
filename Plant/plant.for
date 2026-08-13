@@ -955,6 +955,10 @@ c     Total LAI must exceed or be equal to healthy LAI:
 !     SSKC, SKCBmax ASCE short ref (12 cm grass)
 
       USE ModuleData
+
+      use csm_io
+      use dssat_netcdf
+      
       External IGNORE, WARNING, ERROR, GETLUN, FIND
 
       CHARACTER*1  BLANK, MEEVP
@@ -992,16 +996,23 @@ c     Total LAI must exceed or be equal to healthy LAI:
       FILEIO = CONTROL % FILEIO
       LUNIO  = CONTROL % LUNIO
       CROP   = CONTROL % CROP
-      OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERR)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
-      READ(LUNIO,50,IOSTAT=ERR) FILEC, PATHCR ; LNUM = 7
-   50 FORMAT(6(/),15X,A12,1X,A80)
-      IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-      CLOSE (LUNIO)
+
+      call csminp%get('*FILES', 'FILEC', FILEC)
+      call csminp%get('*FILES', 'PATHCR', PATHCR)
 
 !-----------------------------------------------------------------------
       IF (CROP .NE. 'FA') THEN
 !       open species file
+
+        if(nc_gen%yes)then
+         
+          call nc_gen%read_spe('SSKC', SSKC)
+          call nc_gen%read_spe('SKCBMAX', SKCBMAX)
+          call nc_gen%read_spe('TSKC', TSKC)
+          call nc_gen%read_spe('TKCBMAX', TKCBMAX)
+
+        else ! nc_gen%yes
+
         LNUM = 0
         PATHL  = INDEX(PATHCR,BLANK)
         IF (PATHL .LE. 1) THEN
@@ -1051,6 +1062,8 @@ c     Total LAI must exceed or be equal to healthy LAI:
         ENDIF
 
         CLOSE (LUNCRP)
+
+        end if ! nc_gen%yes
 
 !       Check for values with valid ranges.
         IF (MEEVP .EQ. 'S') THEN
