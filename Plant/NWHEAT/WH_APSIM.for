@@ -53,9 +53,15 @@ C The statements begining with !*! are refer to APSIM source codes
 !        PUptake/FracRts is not calculated for Nwheat, 
       USE ModuleDefs
       USE WH_module
+
+      use csm_io
+      use dssat_mpi
+      use dssat_netcdf
+
       IMPLICIT NONE
       EXTERNAL GETLUN, HRES_CERES, PEST, WH_PHENOL, WH_GROSUB, 
-     &  WH_OPGROW, WH_OPNIT, WH_OPHARV
+     &     WH_OPGROW, WH_OPNIT, WH_OPHARV
+      integer, external :: TIMDIF
 
       SAVE
 
@@ -80,7 +86,8 @@ C The statements begining with !*! are refer to APSIM source codes
       CHARACTER*2     CROP  
       INTEGER         CropStatus 
       REAL            CUMDEP      
-      REAL            CUMDTT    
+      REAL            CUMDTT
+      integer         DAP ! days after planting
       REAL            DAYL 
       REAL            DEPMAX     
       REAL            DLAYR(NL) 
@@ -94,6 +101,10 @@ C The statements begining with !*! are refer to APSIM source codes
       REAL            EOP           
       CHARACTER*6     ERRKEY  
 !     REAL            ESW(NL)     
+      real            esw_tot_avg   ! total average extractable soil water mm/d
+      real            esw_tot_cum   ! total cumulative extractable soil water mm
+      real            esw_rz_avg    ! root zone average extractable soil water mm/d
+      real            esw_rz_cum    ! root zone cumulative extractable soil water mm
       CHARACTER*30    FILEIO
       INTEGER         FROP  
       real            fstage  
@@ -122,6 +133,7 @@ C The statements begining with !*! are refer to APSIM source codes
       INTEGER         LUNIO  
       REAL            KCAN
       REAL            KEP
+      real            MAXLAI
       INTEGER         MDATE 
       CHARACTER*8     MODEL
       CHARACTER*10    NWSTGNAM(20) 
@@ -151,6 +163,8 @@ C The statements begining with !*! are refer to APSIM source codes
 !     REAL            PEAR
 !     REAL            PSTM
       REAL            PTF        
+      real            RAIN
+      real            RAINC
       REAL            rlv_nw(NL)   
       REAL            RLWR      
       CHARACTER*1     RNMODE   
@@ -192,6 +206,10 @@ C The statements begining with !*! are refer to APSIM source codes
 !     REAL            SUMDTT     
       REAL            SUMP        
       REAL            SW(NL)     
+      real            sw_tot_avg    ! total average soil water mm/d
+      real            sw_tot_cum    ! total cumulative soil water mm
+      real            sw_rz_avg     ! root zone average soil water mm/d
+      real            sw_rz_cum     ! root zone cumulative soil water mm
       REAL            SWFAC    
       REAL            TBASE
       REAL            TEMPCR ! NWheat leaf crown temperature (deg C)
@@ -199,7 +217,8 @@ C The statements begining with !*! are refer to APSIM source codes
       REAL            TLNO 
       REAL            TMIN    
       REAL            TMAX        
-      REAL            TOPWT      
+      REAL            TOPWT
+      real            topwt_kgha
       REAL            TRWUP     
       REAL            TSEN     
       REAL            TURFAC 
@@ -310,6 +329,7 @@ C The statements begining with !*! are refer to APSIM source codes
       TMIN   = WEATHER % TMIN
       TWILEN = WEATHER % TWILEN
       OZON7  = WEATHER % OZON7    ! added by BTK, JG
+      RAIN = WEATHER % RAIN
 
       DO L=1,NL
          dlayr_nw(L) = DLAYR(L) * 10.0
@@ -444,6 +464,7 @@ C-----------------------------------------------------------------------
      &      pl_nit_root, pl_nit_lfsheath, SLFT, GAD2,         !Output
      &      CLW, SLDOT)                                       !Output
 
+            topwt_kgha = TOPWT*10.0
             WTNUP = cumpnup / 10.0
           !-------------------------------------------------------------
           !Call Root routine
@@ -491,6 +512,34 @@ C                     DYNAMIC = SEASINIT
 C-----------------------------------------------------------------------
 
       ELSEIF(DYNAMIC.EQ.SEASINIT) THEN
+
+        RAINC = 0.
+        MAXLAI = 0.
+        esw_tot_avg = 0.
+        esw_tot_cum = 0.
+        esw_rz_avg = 0.
+        esw_rz_cum = 0.
+        sw_tot_avg = 0.
+        sw_tot_cum = 0.
+        sw_rz_avg = 0.
+        sw_rz_cum = 0.
+         
+        if(mpi_child%use_mpi)then
+           call seasonal_registry%set_target('GN%M',PCNGRN)
+           call seasonal_registry%set_target('RAINC',RAINC)
+           call seasonal_registry%set_target('ESWTOTAVG',esw_tot_avg)
+           call seasonal_registry%set_target('ESWRZAVG',esw_rz_avg)
+           call seasonal_registry%set_target('SWTOTAVG',sw_tot_avg)
+           call seasonal_registry%set_target('SWRZAVG',sw_rz_avg)
+           call seasonal_registry%set_target('HWAM',YIELD)
+           call seasonal_registry%set_target('H#AM',GPSM)
+           call seasonal_registry%set_target('T#AM',SHELPC)
+           call seasonal_registry%set_target('CWAM',topwt_kgha)
+           call seasonal_registry%set_target('LAIX',MAXLAI)
+           call seasonal_registry%set_target('PDAT',YRPLT)
+           call seasonal_registry%set_target('ADAT',ISDATE)
+           call seasonal_registry%set_target('MDAT',MDATE)
+        end if
 
 C-----------------------------------------------------------------------
 C     Subroutine IPPARM reads FILEP, the PEST progress file.
@@ -564,6 +613,7 @@ C-----------------------------------------------------------------------
      &      pl_nit_root, pl_nit_lfsheath, SLFT, GAD2,         !Output
      &      CLW, SLDOT)                                       !Output
 
+            topwt_kgha = TOPWT*10.0
             WTNUP = cumpnup / 10.0
                          
 !**!      CALL WH_ROOTGR (CONTROL,ISWNIT,                         !C
@@ -647,6 +697,7 @@ C----------------------------------------------------------------------
      &      pl_nit_root, pl_nit_lfsheath, SLFT, GAD2,         !Output
      &      CLW, SLDOT)                                       !Output
 
+            topwt_kgha = TOPWT*10.0
             WTNUP = cumpnup / 10.0
           Endif
 C----------------------------------------------------------------------
@@ -739,6 +790,15 @@ C-----------------------------------------------------------------------
      &      pl_nit_root, pl_nit_lfsheath, SLFT, GAD2,         !Output
      &      CLW, SLDOT)                                       !Output
 
+          if (ISWWAT.NE.'N') then
+            RAINC = RAINC + RAIN
+            DAP = MAX(0, TIMDIF(YRPLT, YRDOY))
+            call calc_sw_summary(SW, LL, DLAYR, rlv_nw, NLAYR, DAP,
+     &            esw_tot_cum, sw_tot_cum, esw_rz_cum, sw_rz_cum,
+     &            esw_tot_avg, sw_tot_avg, esw_rz_avg, sw_rz_avg)
+            end if
+            MAXLAI = AMAX1 (MAXLAI,XLAI)
+            topwt_kgha = TOPWT*10.0
             WTNUP = cumpnup / 10.0
 
         ELSE
@@ -807,6 +867,7 @@ C----------------------------------------------------------------------
      &      pl_nit_root, pl_nit_lfsheath, SLFT, GAD2,         !Output
      &      CLW, SLDOT)                                       !Output
 
+            topwt_kgha = TOPWT*10.0
             WTNUP = cumpnup / 10.0
         ENDIF   
       CALL WH_OPGROW(CONTROL, ISWITCH, 
@@ -884,6 +945,7 @@ C----------------------------------------------------------------------
      &      pl_nit_root, pl_nit_lfsheath, SLFT, GAD2,         !Output
      &      CLW, SLDOT)                                       !Output
 
+            topwt_kgha = TOPWT*10.0
             WTNUP = cumpnup / 10.0
 
         CALL WH_OPGROW(CONTROL, ISWITCH, 

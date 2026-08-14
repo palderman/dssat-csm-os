@@ -30,6 +30,7 @@
 !-----------------------------------------------------------------------
       USE ModuleDefs 
       USE WH_module
+      use csm_io
       IMPLICIT NONE
       EXTERNAL GETLUN, FIND, ERROR, OPVIEW, READA, READA_Dates, 
      &  GetDesc, SUMVALS, EvaluateDat, TIMDIF, READA_Y4K
@@ -178,29 +179,11 @@
 !***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
 !-----------------------------------------------------------------------
-!       Read FILEIO
-        CALL GETLUN('FILEIO', LUNIO)
-        OPEN (LUNIO, FILE = FILEIO, STATUS = 'OLD', IOSTAT=ERRNUM)
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,0)
-
-        READ (LUNIO,'(55X,I5)', IOSTAT=ERRNUM) ISENS; LNUM = 1
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-
-        READ (LUNIO,'(3(/),15X,A12,1X,A80)', IOSTAT=ERRNUM) FILEA,
-     &        PATHEX
-        LNUM = LNUM + 4  
-        IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
+        call csminp%get('*FILES', 'ISENS', ISENS)
+        call csminp%get('*FILES', 'FILEA', FILEA)
+        call csminp%get('*FILES', 'PATHEX', PATHEX)
   
-        SECTION = '*TREAT'
-        CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-        IF (FOUND .EQ. 0) THEN
-          CALL ERROR(SECTION, 42, FILEIO, LNUM)
-        ELSE
-          READ(LUNIO, '(I3)', IOSTAT=ERRNUM) TRTNUM ; LNUM = LNUM + 1
-          IF (ERRNUM .NE. 0) CALL ERROR(ERRKEY,ERRNUM,FILEIO,LNUM)
-        ENDIF
-
-        CLOSE (LUNIO)
+        call csminp%get('*TREATMENTS', 'TRTNO', TRTNUM)
 
 !     Assign descriptions to Measured and Simulated data 
 !         from DATA.CDE.

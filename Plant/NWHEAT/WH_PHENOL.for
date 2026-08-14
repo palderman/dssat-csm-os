@@ -46,6 +46,8 @@
 C-----------------------------------------------------------------------
       USE ModuleDefs
       USE WH_module
+      use csm_io
+      use dssat_netcdf
       IMPLICIT  NONE
       EXTERNAL GETLUN, FIND, ERROR, IGNORE, WARNING, SNOWFALL, WH_COLD, 
      &  StageFlags, nwheats_germn
@@ -330,60 +332,60 @@ C-----------------------------------------------------------------------
           !-------------------------------------------------------
           !     Read input file name (ie. DSSAT45.INP) and path
           !-------------------------------------------------------
-          CALL GETLUN('FILEIO', LUNIO)
-          OPEN (LUNIO, FILE = FILEIO,STATUS = 'OLD',IOSTAT=ERR)  
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,0)
 
-          READ(LUNIO,50,IOSTAT=ERR) FILES, PATHSR; LNUM = 7
-   50     FORMAT(//////,15X,A12,1X,A80)
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-
-          READ(LUNIO,51,IOSTAT=ERR) FILEE, PATHER; LNUM = LNUM + 1
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-   51     FORMAT(15X,A12,1X,A80)
-
-          READ(LUNIO,51,IOSTAT=ERR) FILEC, PATHCR; LNUM = LNUM + 1
-          IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
+          call csminp%get('*FILES', 'FILEC', FILES)
+          call csminp%get('*FILES', 'PATHCR', PATHSR)
+          call csminp%get('*FILES', 'FILEE', FILEE)
+          call csminp%get('*FILES', 'PATHEC', PATHER)
+          call csminp%get('*FILES', 'FILEG', FILEC)
+          call csminp%get('*FILES', 'PATHGE', PATHCR)
 
           !------------------------------------------------------
           !   Read Planting Details Section
           !------------------------------------------------------
-          SECTION = '*PLANT'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) THEN
-            CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          ELSE
 
-            READ(LUNIO,60,IOSTAT=ERR) YREMRG,PLTPOP,SDEPTH
-            LNUM = LNUM + 1
+          call csminp%get('*PLANTING DETAILS', 'IEMRG', YREMRG)
+          call csminp%get('*PLANTING DETAILS', 'PLTPOP', PLTPOP)
+          call csminp%get('*PLANTING DETAILS', 'SDEPTH', SDEPTH)
 
- 60         FORMAT(11X,I7,7X,F5.2,25X,F5.2)
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
-          ENDIF
 !     -----------------------------------------------------------------
 !             Read crop cultivar coefficients
 !     -----------------------------------------------------------------
-          SECTION = '*CULTI'
-          CALL FIND(LUNIO, SECTION, LINC, FOUND) ; LNUM = LNUM + LINC
-          IF (FOUND .EQ. 0) THEN
-            CALL ERROR(SECTION, 42, FILEIO, LNUM)
-          ELSE
-            READ (LUNIO,1800,IOSTAT=ERR) VARNO,VRNAME,ECONO,
-     &            VSEN,PPSEN,P1,P5,PHINT,GRNO,MXFIL,
-     &            STMMX,SLAP1
-            LNUM = LNUM + 1 
-            IF (ERR .NE. 0) CALL ERROR(ERRKEY,ERR,FILEIO,LNUM)
+          call csminp%get('*CULTIVAR','VARNO', VARNO)
+          call csminp%get('*CULTIVAR','VRNAME',VRNAME)
+          call csminp%get('*CULTIVAR','ECONO',ECONO)
+          call csminp%get('*CULTIVAR','VSEN',VSEN)
+          call csminp%get('*CULTIVAR','PPSEN',PPSEN)
+          call csminp%get('*CULTIVAR','P1',P1)
+          call csminp%get('*CULTIVAR','P5',P5)
+          call csminp%get('*CULTIVAR','PHINT',PHINT)
+          call csminp%get('*CULTIVAR','GRNO',GRNO)
+          call csminp%get('*CULTIVAR','MXFIL',MXFIL)
+          call csminp%get('*CULTIVAR','STMMX',STMMX)
+          call csminp%get('*CULTIVAR','SLAP1',SLAP1)
 
-1800           FORMAT (A6,1X,A16,1X,A6,1X,9F6.0)
-          ENDIF
-
-      VSEN = VSEN * 0.0054545 + 0.0003
-      PPSEN = PPSEN *0.002
-          CLOSE(LUNIO)
+          VSEN = VSEN * 0.0054545 + 0.0003
+          PPSEN = PPSEN *0.002
 
 !     -----------------------------------------------------------------
 !              Read Species Coefficients 
 !     -----------------------------------------------------------------
+          if(nc_gen%yes)then
+             ! Temperature parameters
+             call nc_gen%read_spe('TTHLD', Tthrshld)
+             call nc_gen%read_spe('FRSTF', frostf)
+             call nc_gen%read_spe('CRWNT', crownt)
+             call nc_gen%read_spe('SNOW', SNOWky)
+             ! Seed growth parameters
+             call nc_gen%read_spe('DSGT', DSGT)
+             call nc_gen%read_spe('DGET', DGET)
+             call nc_gen%read_spe('SWCG', SWCG)
+             ! Growth stage parameters
+             call nc_gen%read_spe('istageno', istageno)
+             call nc_gen%read_spe('dc_code', dc_code)
+             call nc_gen%read_spe('xs', xs_nw)
+             call nc_gen%read_spe('zs', zs_nw)
+          else ! nc_gen%yes
 
           FILECC =  TRIM(PATHSR) // FILES
           CALL GETLUN('FILEC', LUNCRP)
@@ -516,6 +518,65 @@ C-----------------------------------------------------------------------
       ENDIF
       CLOSE (LUNCRP)
 
+      end if ! nc_gen%yes
+
+      ! Read ecotype parameters
+      if(nc_gen%yes)then
+        call nc_gen%read_eco('ECOTYP', ECOTYP)
+        call nc_gen%read_eco('ECONAM', ECONAM)
+        call nc_gen%read_eco('TBASE', TBASE)
+        call nc_gen%read_eco('TOPT', TOPT)
+        call nc_gen%read_eco('ROPT', ROPT)
+        call nc_gen%read_eco('TTOP', TTOP)
+        call nc_gen%read_eco('P2O',  P2O)
+        call nc_gen%read_eco('VREQ', VREQ)
+        call nc_gen%read_eco('GDDE', GDDE)
+        call nc_gen%read_eco('DSGFT', DSGFT)
+        call nc_gen%read_eco('RUE1', RUE1)
+        call nc_gen%read_eco('RUE2', RUE2)
+        call nc_gen%read_eco('KVAL1', KVAL1)
+        call nc_gen%read_eco('KVAL2', KVAL2)
+        call nc_gen%read_eco('SLAP2', SLAP2)
+        call nc_gen%read_eco('TC1P1', TC1P1)
+        call nc_gen%read_eco('TC1P2', TC1P2)
+        call nc_gen%read_eco('DTNP1', DTNP1)
+        call nc_gen%read_eco('PLGP1', PLGP1)
+        call nc_gen%read_eco('PLGP2', PLGP2)
+        call nc_gen%read_eco('P2AF', P2AF)
+        call nc_gen%read_eco('P3AF', P3AF)
+        call nc_gen%read_eco('P4AF', P4AF)
+        call nc_gen%read_eco('P5AF', P5AF)
+        call nc_gen%read_eco('P6AF', P6AF)
+        call nc_gen%read_eco('ADLAI', ADLAI)
+        call nc_gen%read_eco('ADTIL', ADTIL)
+        call nc_gen%read_eco('ADPHO', ADPHO)
+        call nc_gen%read_eco('STEMN', STEMN)
+        call nc_gen%read_eco('MXNUP', MXNUP)
+        call nc_gen%read_eco('MXNCR', MXNCR)
+        call nc_gen%read_eco('WFNU', WFNU)
+        call nc_gen%read_eco('PNUPR', PNUPR)
+        call nc_gen%read_eco('EXNO3', EXNO3)
+        call nc_gen%read_eco('MNNO3', MNNO3)
+        call nc_gen%read_eco('EXNH4', EXNH4)
+        call nc_gen%read_eco('MNNH4', MNNH4)
+        call nc_gen%read_eco('INGWT', INGWT)
+        call nc_gen%read_eco('INGNC', INGNC)
+        call nc_gen%read_eco('FREAR', FREAR)
+        call nc_gen%read_eco('MNNCR', MNNCR)
+        call nc_gen%read_eco('GPPSS', GPPSS)
+        call nc_gen%read_eco('GPPES', GPPES)
+        call nc_gen%read_eco('MXGWT', MXGWT)
+        call nc_gen%read_eco('MNRTN', MNRTN)
+        call nc_gen%read_eco('NOMOB', NOMOB)
+        call nc_gen%read_eco('RTDP1', RTDP1)
+        call nc_gen%read_eco('RTDP2', RTDP2)
+        call nc_gen%read_eco('FOZ1', FOZ1)
+        call nc_gen%read_eco('SFOZ1', SFOZ1)
+        call nc_gen%read_eco('TSEN', TSEN)
+        if(TSEN .lt.-90.) TSEN = 6.0
+        call nc_gen%read_eco('CDAY', CDAY)
+        if(CDAY .lt. -90.) CDAY = 15.0
+      else ! nc_gen%yes
 !-----------------------------------------------------------------------
 !     Open Ecotype File FILEE
 !-----------------------------------------------------------------------
@@ -580,6 +641,7 @@ C-----------------------------------------------------------------------
 
           CLOSE (LUNECO)
         ENDIF
+      end if ! nc_gen%yes
 
       KEP = KCAN/(1-0.07)*(1-0.25)
 !----------------------------------------------------------------------

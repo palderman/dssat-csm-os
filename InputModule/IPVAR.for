@@ -496,20 +496,22 @@ C-LPM  Add CIAT cassava model
 !     JG moved CUL parameters to ECO file 01/21/2020
       CASE ('WHAPS','TFAPS')
         READ (C360,850,IOSTAT=ERRNUM)
-     &            VARTY,VRNAME,ECONO,VSEN,PPSEN,P2,P5,PHINT,GRNO,MXFIL,
+     &            VARTY,VRNAME,ECONO,VSEN,PPSEN,P1,P5,PHINT,GRNO,MXFIL,
      &            STMMX,SLAP1
 
         call csminp%add_sec('*CULTIVAR')
 
         call csminp%add_var('*CULTIVAR',
      &     char_name=(/'VARNO ','VRNAME','ECONO '/),
-     &       real_name=(/'VSEN ','PPSEN','P2   ','P5   ','PHINT',
-     &                   'GRNO ','MXFIL','STMMX','SLAP1'/))
+     &       real_name=(/'VSEN     ','PPSEN    ','P1       ',
+     &                   'P5       ','PHINT    ','GRNO     ',
+     &                   'MXFIL    ','STMMX    ','SLAP1    ',
+     &                   'PHTHRS(8)'/))
 
         if(cmd_arg_present('--mimic_inp'))then
            VSEN = round_real(VSEN, 6, 2)
            PPSEN = round_real(PPSEN, 6, 2)
-           P2 = round_real(P2, 6, 1)
+           P1 = round_real(P1, 6, 1)
            P5 = round_real(P5, 6, 1)
            PHINT = round_real(PHINT, 6, 1)
            GRNO = round_real(GRNO, 6, 1)
@@ -518,17 +520,19 @@ C-LPM  Add CIAT cassava model
            SLAP1 = round_real(SLAP1, 6, 1)
         end if
 
+        call csminp%put('*CULTIVAR','VARNO', VARTY)
         call csminp%put('*CULTIVAR','VRNAME',VRNAME)
         call csminp%put('*CULTIVAR','ECONO',ECONO)
         call csminp%put('*CULTIVAR','VSEN',VSEN)
         call csminp%put('*CULTIVAR','PPSEN',PPSEN)
-        call csminp%put('*CULTIVAR','P2',P2)
+        call csminp%put('*CULTIVAR','P1',P1)
         call csminp%put('*CULTIVAR','P5',P5)
         call csminp%put('*CULTIVAR','PHINT',PHINT)
         call csminp%put('*CULTIVAR','GRNO',GRNO)
         call csminp%put('*CULTIVAR','MXFIL',MXFIL)
         call csminp%put('*CULTIVAR','STMMX',STMMX)
         call csminp%put('*CULTIVAR','SLAP1',SLAP1)
+        call csminp%put('*CULTIVAR','PHTHRS(8)',0.)
 
 !     Ceres Maize: maize, sweet corn **
       CASE ('MZCER','SWCER')
