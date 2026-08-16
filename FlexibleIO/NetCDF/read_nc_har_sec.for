@@ -28,7 +28,7 @@ C  HDLAY  :
 C=======================================================================
 
       SUBROUTINE read_nc_har_sec(LNHAR,HDATE,HSTG,HCOM,HSIZ,HPC,
-     &                  NHAR,IHARI,YRSIM,CROP,HBPC,FREQ,CUHT)!NEW FORAGE VARIABLES (DIEGO-2/14/2017)
+     &                  NHAR,IHARI,YRSIM,CROP,HBPC) !FREQ,CUHT)!NEW FORAGE VARIABLES (DIEGO-2/14/2017)
 
       USE ModuleDefs
       use dssat_netcdf
