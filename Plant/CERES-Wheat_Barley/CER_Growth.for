@@ -1500,5 +1500,5 @@ C-GH      IF (snow.GT.0) THEN
           SENLGALG(0) = 0.0
 
         ENDIF
-
+        
       END SUBROUTINE CER_Growth

@@ -1481,6 +1481,9 @@
              call calc_sw_summary(SW, LL, DLAYR, RLV, NLAYR, DAP,
      &            esw_tot_cum, sw_tot_cum, esw_rz_cum, sw_rz_cum,
      &            esw_tot_avg, sw_tot_avg, esw_rz_avg, sw_rz_avg)
+             call calc_stress_summary(wfp, wfg, nfp, nfg, DAP,
+     &            wfp_cum, wfg_cum, nfp_cum, nfg_cum,
+     &            wfp_avg, wfg_avg, nfp_avg, nfg_avg)
           end if
 
 !-----------------------------------------------------------------------
@@ -1616,6 +1619,10 @@
               LNUMSG = 1
             ENDIF
           ENDIF
+
+          if(RSTAGE .lt. 3.0)then
+            CWAE = CWAD
+          end if
 
 !=======================================================================
         ENDIF  ! End of after planted (integrate) section

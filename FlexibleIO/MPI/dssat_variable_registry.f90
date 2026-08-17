@@ -476,5 +476,35 @@ contains
     end if
 
   end subroutine calc_sw_summary
+
+  subroutine calc_stress_summary(wfp, wfg, nfp, nfg, dap,&
+                                 wfp_cum, wfg_cum, nfp_cum, nfg_cum,&
+                                 wfp_avg, wfg_avg, nfp_avg, nfg_avg)
+
+    implicit none
+
+    integer :: dap
+    real :: wfp, wfg, nfp, nfg, &
+            wfp_cum, wfg_cum, nfp_cum, nfg_cum,&
+            wfp_avg, wfg_avg, nfp_avg, nfg_avg
+
+    wfp_cum = wfp_cum + (1 - wfp)
+    wfg_cum = wfg_cum + (1 - wfg)
+    nfp_cum = nfp_cum + (1 - nfp)
+    nfg_cum = nfg_cum + (1 - nfg)
+
+    if(dap .gt. 0)then
+      wfp_avg = wfp_cum/dap
+      wfg_avg = wfg_cum/dap
+      nfp_avg = nfp_cum/dap
+      nfg_avg = nfg_cum/dap
+    else
+      wfp_avg = wfp_cum
+      wfg_avg = wfg_cum
+      nfp_avg = nfp_cum
+      nfg_avg = nfg_cum
+    end if
+
+  end subroutine calc_stress_summary
   
 end module dssat_variable_registry

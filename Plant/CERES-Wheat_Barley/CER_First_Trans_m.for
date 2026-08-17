@@ -120,6 +120,7 @@
       REAL          CUMVD         ! Cumulative vernalization days  d
       REAL          CWAAM         ! Canopy wt,anthesis,measured    kg/ha
       REAL          CWADT         ! Canopy weight from t file      kg/ha
+      REAL          CWAE          ! Canopy weight early season     kg/ha
       REAL          CWAM          ! Canopy weight at maturity      kg/ha
       REAL          CWAMEAA       ! Canopy wt/area abs error avg   #
       REAL          CWAMEAV       ! Canopy wt/area average error   #
@@ -1219,6 +1220,15 @@
       REAL          VNAD          ! Vegetative canopy nitrogen     kg/ha
       REAL          VWAD          ! Vegetative canopy weight       kg/ha
       REAL          VRNSTAGE      ! Vernalization stage            #
+      real          nfg_avg     ! Season average nitrogen stress, growth
+      real          nfg_cum     ! Cumulative nitrogen stress, growth
+      real          nfp_avg     ! Season average nitrogen stress, photosynthesis
+      real          nfp_cum     ! Cumulative nitrogen stress, photosynthesis
+      real          wfg_avg     ! Season average water stress, growth
+      real          wfg_cum     ! Cumulative water stress, growth
+      real          wfp_avg     ! Season average water stress, photosynthesis
+      real          wfp_cum     ! Cumulative water stress, photosynthesis
+
       
 !!     2021-02-14 chp
 !      REAL          Nuptake_daily !Daily N uptake (kg [N]/ha)
@@ -1522,7 +1532,14 @@
         sw_rz_cum = 0.0
         sw_tot_avg = 0.0
         sw_rz_avg = 0.0
-
+        nfg_avg = 0.0
+        nfg_cum = 0.0
+        nfp_avg = 0.0
+        nfp_cum = 0.0
+        wfg_avg = 0.0
+        wfg_cum = 0.0
+        wfp_avg = 0.0
+        wfp_cum = 0.0
 
       end subroutine clear_CER_First_Trans_m
         

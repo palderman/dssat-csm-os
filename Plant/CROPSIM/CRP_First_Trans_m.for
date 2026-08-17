@@ -144,6 +144,7 @@
       REAL          CWADPREV      ! Canopy weight,previous day     kg/ha
       REAL          CWADSTG(20)   ! Canopy weight,particular stage kg/ha
       REAL          CWADT         ! Canopy weight from t file      kg/ha
+      REAL          CWAE          ! Canopy weight early season     kg/ha
       REAL          CWAHC         ! Canopy weight harvested,forage kg/ha
       REAL          CWAHCM        ! Canopy wt harvested,forage,mes kg/ha
       REAL          CWAM          ! Canopy weight,maturity         kg/ha
@@ -1451,6 +1452,16 @@
       !REAL          YVALXY        ! Y value from function          #
       REAL          ZSTAGE        ! Zadoks stage of development    #
 
+      real          nfg_avg     ! Season average nitrogen stress, growth
+      real          nfg_cum     ! Cumulative nitrogen stress, growth
+      real          nfp_avg     ! Season average nitrogen stress, photosynthesis
+      real          nfp_cum     ! Cumulative nitrogen stress, photosynthesis
+      real          wfg_avg     ! Season average water stress, growth
+      real          wfg_cum     ! Cumulative water stress, growth
+      real          wfp_avg     ! Season average water stress, photosynthesis
+      real          wfp_cum     ! Cumulative water stress, photosynthesis
+
+      
       ! Following are to test Doug Stewart s function 
       REAL tmaxwheat,tminwheat,tequiv,ttwheat,ttmaize,ttold,TFDOLD
       
@@ -2055,5 +2066,14 @@
             
             no3mn = -99.0
             nh4mn = -99.0
+            
+            nfg_avg = 0.0
+            nfg_cum = 0.0
+            nfp_avg = 0.0
+            nfp_cum = 0.0
+            wfg_avg = 0.0
+            wfg_cum = 0.0
+            wfp_avg = 0.0
+            wfp_cum = 0.0
 
         end subroutine clear_CRP_First_Trans_m

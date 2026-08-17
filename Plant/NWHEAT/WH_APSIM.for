@@ -87,6 +87,7 @@ C The statements begining with !*! are refer to APSIM source codes
       INTEGER         CropStatus 
       REAL            CUMDEP      
       REAL            CUMDTT
+      REAL            CWAE ! Canopy weight early season     kg/ha
       integer         DAP ! days after planting
       REAL            DAYL 
       REAL            DEPMAX     
@@ -269,6 +270,15 @@ C The statements begining with !*! are refer to APSIM source codes
       REAL    SWIDOT,WSHIDT,ASMDOT,DISLA,NPLTD,PPLTD
       REAL    WLIDOT,WRIDOT,WSIDOT
       INTEGER L, NR2
+
+      real          nfg_avg     ! Season average nitrogen stress, growth
+      real          nfg_cum     ! Cumulative nitrogen stress, growth
+      real          nfp_avg     ! Season average nitrogen stress, photosynthesis
+      real          nfp_cum     ! Cumulative nitrogen stress, photosynthesis
+      real          wfg_avg     ! Season average water stress, growth
+      real          wfg_cum     ! Cumulative water stress, growth
+      real          wfp_avg     ! Season average water stress, photosynthesis
+      real          wfp_cum     ! Cumulative water stress, photosynthesis
 
 !     CHP added for P model 
       REAL PUptake(NL), SPi_AVAIL(NL), FracRts(NL)       
@@ -523,7 +533,15 @@ C-----------------------------------------------------------------------
         sw_tot_cum = 0.
         sw_rz_avg = 0.
         sw_rz_cum = 0.
-         
+        nfg_avg = 0.0
+        nfg_cum = 0.0
+        nfp_avg = 0.0
+        nfp_cum = 0.0
+        wfg_avg = 0.0
+        wfg_cum = 0.0
+        wfp_avg = 0.0
+        wfp_cum = 0.0
+        
         if(mpi_child%use_mpi)then
            call seasonal_registry%set_target('GN%M',PCNGRN)
            call seasonal_registry%set_target('RAINC',RAINC)
@@ -534,8 +552,13 @@ C-----------------------------------------------------------------------
            call seasonal_registry%set_target('HWAM',YIELD)
            call seasonal_registry%set_target('H#AM',GPSM)
            call seasonal_registry%set_target('T#AM',SHELPC)
+           call seasonal_registry%set_target('CWAE',CWAE)
            call seasonal_registry%set_target('CWAM',topwt_kgha)
            call seasonal_registry%set_target('LAIX',MAXLAI)
+           call seasonal_registry%set_target('WSPavg',wfp_avg)
+           call seasonal_registry%set_target('WSGavg',wfg_avg)
+           call seasonal_registry%set_target('NSPavg',nfp_avg)
+           call seasonal_registry%set_target('NSGavg',nfg_avg)
            call seasonal_registry%set_target('PDAT',YRPLT)
            call seasonal_registry%set_target('ADAT',ISDATE)
            call seasonal_registry%set_target('MDAT',MDATE)
@@ -614,6 +637,7 @@ C-----------------------------------------------------------------------
      &      CLW, SLDOT)                                       !Output
 
             topwt_kgha = TOPWT*10.0
+            if(rstage .lt. 2.0) CWAE = topwt_kgha
             WTNUP = cumpnup / 10.0
                          
 !**!      CALL WH_ROOTGR (CONTROL,ISWNIT,                         !C
@@ -796,9 +820,14 @@ C-----------------------------------------------------------------------
             call calc_sw_summary(SW, LL, DLAYR, rlv_nw, NLAYR, DAP,
      &            esw_tot_cum, sw_tot_cum, esw_rz_cum, sw_rz_cum,
      &            esw_tot_avg, sw_tot_avg, esw_rz_avg, sw_rz_avg)
-            end if
+            call calc_stress_summary(
+     &         swdef(photo_nw), swdef(cellxp), nfact(1), nfact(2), DAP,
+     &         wfp_cum, wfg_cum, nfp_cum, nfg_cum,
+     &         wfp_avg, wfg_avg, nfp_avg, nfg_avg)
+          end if
             MAXLAI = AMAX1 (MAXLAI,XLAI)
             topwt_kgha = TOPWT*10.0
+            if(rstage .lt. 2.0) CWAE = topwt_kgha
             WTNUP = cumpnup / 10.0
 
         ELSE
