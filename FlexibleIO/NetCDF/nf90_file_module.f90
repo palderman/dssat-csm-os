@@ -29,6 +29,7 @@ module nf90_file_module
    contains
      procedure :: create => create_nf90_file
      procedure :: close => close_nf90_file
+     procedure :: sync => sync_nf90_file
      procedure :: add_dim => add_nf90_dimension
      procedure :: add_var => add_nf90_variable
      procedure :: end_def => end_define_nf90_file
@@ -417,6 +418,16 @@ contains
     call nc_err_check(nf90_close(self%ncid))
 
   end subroutine close_nf90_file
+
+  subroutine sync_nf90_file(self)
+
+    implicit none
+
+    class(nf90_file) :: self
+
+    call nc_err_check(nf90_sync(self%ncid))
+
+  end subroutine sync_nf90_file
 
   subroutine nc_err_check(status,key,nostop)
 

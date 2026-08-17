@@ -71,12 +71,6 @@ program run_mpi_dssat
   call nc_filex%open()
   call nc_filex%read('CR',trt_start,crop_code)
 
-  write(rank_buff,'(i3)') n_dssat
-  write(*,fmt="(a)",advance="no") "   Spawning "//trim(adjustl(rank_buff))//" DSSAT worker processes..."
-  call mpi_parent%spawn_dssat_children(n_dssat,trt_start,trt_end,rnmode,&
-       crop_code,cmd,dssat_args,work_dir)
-  write(*,fmt="(a)") "done."
-
   call nc_filex%get_dim_size('FIELDS',n_fields)
 
   allocate(xcrd(ntrt),ycrd(ntrt),xcrd_i(ntrt),ycrd_i(ntrt))
@@ -99,7 +93,6 @@ program run_mpi_dssat
 
   write(*,fmt="(a)",advance="no") "   Setting up output file..."
   call nf90_output%create(out_file_name,overwrite=.TRUE.)
-  write(*,fmt="(a)") "done."
 
   call nf90_output%add_dim('latitude',latitude%curr_end)
   call nf90_output%add_dim('longitude',longitude%curr_end)
@@ -125,6 +118,15 @@ program run_mpi_dssat
        longitude%values)
   call nf90_output%write_variable('season',(/1/),(/nyears/),&
        (/(i,i=1,nyears)/))
+
+  call nf90_output%sync()
+  write(*,fmt="(a)") "done."
+
+  write(rank_buff,'(i3)') n_dssat
+  write(*,fmt="(a)",advance="no") "   Spawning "//trim(adjustl(rank_buff))//" DSSAT worker processes..."
+  call mpi_parent%spawn_dssat_children(n_dssat,trt_start,trt_end,rnmode,&
+       crop_code,cmd,dssat_args,work_dir)
+  write(*,fmt="(a)") "done."
 
   write(*,fmt="(a)",advance="no") "   Waiting for DSSAT worker processes to complete..."
   call mpi_parent%receive_registries()
