@@ -432,6 +432,11 @@ C     Initialize OPSUM variables.
 
       SUMDAT % CRST   = -99   !End of season crop status code
 
+      if(mpi_child%use_mpi)then
+        call seasonal_registry%set_target('TMINavg', SUMDAT % TMINA)
+        call seasonal_registry%set_target('TMAXavg', SUMDAT % TMAXA)
+      end if
+      
       CALL GET('WEATHER','WSTA',WSTAT)
 !      IF (LenString(WSTAT) < 1) THEN
 !        WSTAT = WSTATION

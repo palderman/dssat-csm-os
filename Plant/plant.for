@@ -179,6 +179,7 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
       real,dimension(nl) :: esw,cum_sw,avg_sw
       real tot_esw,cum_tot_esw,avg_tot_esw
       real rz_esw,cum_rz_esw,avg_rz_esw
+      real cum_tair, tair_avg
       real dap
 
 !-----------------------------------------------------------------------
@@ -319,6 +320,7 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
          end do
          call seasonal_registry%set_target('avg_tot_esw',avg_tot_esw)
          call seasonal_registry%set_target('avg_rz_esw',avg_rz_esw)
+         call seasonal_registry%set_target('TAVGavg', tair_avg)
       end if
 !***********************************************************************
 !***********************************************************************
@@ -367,6 +369,8 @@ C         Variables to run CASUPRO from Alt_PLANT.  FSR 07-23-03
          cum_sw = 0
          cum_tot_esw = 0
          cum_rz_esw = 0
+         cum_tair = 0
+         tair_avg = 0
       end if
 
 
@@ -806,14 +810,17 @@ c     Total LAI must exceed or be equal to healthy LAI:
             end do
             cum_tot_esw = cum_tot_esw + tot_esw
             cum_rz_esw = cum_rz_esw + rz_esw
+            cum_tair = cum_tair + TAVG
             if(dap .gt. 0)then
                avg_tot_esw = cum_tot_esw/dap
                avg_rz_esw  = cum_rz_esw/dap
                avg_sw(1:soilprop%nlayr) = cum_sw(1:soilprop%nlayr)/dap
+               tair_avg = cum_tair/dap
             else
                avg_tot_esw = cum_tot_esw
                avg_rz_esw  = cum_rz_esw
                avg_sw(1:soilprop%nlayr) = cum_sw(1:soilprop%nlayr)
+               tair_avg = cum_tair
             end if
          end if
 
