@@ -49,7 +49,7 @@ C=======================================================================
       REAL    XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS
       REAL PMALB, PMWD
 
-      PARAMETER (ERRKEY='IPFLD ')
+      PARAMETER (ERRKEY='NCFLD ')
 
       call nc_filex%read('ID_FIELD',LNFLD,FLDNAM)
       call nc_filex%read('WSTA',LNFLD,wsta_temp)
@@ -70,10 +70,10 @@ C=======================================================================
         WSTA1(I:I) = UPCASE(WSTA1(I:I))
       END DO
 
-      IF (WSTA .EQ. '    ') THEN
+      IF (WSTA .EQ. '    ' .and. .not. nc_wth%yes) THEN
          CALL ERROR (ERRKEY,10,nc_filex%file_name,LINEXP)
       ENDIF
-      IF (SLNO .EQ. '          ') THEN
+      IF (SLNO .EQ. '          ' .and. .not. nc_sol%yes) THEN
          CALL ERROR(ERRKEY,11,nc_filex%file_name,LINEXP)
       ENDIF
       IF (SLOPE .LT. 0.0) THEN

@@ -48,7 +48,7 @@ C=======================================================================
       REAL         ACFER(NAPPL),AOFER(NAPPL),TOTNAP
       integer      count,start
 
-      PARAMETER   (ERRKEY ='IPFERT')
+      PARAMETER   (ERRKEY ='NCFERT')
 
                    FINDCH ='*FERTI'
 

@@ -51,7 +51,7 @@ C=======================================================================
       REAL        PRCADJ(NAPPL)
       REAL        CO2ADJ(NAPPL),DPTADJ(NAPPL),WNDADJ(NAPPL),WTHADJ(2,8)
 
-      PARAMETER  (ERRKEY = 'IPENV ')
+      PARAMETER  (ERRKEY = 'NCENV ')
 
       FINDCH = '*ENVIR'
 C

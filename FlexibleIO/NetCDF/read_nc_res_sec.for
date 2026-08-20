@@ -50,7 +50,7 @@ C=======================================================================
      &             RINP(NAPPL),DEPRES(NAPPL),RESAMT
       integer      start
 
-      PARAMETER   (ERRKEY ='IPRES ')
+      PARAMETER   (ERRKEY ='NCRES ')
 
                    FINDCH ='*RESID'
 

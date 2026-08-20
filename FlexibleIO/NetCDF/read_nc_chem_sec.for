@@ -46,7 +46,7 @@ C=======================================================================
       REAL         CHAMT(NAPPL),CHDEP(NAPPL)
       integer      count,start
 
-      PARAMETER   (ERRKEY ='IPCHEM')
+      PARAMETER   (ERRKEY ='NCCHEM')
       FINDCH ='*CHEMI'
 
 

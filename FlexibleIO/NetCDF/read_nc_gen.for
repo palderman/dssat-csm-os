@@ -103,7 +103,7 @@ C=======================================================================
       REAL  MNNCR,GPPSS,GPPES,MXGWT,MNRTN,NOMOB,RTDP1,RTDP2
 
       PARAMETER (LUNVAR = 19)
-      PARAMETER (ERRKEY = 'RDNCCL')
+      PARAMETER (ERRKEY = 'NCGEN ')
       PARAMETER (BLANK  = ' ')
 
       DATA NLVAR /0/

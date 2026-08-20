@@ -43,7 +43,7 @@ C=======================================================================
       REAL         TDEP(NAPPL)
       integer      start
 
-      PARAMETER   (ERRKEY ='IPTILL')
+      PARAMETER   (ERRKEY ='NCTILL')
       FINDCH ='*TILLA'
 
       DO J = 1, NAPPL
