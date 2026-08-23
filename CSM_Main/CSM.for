@@ -316,13 +316,17 @@ C***********************************************************************
       CALL PUT(CONTROL)
 
       if(mpi_child%use_mpi)then
+      
+         if(RUN .eq. 1 .or.
+     &      RNMODE.ne.'Q' .or.
+     &      YRDOY .ge. YRDOY_END)then
+            mpi_child%curr_trt_index = mpi_child%curr_trt_index + 1
+         end if
 
-         if(mpi_child%curr_trt_index == size(mpi_child%trtno))then
+         if(mpi_child%curr_trt_index .gt. size(mpi_child%trtno))then
             DONE = .TRUE.
             GO TO 2000
          end if
-
-         mpi_child%curr_trt_index = mpi_child%curr_trt_index + 1
 
          FILEIO  = 'DSSAT48.INP'
          FILEX   = ' '
@@ -421,7 +425,8 @@ C***********************************************************************
             END_POS = INDEX(CHARTEST,BLANK)
             FILEX = CHARTEST((END_POS-12):(END_POS-1))
             PATHEX = CHARTEST(1:END_POS-13)
-            READ (CHARTEST(93:113),110,IOSTAT=ERRNUM) TRTNUM,TRTREP,ROTNUM
+            READ (CHARTEST(93:113),110,IOSTAT=ERRNUM)
+     &        TRTNUM,TRTREP,ROTNUM
             IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,26,FILEB,LINBIO)
         end if
       ENDIF
@@ -511,7 +516,7 @@ C-----------------------------------------------------------------------
          YRDIF = YR - YR0
          CONTROL % YRDIF = YRDIF
       ENDIF
-       
+
       CONTROL % FILEX   = FILEX
       CONTROL % NYRS    = NYRS
       CONTROL % MULTI   = MULTI
@@ -663,7 +668,7 @@ C***********************************************************************
       CALL LAND(CONTROL, ISWITCH, 
      &          YRPLT, MDATE, YREND)
 
-      if(mpi_child%use_mpi)then
+      if(mpi_child%use_mpi .and. control%crop .ne. 'FA')then
          call seasonal_registry%store()
       end if
 C-----------------------------------------------------------------------
@@ -695,11 +700,11 @@ C-----------------------------------------------------------------------
         ENDIF
       else if(INDEX('Q',RNMODE) .gt. 0) then
          if(mpi_child%use_mpi)then
-            if(control%crop == 'FA')then
-               control%crop = mpi_child%crop
-            else
-               control%crop = 'FA'
-            end if
+!           if(control%crop .eq. 'FA')then
+!             call csminp%put('*MPI','next_crop',mpi_child%crop)
+!           else
+!             call csminp%put('*MPI','next_crop','FA')
+!           end if
          else if(nc_batch%yes)then
             if(control%crop == 'FA')then
                control%crop = nc_batch%crop
