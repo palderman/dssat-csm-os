@@ -145,7 +145,7 @@ C-----------------------------------------------------------------------
       XLAI   = LAI
       NSTRES = NFP
 
-      IF (STGDOY(11).EQ.YRDOY) THEN
+      IF (STGDOY(5).EQ.YRDOY .and. dynamic .eq. integr) THEN
         MDATE = YRDOY
         YREND = YRDOY
       ENDIF 
