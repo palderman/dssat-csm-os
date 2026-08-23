@@ -88,7 +88,7 @@ C-----------------------------------------------------------------------
             HDATE(I) = (YR + MULTI - 1) * 1000 + IDATE
           ENDDO
         ENDIF
-        IF (IHARI .EQ. 'A') THEN
+        IF (IHARI .EQ. 'A' .or. IHARI .eq. 'F') THEN
           CALL YR_DOY(HLATE, YR, IDATE)
           HLATE = (YR +  MULTI - 1) * 1000 + IDATE
         ENDIF
@@ -107,7 +107,8 @@ C-----------------------------------------------------------------------
           END DO
         ENDIF  
  
-        IF (IHARI .EQ. 'A' .AND. HLATE .LT. YRSIM) THEN
+        IF ((IHARI .EQ. 'A'  .or. IHARI .eq. 'F') .AND.
+     &      (HLATE .LT. YRSIM .or. HLATE .lt. YRPLT)) THEN
           CALL YR_DOY(HLATE, YR, IDATE)
           HLATE = (YR +  YRDIF) * 1000 + IDATE
         ENDIF
@@ -274,7 +275,13 @@ C           Compute average soil moisture as percent, AVGSW***
             CONTROL % CropStatus = 6 !auto-harvest within window
           ENDIF
         ENDIF
-
+      else if(IHARI .eq. 'F')then ! Force harvest on HLATE if not at maturity yet
+        if(YRDOY .ge. HLATE .and.
+     &     (YRDOY .lt. MDATE .or. MDATE .eq. -99))then
+          YREND = YRDOY
+        else if(YRDOY .eq. MDATE)then
+          YREND = MDATE
+        end if
 C-----------------------------------------------------------------------
 C Error message if an incorrect code has been specified
 C-----------------------------------------------------------------------
