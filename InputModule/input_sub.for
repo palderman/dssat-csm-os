@@ -186,6 +186,7 @@ C-----------------------------------------------------------------------
       CONTROL % DSSATP = DSSATP
 
       if(csminp%not_empty())then
+        if(csminp%find('*EXP.DETAILS') .gt. 0)then
          call csminp%get('*EXP.DETAILS','EXPN',EXPP)
          call csminp%get('*EXP.DETAILS','TRTN',TRTN)
          call csminp%get('*EXP.DETAILS','TRTALL',TRTALL)
@@ -203,6 +204,7 @@ C-----------------------------------------------------------------------
          call csminp%get('*SIMULATION CONTROL','IDETL',IDETL)
          call csminp%get('*SIMULATION CONTROL','IDETH',IDETH)
          call csminp%get('*SIMULATION CONTROL','IDETR',IDETR)
+        end if
       end if
 
 C-----------------------------------------------------------------------
