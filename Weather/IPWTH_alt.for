@@ -71,7 +71,7 @@ C=======================================================================
       INTEGER YRSIM, YRSIMMY, YRDOY_WY, WFPASS
       INTEGER CenturyWRecord !Century associated with weather record
 
-      INTEGER, PARAMETER :: MaxRecords = 10000
+      INTEGER, PARAMETER :: MaxRecords = 15000
 
       REAL
      &  XELEV,PAR,RAIN,REFHT,SRAD,TAV,TAMP,TDEW,TMAX,TMIN,WINDHT,
