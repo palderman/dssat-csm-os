@@ -73,7 +73,7 @@ C=======================================================================
       IF (WSTA .EQ. '    ' .and. .not. nc_wth%yes) THEN
          CALL ERROR (ERRKEY,10,nc_filex%file_name,LINEXP)
       ENDIF
-      IF (SLNO .EQ. '          ' .and. .not. nc_sol%yes) THEN
+      IF (SLNO .EQ. '          ' .and. .not. nc_soil%yes) THEN
          CALL ERROR(ERRKEY,11,nc_filex%file_name,LINEXP)
       ENDIF
       IF (SLOPE .LT. 0.0) THEN
