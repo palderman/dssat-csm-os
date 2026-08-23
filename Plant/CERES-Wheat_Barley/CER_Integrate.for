@@ -31,6 +31,7 @@
         REAL RESNALG(0:NL), RESCALG(0:NL), RESLGALG(0:NL) 
         REAL RESWALG(0:NL), RESWAL(0:NL), RESNAL(0:NL), RESLGAL(0:NL)
         REAL YVAL1
+        real, parameter :: practically_zero=1.0e-6
       
         CHARACTER(LEN=1) ISWWAT 
         
@@ -45,13 +46,13 @@
             CARBOC = CARBOC + CARBO
             RESPC = RESPC + RTRESP
             LFWT = LFWT + GROLF - SENLFG - SENLFGRS
-            IF (LFWT.LT.1.0E-12) THEN
+            IF (LFWT.LT.practically_zero) THEN
 !              IF (LFWT.LT.0.0) 
 !     &          WRITE(fnumwrk,*)'Leaf weight less than 0! ',LFWT
               LFWT = 0.0
             ENDIF
             STWT = STWT + GROST - SENSTG - GROGRST
-            IF (STWT.LT.1.0E-06) THEN
+            IF (STWT.LT.practically_zero) THEN
 !              IF (STWT.LT.0.0) 
 !     &         WRITE(fnumwrk,*)'Stem weight less than 0! ',STWT
               STWT = 0.0
@@ -66,7 +67,7 @@
      &       LFWT*(1.0-LSHFR)*RSCLX*CUMDU/(Pd(1)+pd(2)+pd(3)+pd(4)))
             LSHRSWT = AMIN1(RSWT-LLRSWT,
      &       LFWT*LSHFR*RSCLX*CUMDU/(Pd(1)+pd(2)+pd(3)+pd(4)))
-            IF (STWT.GT.0.0) THEN
+            IF (STWT.GT.practically_zero) THEN
 !-GH        IF (STWT+CHWT.GT.0.0) THEN
               STRSWT = (RSWT-LLRSWT-LSHRSWT)*(STWT-CHWT)/STWT
               CHRSWT = (RSWT-LLRSWT-LSHRSWT)*CHWT/STWT
@@ -102,10 +103,10 @@
           ! Chaff. Calculated for output. 
           ! STWT includes chaff, but STWAD excludes chaff.
           IF (XSTAGE.GT.CHSTG) THEN
-            IF (GROST.GT.0.0) CHWT = CHWT + GROST*CHFR
+            IF (GROST.GT.practically_zero) CHWT = CHWT + GROST*CHFR
           ENDIF
 
-          IF (GRNUM.GT.0.0) THEN
+          IF (GRNUM.GT.practically_zero) THEN
             GWUD = GRWT/GRNUM
           ELSE
             GWUD = 0.0
@@ -115,20 +116,20 @@
 
           HIAD = 0.0
           SHRTD = 0.0
-          IF ((LFWT+STWT+GRWT+RSWT+DEADWT).GT.0.0)
+          IF ((LFWT+STWT+GRWT+RSWT+DEADWT).GT.practically_zero)
      &     HIAD = GRWT/(LFWT+STWT+GRWT+RSWT+DEADWT)
-          IF (RTWT.GT.0.0)
+          IF (RTWT.GT.practically_zero)
      &     SHRTD = (LFWT+STWT+GRWT+RSWT+DEADWT) / RTWT
 
           ! Reserve concentration and factor
           RSCD = 0.0
-          IF (LFWT+STWT.GT.0.0)
+          IF (LFWT+STWT.GT.practically_zero)
      &     RSCD = RSWT/(LFWT+STWT+RSWT)
 
           ! Radiation use efficiency
           PARUED = 0.0
           PARADCUM = PARADCUM + PARAD
-          IF (PARAD*PARI.GT.0.0) THEN
+          IF (PARAD*PARI.GT.practically_zero) THEN
             PARUED = CARBO*PLTPOP/(PARAD*PARI)
             PARADICUM = PARADICUM + PARAD*PARI
           ENDIF  
@@ -200,7 +201,7 @@
 
           ! Specific leaf area
           SLA = -99.0
-          IF (LFWT.GT.0) SLA = (PLA-SENLA) / (LFWT*(1.0-LSHFR))
+          IF (LFWT.GT.practically_zero) SLA = (PLA-SENLA) / (LFWT*(1.0-LSHFR))
           ! Warning if SLA too low
           IF (SLA.LT.0.0.AND.SLA.GT.-90.0) THEN
 !            WRITE(fnumwrk,'(A21,F8.3,A12)')
@@ -277,10 +278,10 @@
           NUPC = NUPC + NUPD
           LEAFN = LEAFN + DLEAFN + SEEDNT
      &          - GRAINNGL - SENNLFG - SENNLFGRS
-          IF (LEAFN.LT.1.0E-10) LEAFN = 0.0
+          IF (LEAFN.LT.practically_zero) LEAFN = 0.0
           STEMN = STEMN + DSTEMN
      &          - GRAINNGS - SENNSTG - SENNSTGRS
-          IF (STEMN.LT.1.0E-10) STEMN = 0.0
+          IF (STEMN.LT.practically_zero) STEMN = 0.0
           ROOTNS = 0.0
           DO L = 1, NLAYR
             SENNL(L) = SENNL(L) + RTNSL(L)
@@ -289,7 +290,7 @@
           END DO
           ROOTN = ROOTN + DROOTN + SEEDNR - GRAINNGR - ROOTNS
           SEEDN = SEEDN - SEEDNR - SEEDNT
-          IF (SEEDN.LT.1.0E-6) SEEDN = 0.0
+          IF (SEEDN.LT.practically_zero) SEEDN = 0.0
           GRAINN = GRAINN + GRAINNG + GRAINNGL + GRAINNGS + GRAINNGR
      &           + RSNUSEG
           RSN = RSN - RSNUSEG - RSNUSER - RSNUSET
@@ -302,7 +303,7 @@
 
           ! Harvest index for N
           HIND = 0.0
-          IF ((LEAFN+STEMN+GRAINN+RSN+DEADN).GT.0.0)
+          IF ((LEAFN+STEMN+GRAINN+RSN+DEADN).GT.practically_zero)
      &     HIND = GRAINN/(LEAFN+STEMN+GRAINN+RSN+DEADN)
 
           ! Variables expressed per unit ground area:living plant
@@ -375,7 +376,7 @@
           CUMDU = CUMDU + DU
           IF (GESTAGE.GE.1.0) CUMTU = CUMTU + TT
 
-          IF (CUMDU.LT.PTH(0) .AND. PD(0) > 0.) THEN
+          IF (CUMDU.LT.PTH(0) .AND. PD(0) > practically_zero) THEN
             RSTAGE = CUMDU/PD(0)
           ELSE
             DO L = 6,1,-1
@@ -842,10 +843,10 @@
           LANC = 0.0
           SANC = 0.0
           VANC = 0.0
-          IF (RTWT.GT.0.0) RANC = ROOTN / RTWT
-          IF (LFWT.GT.0.0) LANC = LEAFN / LFWT
-          IF (STWT.GT.0.0) SANC = STEMN / STWT
-          IF (VWAD.GT.0.0) VANC = VNAD/VWAD
+          IF (RTWT.GT.practically_zero) RANC = ROOTN / RTWT
+          IF (LFWT.GT.practically_zero) LANC = LEAFN / LFWT
+          IF (STWT.GT.practically_zero) SANC = STEMN / STWT
+          IF (VWAD.GT.practically_zero) VANC = VNAD/VWAD
           RSNGR = AMAX1(0.0,RTWT*(RANC-RCNC))
           RSNGL = AMAX1(0.0,LFWT*(LANC-LCNC))
           RSNGS = AMAX1(0.0,STWT*(SANC-SCNC))
@@ -853,11 +854,11 @@
           ROOTN = ROOTN - RSNGR
           LEAFN = LEAFN - RSNGL
           STEMN = STEMN - RSNGS
-          IF (RTWT.GT.0.0) RANC = ROOTN/RTWT
-          IF (LFWT.GT.0) LANC = LEAFN/LFWT
-          IF (STWT.GT.0.0) SANC = STEMN/STWT
-          IF (VWAD.GT.0.0) VANC = VNAD/VWAD
-          IF (LANC.LT.0.0) THEN
+          IF (RTWT.GT.practically_zero) RANC = ROOTN/RTWT
+          IF (LFWT.GT.practically_zero) LANC = LEAFN/LFWT
+          IF (STWT.GT.practically_zero) SANC = STEMN/STWT
+          IF (VWAD.GT.practically_zero) VANC = VNAD/VWAD
+          IF (LANC.LT.practically_zero) THEN
 !            WRITE(fnumwrk,*)'LANC below 0 with value of ',LANC
 !            WRITE(fnumwrk,*)'LEAFN,LFWT had values of   ',LEAFN,LFWT
             LANC = AMAX1(0.0,LANC)
@@ -872,22 +873,24 @@
           CANANC = 0.0
           SDNC = 0.0
           GRAINANC = 0.0
-          IF ((LFWT+STWT+GRWT+RSWT+DEADWT).GT.0.0)
+          IF ((LFWT+STWT+GRWT+RSWT+DEADWT).GT.practically_zero)
      &     CANANC = (LEAFN+STEMN+GRAINN+RSN+DEADN)/
      &      (LFWT+STWT+GRWT+RSWT+DEADWT)
-          IF (SEEDRS.GT.0.0) SDNC = SEEDN/(SEEDRS+SDCOAT)
-          IF (GRWT.GT.0) GRAINANC = GRAINN/GRWT
+          IF (SEEDRS.GT.practically_zero) SDNC = SEEDN/(SEEDRS+SDCOAT)
+          IF (GRWT.GT.practically_zero) GRAINANC = GRAINN/GRWT
 
           LCNF = 0.0
           SCNF = 0.0
           RCNF = 0.0
-          IF (LCNC.GT.0.0) LCNF = LANC/LCNC
+          IF (LCNC.GT.practically_zero) LCNF = LANC/LCNC
           IF (LCNF.GT.1.0001 .OR. LCNF.LT.0.0) THEN
 !            WRITE(fnumwrk,*)'LCNF out of limits with value of ',LCNF
             LCNF = AMAX1(0.0,AMIN1(1.0,LCNF))
           ENDIF
-          IF (SCNC.GT.0.0.AND.STWT.GT.1.0E-10) SCNF = SANC/SCNC
-          IF (RCNC.GT.0.0.AND.RTWT.GT.0.0) RCNF = RANC/RCNC
+          IF (SCNC.GT.practically_zero.AND.STWT.GT.practically_zero)
+     &      SCNF = SANC/SCNC
+          IF (RCNC.GT.practically_zero.AND.RTWT.GT.practically_zero)
+     &      RCNF = RANC/RCNC
 
           ! Harvesting conditions
           IF (IHARI.EQ.'A' .AND. ISTAGE.EQ.6) THEN
@@ -960,7 +963,8 @@
             
             
             PARIUEM = -99.0
-            IF (PARADCUM.GT.0.0.AND.PARADICUM.GT.0.0) THEN
+            IF (PARADCUM.GT.practically_zero.AND.
+     &          PARADICUM.GT.practically_zero) THEN
 !              WRITE (fnumwrk,*)' '
 !              WRITE (fnumwrk,'(A53,F5.1,F4.1)')
 !     &         ' OVERALL PAR USE EFFICIENCY (INCIDENT,INTERCEPTED) = ',
@@ -1068,7 +1072,7 @@
             TMINSUM = TMINSUM + TMIN
             DAYSUM = DAYSUM + 1.0
           ELSE
-            IF (DAYSUM.GT.0) THEN
+            IF (DAYSUM.GT.practically_zero) THEN
               IF (TMAXM.LT.TMAXSUM/DAYSUM) TMAXM=TMAXSUM/DAYSUM
               IF (TMINM.GT.TMINSUM/DAYSUM) TMINM=TMINSUM/DAYSUM
             ENDIF
@@ -1106,7 +1110,7 @@
 !            WRITE(fnumwrk,*)'Start of linear kernel growth    '
 !            WRITE(fnumwrk,*)' Original kernel growth rate (G2) ',g2
 !           chp handle zero divide
-            IF (GRNUM .GT. 1.E-6) THEN
+            IF (GRNUM .GT. practically_zero) THEN
               G2 = (G2KWT-(GRWT/GRNUM)*1000.0) / (PD(5)*(6.0-XSTAGE))
             ELSE
               G2 = (G2KWT) / (PD(5)*(6.0-XSTAGE))
