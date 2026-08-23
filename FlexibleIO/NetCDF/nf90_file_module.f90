@@ -1177,6 +1177,9 @@ contains
 
       integer,dimension(:),allocatable :: date
 
+      integer :: i
+      logical :: found
+
       character(len=14)                :: key = 'set_date_index'
 
       call self%get_dim_size('DATE', n_dates, key = key)
@@ -1191,8 +1194,13 @@ contains
 
       time_ind(3) = n_dates
 
-      do while(date(time_ind(1)) < days_since .and.&
-               date(time_ind(3)) > days_since)
+      found = .false.
+      do i=1,n_dates
+
+         if(date(time_ind(1)) < days_since .and.&
+              date(time_ind(3)) > days_since)then
+            found = .true.
+         end if
 
          time_ind(2) = (time_ind(3) + time_ind(1))/2
 
@@ -1201,10 +1209,13 @@ contains
          else if(date(time_ind(2)) < days_since)then
             time_ind(1) = time_ind(2)
          else
+            found = .true.
             exit
          end if
 
       end do
+
+      if(.not. found) stop "Error: yeardoy could not be found in DATE array!"
 
       self%z_i = time_ind(2)
 
