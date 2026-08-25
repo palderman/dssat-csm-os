@@ -41,6 +41,7 @@ C=====================================================================
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      use dssat_mpi
       IMPLICIT NONE
       EXTERNAL IPAPLT, GETLUN, YR_DOY, WARNING, ERROR, FIND
       SAVE
@@ -172,7 +173,8 @@ C-----------------------------------------------------------------------
               CALL YR_DOY(PWDINL,YRO,IDATE)
               PWDINL = (YRO +  YRDIF) * 1000 + IDATE
             ENDIF
-          ELSE IF (INDEX('AF',IPLTI) > 0 .AND. YRPLT < 0) THEN  
+          ELSE IF (INDEX('AF',IPLTI) > 0 .AND. YRPLT < 0 .and.
+     &             .not. mpi_child%use_mpi) THEN  
              CALL YR_DOY(YRSIM, YR, ISIM)
              CALL YR_DOY(PWDINL,YRO,IDATE)
              YRDIF = YR - YRO
@@ -184,7 +186,19 @@ C-----------------------------------------------------------------------
              CALL YR_DOY(PWDINF,YRO,IDATE)
              PWDINF = (YRO +  YRDIF) * 1000 + IDATE
             !YRPLT = PWDINF
-           ENDIF
+          ELSE IF (INDEX('AF',IPLTI) > 0 .AND. YRPLT < 0 .and.
+     &             mpi_child%use_mpi) THEN  
+             CALL YR_DOY(YRSIM, YR, ISIM)
+             CALL YR_DOY(PWDINF,YRO,IDATE)
+             YRDIF = YR - YRO
+             PWDINF = (YRO +  YRDIF) * 1000 + IDATE
+             IF (PWDINF .LT. YRSIM) THEN
+               YRDIF = YRDIF + 1
+               PWDINF = (YRO +  YRDIF) * 1000 + IDATE
+             ENDIF
+             CALL YR_DOY(PWDINL,YRO,IDATE)
+             PWDINL = (YRO +  YRDIF) * 1000 + IDATE
+          ENDIF
           ENDIF
       
 C***********************************************************************
