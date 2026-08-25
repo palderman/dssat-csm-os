@@ -106,9 +106,11 @@ C-----------------------------------------------------------------------
             HDATE(I) = (YR + YRDIF) * 1000 + IDATE
           END DO
         ENDIF  
- 
-        IF ((IHARI .EQ. 'A'  .or. IHARI .eq. 'F') .AND.
-     &      (HLATE .LT. YRSIM .or. HLATE .lt. YRPLT)) THEN
+
+        if(RUN .eq. 1) HEARLY = -99
+        IF (((IHARI .EQ. 'A'  .or. IHARI .eq. 'F') .AND.
+     &       (HLATE .LT. YRSIM .or. HLATE .lt. YRPLT)) .or.
+     &      (IHARI .eq. 'F' .and. HEARLY .gt. 0)) THEN
           CALL YR_DOY(HLATE, YR, IDATE)
           HLATE = (YR +  YRDIF) * 1000 + IDATE
         ENDIF
@@ -133,6 +135,8 @@ C     Daily integration
 C***********************************************************************
       ELSEIF (DYNAMIC .EQ. INTEGR) THEN
 
+      if(IHARI .eq. 'F' .and. YRDOY .eq. YREND) HEARLY = YREND
+         
 !     YREND = -99
       IF (YRDOY == YREND) RETURN
 
@@ -279,8 +283,10 @@ C           Compute average soil moisture as percent, AVGSW***
         if(YRDOY .ge. HLATE .and.
      &     (YRDOY .lt. MDATE .or. MDATE .eq. -99))then
           YREND = YRDOY
+          HEARLY = -99
         else if(YRDOY .eq. MDATE)then
           YREND = MDATE
+          HEARLY = MDATE
         end if
 C-----------------------------------------------------------------------
 C Error message if an incorrect code has been specified
