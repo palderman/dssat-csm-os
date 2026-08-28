@@ -108,6 +108,7 @@ C-----------------------------------------------------------------------
       INTEGER       YRSIM_SAVE, YRDIF, YRDOY_END !IP,IPX, 
       INTEGER       LUNBIO,LINBIO,ISECT,IFIND,LN, LNUM, FOUND
       INTEGER       NREPS, REPNO,END_POS, ROTNUM, TRTREP, NARG
+      integer       nyr_count
 
       LOGICAL       FEXIST, DONE
 
@@ -704,11 +705,8 @@ C-----------------------------------------------------------------------
         ENDIF
       else if(INDEX('Q',RNMODE) .gt. 0) then
          if(mpi_child%use_mpi)then
-!           if(control%crop .eq. 'FA')then
-!             call csminp%put('*MPI','next_crop',mpi_child%crop)
-!           else
-!             call csminp%put('*MPI','next_crop','FA')
-!           end if
+           call csminp%get('*SIMULATION CONTROL','NYRS',nyr_count)
+           if(RUN .ge. nyr_count) RUN = 0
          else if(nc_batch%yes)then
             if(control%crop == 'FA')then
                control%crop = nc_batch%crop
