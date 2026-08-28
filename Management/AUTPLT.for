@@ -54,6 +54,7 @@ C=====================================================================
       INTEGER DOY, I, IPLT, MULTI, NOUTDO, PWDINF, PWDINL
       INTEGER YEAR, YR, YRDOY, MDATE, YRPLT, IDATE, YRSIM, YRDIF
       INTEGER DYNAMIC,YRO,ISIM, PWDPLT,PWDYR, MNUM
+      INTEGER RUN, plt_count
 
       REAL AVGSW, CUMSW, DTRY, PTTN, PTX
       REAL SWPLTD, SWPLTL, SWPLTH, TSDEP, XDEP, XDEPL
@@ -76,6 +77,7 @@ C=====================================================================
       YRDIF   = CONTROL % YRDIF
       YRDOY   = CONTROL % YRDOY
       YRSIM   = CONTROL % YRSIM
+      RUN     = CONTROL % RUN
 
 C***********************************************************************
 C***********************************************************************
@@ -187,17 +189,16 @@ C-----------------------------------------------------------------------
              PWDINF = (YRO +  YRDIF) * 1000 + IDATE
             !YRPLT = PWDINF
           ELSE IF (INDEX('AF',IPLTI) > 0 .AND. YRPLT < 0 .and.
-     &             mpi_child%use_mpi) THEN  
-             CALL YR_DOY(YRSIM, YR, ISIM)
+     &            mpi_child%use_mpi) THEN
+             if(RUN .eq. 1)then
+               plt_count = 0
+             else
+               plt_count = plt_count + 1 
+             end if
              CALL YR_DOY(PWDINF,YRO,IDATE)
-             YRDIF = YR - YRO
-             PWDINF = (YRO +  YRDIF) * 1000 + IDATE
-             IF (PWDINF .LT. YRSIM) THEN
-               YRDIF = YRDIF + 1
-               PWDINF = (YRO +  YRDIF) * 1000 + IDATE
-             ENDIF
+             PWDINF = (YRO +  plt_count) * 1000 + IDATE
              CALL YR_DOY(PWDINL,YRO,IDATE)
-             PWDINL = (YRO +  YRDIF) * 1000 + IDATE
+             PWDINL = (YRO +  plt_count) * 1000 + IDATE
           ENDIF
           ENDIF
       

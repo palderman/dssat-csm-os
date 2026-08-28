@@ -142,7 +142,8 @@ C     Daily integration
 C***********************************************************************
       ELSEIF (DYNAMIC .EQ. INTEGR) THEN
 
-      if(IHARI .eq. 'F' .and. YRDOY .eq. YREND)then
+      if(IHARI .eq. 'F' .and.
+     &   (YRDOY .eq. YREND .or. YRDOY .eq. MDATE))then
         yrend_count = yrend_count + 1
       end if
          
@@ -296,7 +297,6 @@ C           Compute average soil moisture as percent, AVGSW***
           yrend_count = yrend_count + 1
         else if(YRDOY .eq. MDATE)then
           YREND = MDATE
-          yrend_count = yrend_count + 1
         end if
 C-----------------------------------------------------------------------
 C Error message if an incorrect code has been specified
