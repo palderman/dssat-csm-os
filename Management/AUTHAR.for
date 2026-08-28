@@ -43,6 +43,7 @@ C=======================================================================
       INTEGER DYNAMIC, RUN
       INTEGER HDATE(NAPPL), HSTG(NAPPL) 
       INTEGER STGDOY(20), HARVF, NPHAR
+      integer yrend_count
 
       REAL AVGSW, CUMSW, DTRY, SWPLTD
       REAL SWPLTH, SWPLTL, XDEP, XDEPL
@@ -107,10 +108,16 @@ C-----------------------------------------------------------------------
           END DO
         ENDIF  
 
-        if(RUN .eq. 1) HEARLY = -99
-        IF (((IHARI .EQ. 'A'  .or. IHARI .eq. 'F') .AND.
-     &       (HLATE .LT. YRSIM .or. HLATE .lt. YRPLT)) .or.
-     &      (IHARI .eq. 'F' .and. HEARLY .gt. 0)) THEN
+        if(RUN .eq. 1)then
+           yrend_count = 0
+        end if
+        
+        if(IHARI .eq. 'F' .and. yrend_count .gt. 0)then
+          CALL YR_DOY(HLATE, YR, IDATE)
+          HLATE = (YR +  yrend_count) * 1000 + IDATE
+        end if
+
+        IF (IHARI .EQ. 'A' .AND. HLATE .LT. YRSIM) THEN
           CALL YR_DOY(HLATE, YR, IDATE)
           HLATE = (YR +  YRDIF) * 1000 + IDATE
         ENDIF
@@ -135,7 +142,9 @@ C     Daily integration
 C***********************************************************************
       ELSEIF (DYNAMIC .EQ. INTEGR) THEN
 
-      if(IHARI .eq. 'F' .and. YRDOY .eq. YREND) HEARLY = YREND
+      if(IHARI .eq. 'F' .and. YRDOY .eq. YREND)then
+        yrend_count = yrend_count + 1
+      end if
          
 !     YREND = -99
       IF (YRDOY == YREND) RETURN
@@ -280,13 +289,14 @@ C           Compute average soil moisture as percent, AVGSW***
           ENDIF
         ENDIF
       else if(IHARI .eq. 'F')then ! Force harvest on HLATE if not at maturity yet
+
         if(YRDOY .ge. HLATE .and.
      &     (YRDOY .lt. MDATE .or. MDATE .eq. -99))then
           YREND = YRDOY
-          HEARLY = -99
+          yrend_count = yrend_count + 1
         else if(YRDOY .eq. MDATE)then
           YREND = MDATE
-          HEARLY = MDATE
+          yrend_count = yrend_count + 1
         end if
 C-----------------------------------------------------------------------
 C Error message if an incorrect code has been specified
