@@ -1897,10 +1897,18 @@
               ! Reserves to ROOT if conc too great (overflow!)
               RTWTGRS = 0.0
               ! Determine potential new concentration
-              IF (LFWT+GROLF+STWT+CHWT+GROST+GROCH.GT.0.0) TVR1 = ! Conc
-     &          (RSWT+GRORS-SENRS)/
-     &          ((LFWT+GROLF-SENLFG-SENLFGRS)
-     &          +(STWT+GROST+CHWT+GROCH)+(RSWT+GRORS))
+              IF (LFWT+GROLF+STWT+CHWT+GROST+GROCH.GT.0.0
+     &           .AND. ((LFWT+GROLF-SENLFG-SENLFGRS)
+     &            +(STWT+GROST+CHWT+GROCH)
+     &             +(RSWT+GRORS-SENRS-RTWTGRS)).GT.0.0) THEN
+                ! PDA - Adding protection for division by zero
+                 TVR1 =         ! Conc
+     &            (RSWT+GRORS-SENRS)/
+     &            ((LFWT+GROLF-SENLFG-SENLFGRS)
+     &             +(STWT+GROST+CHWT+GROCH)+(RSWT+GRORS))
+              ELSE
+                TVR1 = 0.0
+              ENDIF
               IF(TVR1.LT.0.0.AND.TVR1.GT.-1.0E-07) TVR1 = 0.0
               IF (TVR1.GT.RSPCX/100.0) THEN   ! If potential>max        
                 TVR2 = RSWT+GRORS-SENRS       ! What rswt could be
